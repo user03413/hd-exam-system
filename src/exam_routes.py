@@ -240,8 +240,19 @@ def get_extension_content(question_text: str, chapter_title: str) -> str:
         return f"## 前沿拓展\n\n暂无相关拓展信息。"
 
 
-def generate_report(student_info: Dict, questions: List, results: List, total_score: int, extensions: Dict) -> str:
+def generate_report(student_info: Dict, questions: List, results: List, total_score: int, extensions: Dict, 
+                    start_time: str = None, end_time: str = None, duration: str = None) -> str:
     """生成学习报告"""
+    
+    # 构建时间信息行
+    time_info = ""
+    if start_time:
+        time_info += f"| 开始时间 | {start_time} |\n"
+    if end_time:
+        time_info += f"| 结束时间 | {end_time} |\n"
+    if duration:
+        time_info += f"| 考试用时 | {duration} |\n"
+    
     report = f"""# 火电机组考核学习报告
 
 ## 基本信息
@@ -251,8 +262,7 @@ def generate_report(student_info: Dict, questions: List, results: List, total_sc
 | 姓名 | {student_info['name']} |
 | 学号 | {student_info['id']} |
 | 专业 | {student_info['major']} |
-| 考核时间 | {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} |
-| 总分 | **{total_score}** / 100 分 |
+{time_info}| 总分 | **{total_score}** / 100 分 |
 
 ## 成绩分析
 
@@ -931,8 +941,10 @@ async def exam_start(request: Request) -> JSONResponse:
         all_questions = load_questions()
         selected_questions = random_select_questions(all_questions, 10)
         
+        start_time = datetime.now()
         exam_sessions[session_id]['questions'] = selected_questions
-        exam_sessions[session_id]['start_time'] = datetime.now().isoformat()
+        exam_sessions[session_id]['start_time'] = start_time.isoformat()
+        exam_sessions[session_id]['start_time_obj'] = start_time  # 保存对象用于计算用时
         
         questions_for_client = []
         for q in selected_questions:
@@ -950,7 +962,8 @@ async def exam_start(request: Request) -> JSONResponse:
         return JSONResponse({
             'success': True,
             'questions': questions_for_client,
-            'total': len(questions_for_client)
+            'total': len(questions_for_client),
+            'start_time': start_time.strftime('%Y-%m-%d %H:%M:%S')
         })
         
     except Exception as e:
@@ -975,15 +988,28 @@ async def exam_submit(request: Request) -> JSONResponse:
         
         total_score, results = calculate_score(questions, answers)
         
+        # 记录结束时间并计算用时
+        end_time = datetime.now()
+        start_time_obj = session.get('start_time_obj', end_time)
+        duration_seconds = int((end_time - start_time_obj).total_seconds())
+        duration_minutes = duration_seconds // 60
+        duration_secs = duration_seconds % 60
+        
         exam_sessions[session_id]['answers'] = answers
         exam_sessions[session_id]['results'] = results
         exam_sessions[session_id]['total_score'] = total_score
-        exam_sessions[session_id]['end_time'] = datetime.now().isoformat()
+        exam_sessions[session_id]['end_time'] = end_time.isoformat()
+        exam_sessions[session_id]['end_time_obj'] = end_time
+        exam_sessions[session_id]['duration_seconds'] = duration_seconds
         
         return JSONResponse({
             'success': True,
             'score': total_score,
-            'results': results
+            'results': results,
+            'start_time': start_time_obj.strftime('%Y-%m-%d %H:%M:%S'),
+            'end_time': end_time.strftime('%Y-%m-%d %H:%M:%S'),
+            'duration': f'{duration_minutes}分{duration_secs}秒',
+            'duration_seconds': duration_seconds
         })
         
     except Exception as e:
@@ -1020,12 +1046,24 @@ async def exam_export(request: Request) -> JSONResponse:
         
         session = exam_sessions[session_id]
         
+        # 获取时间信息
+        start_time = session.get('start_time_obj')
+        end_time = session.get('end_time_obj')
+        duration_seconds = session.get('duration_seconds', 0)
+        
+        start_time_str = start_time.strftime('%Y-%m-%d %H:%M:%S') if start_time else None
+        end_time_str = end_time.strftime('%Y-%m-%d %H:%M:%S') if end_time else None
+        duration_str = f"{duration_seconds // 60}分{duration_seconds % 60}秒" if duration_seconds else None
+        
         report_content = generate_report(
             session['student'],
             session['questions'],
             session['results'],
             session['total_score'],
-            extensions
+            extensions,
+            start_time=start_time_str,
+            end_time=end_time_str,
+            duration=duration_str
         )
         
         client = DocumentGenerationClient()
@@ -1420,6 +1458,16 @@ EXAM_REAL_HTML = '''
                             </div>
                         </div>
                     </div>
+                    <div class="text-center mb-4">
+                        <div class="d-inline-block bg-light rounded-pill px-4 py-2">
+                            <i class="bi bi-clock me-2 text-primary"></i>
+                            <span class="fw-semibold">考试用时：</span>
+                            <span id="examDuration" class="text-primary fw-bold">--分--秒</span>
+                        </div>
+                        <div class="mt-2 text-muted small">
+                            <span id="examStartTime">开始：--</span> | <span id="examEndTime">结束：--</span>
+                        </div>
+                    </div>
                     <p class="text-center text-muted mb-4" id="scoreComment"></p>
                     <div id="resultsContainer"></div>
                     <div class="text-center mt-4 pt-3 border-top">
@@ -1720,6 +1768,17 @@ EXAM_REAL_HTML = '''
                 
                 if (result.success) {
                     document.getElementById('scoreDisplay').textContent = result.score;
+                    
+                    // 显示考试时间信息
+                    if (result.duration) {
+                        document.getElementById('examDuration').textContent = result.duration;
+                    }
+                    if (result.start_time) {
+                        document.getElementById('examStartTime').textContent = '开始：' + result.start_time;
+                    }
+                    if (result.end_time) {
+                        document.getElementById('examEndTime').textContent = '结束：' + result.end_time;
+                    }
                     
                     let correct = 0, wrong = 0, partial = 0;
                     result.results.forEach(r => {
