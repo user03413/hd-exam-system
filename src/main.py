@@ -9,7 +9,7 @@ import cozeloop
 import uvicorn
 import time
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import StreamingResponse, JSONResponse
+from fastapi.responses import StreamingResponse, JSONResponse, HTMLResponse
 from langchain_core.runnables import RunnableConfig
 from langgraph.graph import StateGraph, END
 from langgraph.graph.state import CompiledStateGraph
@@ -20,6 +20,11 @@ from coze_coding_utils.log.write_log import setup_logging, request_context
 from coze_coding_utils.log.config import LOG_LEVEL
 from coze_coding_utils.error.classifier import ErrorClassifier, classify_error
 from coze_coding_utils.helper.stream_runner import AgentStreamRunner, WorkflowStreamRunner,agent_stream_handler,workflow_stream_handler, RunOpt
+
+# 导入考核系统路由
+from exam_routes import (
+    exam_verify, exam_start, exam_submit, exam_extension, exam_export, get_exam_page
+)
 
 setup_logging(
     log_file=LOG_FILE,
@@ -235,6 +240,14 @@ class GraphService:
 
 service = GraphService()
 app = FastAPI()
+
+# 注册考核系统路由
+app.add_api_route("/api/exam/verify", exam_verify, methods=["POST"])
+app.add_api_route("/api/exam/start", exam_start, methods=["POST"])
+app.add_api_route("/api/exam/submit", exam_submit, methods=["POST"])
+app.add_api_route("/api/exam/extension", exam_extension, methods=["POST"])
+app.add_api_route("/api/exam/export", exam_export, methods=["POST"])
+app.add_api_route("/exam", get_exam_page, methods=["GET"])
 
 # OpenAI 兼容接口处理器
 openai_handler = OpenAIChatHandler(service)
