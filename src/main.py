@@ -23,7 +23,8 @@ from coze_coding_utils.helper.stream_runner import AgentStreamRunner, WorkflowSt
 
 # 导入考核系统路由
 from exam_routes import (
-    exam_verify, exam_start, exam_submit, exam_extension, exam_export, get_exam_page
+    exam_verify, exam_start, exam_submit, exam_extension, exam_export, 
+    get_exam_page, get_exam_real_page
 )
 
 setup_logging(
@@ -248,6 +249,7 @@ app.add_api_route("/api/exam/submit", exam_submit, methods=["POST"])
 app.add_api_route("/api/exam/extension", exam_extension, methods=["POST"])
 app.add_api_route("/api/exam/export", exam_export, methods=["POST"])
 app.add_api_route("/exam", get_exam_page, methods=["GET"])
+app.add_api_route("/exam/real", get_exam_real_page, methods=["GET"])
 
 # OpenAI 兼容接口处理器
 openai_handler = OpenAIChatHandler(service)

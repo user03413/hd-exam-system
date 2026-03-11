@@ -26,11 +26,14 @@ def load_students() -> Dict[str, Dict]:
     df = pd.read_excel(STUDENT_FILE)
     students = {}
     for _, row in df.iterrows():
-        student_id = str(row['学号']).strip()
+        # 处理学号，确保是字符串格式
+        student_id = str(int(row['学号'])).strip() if pd.notna(row['学号']) else ''
+        if not student_id:
+            continue
         students[student_id] = {
             'id': student_id,
-            'name': str(row['姓名']).strip(),
-            'major': str(row.get('专业', row.get('班级', ''))).strip()
+            'name': str(row['姓名']).strip() if pd.notna(row['姓名']) else '',
+            'major': str(row.get('专业', '')).strip() if pd.notna(row.get('专业', '')) else '控制工程'
         }
     return students
 
@@ -1042,3 +1045,741 @@ async def exam_export(request: Request) -> JSONResponse:
 def get_exam_page() -> HTMLResponse:
     """返回考核页面"""
     return HTMLResponse(content=EXAM_HTML)
+
+
+# 正式考试页面HTML模板
+EXAM_REAL_HTML = '''
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>火电厂热工自动控制考核系统 - 正式考试</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-blue: #1e3a5f;
+            --accent-blue: #2563eb;
+            --success-green: #059669;
+            --danger-red: #dc2626;
+            --warning-yellow: #d97706;
+            --light-bg: #f8fafc;
+            --border-color: #e2e8f0;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: "Microsoft YaHei", "PingFang SC", -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f1f5f9;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+        .header-bar {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, #2d4a6f 100%);
+            color: white;
+            padding: 15px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .header-bar h1 { font-size: 1.5rem; margin: 0; font-weight: 600; }
+        .header-bar .subtitle { font-size: 0.85rem; opacity: 0.9; }
+        .app-container { max-width: 1000px; margin: 0 auto; padding: 20px; min-height: calc(100vh - 70px); }
+        .card {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background: var(--light-bg);
+            border-bottom: 1px solid var(--border-color);
+            padding: 15px 20px;
+            border-radius: 12px 12px 0 0;
+            font-weight: 600;
+            color: var(--primary-blue);
+        }
+        .card-body { padding: 25px; }
+        .login-logo {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--accent-blue) 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+        .login-logo i { font-size: 50px; color: white; }
+        .form-label { font-weight: 500; color: #374151; margin-bottom: 8px; }
+        .form-control {
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+        .form-control:focus {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--accent-blue) 100%);
+            border: none;
+            padding: 14px 32px;
+            font-weight: 600;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+        .btn-primary:disabled { opacity: 0.7; transform: none; }
+        .btn-success { background: var(--success-green); border: none; }
+        .btn-outline-secondary { border-color: var(--border-color); color: #64748b; }
+        .alert { border-radius: 8px; border: none; }
+        .alert-info { background: #eff6ff; color: #1e40af; }
+        .alert-success { background: #ecfdf5; color: #065f46; }
+        .question-card {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--accent-blue);
+        }
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .question-type {
+            font-size: 12px;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+        .type-single { background: #dbeafe; color: #1e40af; }
+        .type-multiple { background: #fef3c7; color: #92400e; }
+        .type-short { background: #d1fae5; color: #065f46; }
+        .difficulty-badge { font-size: 11px; padding: 2px 8px; border-radius: 4px; background: #f1f5f9; color: #64748b; }
+        .diff-基础 { background: #d1fae5; color: #065f46; }
+        .diff-中等 { background: #fef3c7; color: #92400e; }
+        .diff-困难 { background: #fee2e2; color: #991b1b; }
+        .question-number { font-size: 14px; color: #64748b; }
+        .question-text { font-size: 15px; line-height: 1.7; color: #1f2937; margin-bottom: 15px; }
+        .chapter-info { font-size: 12px; color: #6b7280; margin-bottom: 10px; }
+        .option-item {
+            background: var(--light-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .option-item:hover { border-color: var(--accent-blue); background: #eff6ff; }
+        .option-item.selected { border-color: var(--accent-blue); background: #dbeafe; }
+        .option-item.correct { border-color: var(--success-green); background: #d1fae5; }
+        .option-item.wrong { border-color: var(--danger-red); background: #fee2e2; }
+        .option-item label { cursor: pointer; width: 100%; margin: 0; display: flex; align-items: flex-start; }
+        .option-item input { margin-right: 12px; margin-top: 3px; min-width: 18px; }
+        .option-label { font-weight: 600; color: var(--accent-blue); margin-right: 8px; }
+        .option-text { color: #374151; }
+        .short-answer-input {
+            min-height: 120px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            font-size: 14px;
+            line-height: 1.6;
+            resize: vertical;
+        }
+        .short-answer-input:focus { border-color: var(--accent-blue); }
+        .progress-bar-container { background: #e2e8f0; border-radius: 6px; height: 10px; margin: 15px 0; overflow: hidden; }
+        .progress-bar-fill {
+            height: 100%;
+            border-radius: 6px;
+            background: linear-gradient(90deg, var(--accent-blue), #3b82f6);
+            transition: width 0.3s ease;
+        }
+        .timer-display {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--primary-blue);
+            font-family: "Courier New", monospace;
+        }
+        .result-score-card {
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--accent-blue) 100%);
+            border-radius: 12px;
+            color: white;
+            margin-bottom: 25px;
+        }
+        .result-score { font-size: 64px; font-weight: 700; line-height: 1; }
+        .result-score-label { font-size: 18px; opacity: 0.9; margin-top: 5px; }
+        .result-stats { display: flex; justify-content: center; gap: 30px; margin-top: 20px; }
+        .stat-item { text-align: center; }
+        .stat-value { font-size: 28px; font-weight: 600; }
+        .stat-label { font-size: 12px; opacity: 0.8; }
+        .analysis-box {
+            background: #f0f9ff;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            border: 1px solid #bae6fd;
+        }
+        .analysis-box h6 { color: #0369a1; margin-bottom: 8px; }
+        .extension-box {
+            background: #fefce8;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            border: 1px solid #fef08a;
+        }
+        .extension-box h6 { color: #a16207; margin-bottom: 8px; }
+        .result-mark { font-size: 18px; margin-left: 8px; }
+        .answer-comparison { margin-top: 15px; padding: 15px; background: var(--light-bg); border-radius: 8px; }
+        .answer-comparison p { margin: 5px 0; }
+        .loading-spinner {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .fade-in { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .section { display: none; }
+        .section.active { display: block; }
+        .exam-info-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        @media (max-width: 768px) {
+            .header-bar h1 { font-size: 1.2rem; }
+            .app-container { padding: 15px; }
+            .card-body { padding: 18px; }
+            .question-card { padding: 15px; }
+            .result-score { font-size: 48px; }
+            .btn-primary { width: 100%; }
+            .result-stats { gap: 15px; }
+            .stat-value { font-size: 22px; }
+        }
+        .watermark {
+            position: fixed;
+            bottom: 10px;
+            right: 20px;
+            font-size: 11px;
+            color: #94a3b8;
+        }
+    </style>
+</head>
+<body>
+    <div class="header-bar">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1><i class="bi bi-lightning-charge-fill me-2"></i>火电厂热工自动控制考核系统</h1>
+                    <div class="subtitle">《火电厂热工自动控制技术及应用》在线考试</div>
+                </div>
+                <div class="exam-info-badge" id="examInfoBadge" style="display:none;">
+                    <i class="bi bi-clock"></i>
+                    <span class="timer-display" id="headerTimer">00:00</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="app-container">
+        <!-- 登录页面 -->
+        <div id="loginSection" class="section active">
+            <div class="card">
+                <div class="card-body text-center">
+                    <div class="login-logo">
+                        <i class="bi bi-person-badge"></i>
+                    </div>
+                    <h4 class="mb-3">考生身份验证</h4>
+                    <p class="text-muted mb-4">请输入您的学号进行身份验证</p>
+                    <form id="loginForm" class="mx-auto" style="max-width: 400px;">
+                        <div class="mb-4">
+                            <label class="form-label">学号</label>
+                            <input type="text" class="form-control form-control-lg" id="studentId" 
+                                   placeholder="请输入学号" required autocomplete="off">
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-lg w-100">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>验证并进入考试
+                        </button>
+                    </form>
+                    <div class="mt-4 text-muted small">
+                        <i class="bi bi-shield-check me-1"></i>
+                        请确保在安静环境下独立完成考试
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 准备页面 -->
+        <div id="readySection" class="section">
+            <div class="card">
+                <div class="card-header">
+                    <i class="bi bi-person-check me-2"></i>身份验证成功
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="alert alert-success mb-0">
+                                <h5 class="alert-heading mb-2">考生信息</h5>
+                                <p class="mb-1"><strong>姓名：</strong><span id="studentName"></span></p>
+                                <p class="mb-1"><strong>学号：</strong><span id="studentIdDisplay"></span></p>
+                                <p class="mb-0"><strong>专业：</strong><span id="studentMajor"></span></p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="alert alert-info mb-0">
+                                <h5 class="alert-heading mb-2"><i class="bi bi-info-circle me-2"></i>考试须知</h5>
+                                <ul class="mb-0 small">
+                                    <li>本考试共 <strong>10</strong> 道题（单选4题 + 多选3题 + 简答3题）</li>
+                                    <li>每题 <strong>10</strong> 分，满分 <strong>100</strong> 分</li>
+                                    <li>请认真作答，提交后可查看解析</li>
+                                    <li>支持导出完整学习报告</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <button id="startExamBtn" class="btn btn-primary btn-lg px-5">
+                            <i class="bi bi-play-circle me-2"></i>开始答题
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 答题页面 -->
+        <div id="examSection" class="section">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-file-text me-2"></i>答题中</span>
+                    <span class="question-number" id="progressText">0 / 10 已完成</span>
+                </div>
+                <div class="card-body">
+                    <div class="progress-bar-container">
+                        <div class="progress-bar-fill" id="progressBar" style="width: 0%"></div>
+                    </div>
+                    <div id="questionsContainer"></div>
+                    <div class="text-center mt-4 pt-3 border-top">
+                        <button id="submitExamBtn" class="btn btn-primary btn-lg px-5">
+                            <i class="bi bi-check-circle me-2"></i>提交答卷
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 结果页面 -->
+        <div id="resultSection" class="section">
+            <div class="card">
+                <div class="card-header text-center">
+                    <i class="bi bi-trophy me-2"></i>考核完成
+                </div>
+                <div class="card-body">
+                    <div class="result-score-card">
+                        <div class="result-score" id="scoreDisplay">0</div>
+                        <div class="result-score-label">分</div>
+                        <div class="result-stats">
+                            <div class="stat-item">
+                                <div class="stat-value text-success" id="correctCount">0</div>
+                                <div class="stat-label">正确</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value text-warning" id="partialCount">0</div>
+                                <div class="stat-label">部分得分</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value text-danger" id="wrongCount">0</div>
+                                <div class="stat-label">错误</div>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-center text-muted mb-4" id="scoreComment"></p>
+                    <div id="resultsContainer"></div>
+                    <div class="text-center mt-4 pt-3 border-top">
+                        <button id="exportReportBtn" class="btn btn-success btn-lg me-2">
+                            <i class="bi bi-download me-2"></i>导出学习报告
+                        </button>
+                        <button id="restartBtn" class="btn btn-outline-secondary btn-lg">
+                            <i class="bi bi-arrow-repeat me-2"></i>重新开始
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="watermark">火电厂热工自动控制考核系统 v1.0</div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let sessionId = null;
+        let questions = [];
+        let answers = {};
+        let extensions = {};
+        let timer = null;
+        let seconds = 0;
+        const API_BASE = '';
+        
+        function showSection(sectionId) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+            document.getElementById('examInfoBadge').style.display = sectionId === 'examSection' ? 'inline-flex' : 'none';
+        }
+        
+        function updateTimer() {
+            seconds++;
+            const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+            const secs = (seconds % 60).toString().padStart(2, '0');
+            const timeStr = `${mins}:${secs}`;
+            document.getElementById('headerTimer').textContent = timeStr;
+            if (document.getElementById('timer')) {
+                document.getElementById('timer').textContent = timeStr;
+            }
+        }
+        
+        function updateProgress() {
+            const answered = Object.keys(answers).length;
+            const total = questions.length;
+            const percent = (answered / total) * 100;
+            document.getElementById('progressText').textContent = `${answered} / ${total} 已完成`;
+            document.getElementById('progressBar').style.width = `${percent}%`;
+        }
+        
+        function renderQuestions() {
+            const container = document.getElementById('questionsContainer');
+            container.innerHTML = '';
+            
+            questions.forEach((q, index) => {
+                const qCard = document.createElement('div');
+                qCard.className = 'question-card fade-in';
+                qCard.id = `question-${q.seq}`;
+                
+                let typeClass = 'type-single';
+                let typeLabel = '单选题';
+                if (q.type === '多选题') { typeClass = 'type-multiple'; typeLabel = '多选题'; }
+                else if (q.type === '简答题') { typeClass = 'type-short'; typeLabel = '简答题'; }
+                
+                let diffClass = 'diff-' + q.difficulty;
+                
+                let optionsHtml = '';
+                if (q.type === '单选题' || q.type === '多选题') {
+                    optionsHtml = '<div class="options-container">';
+                    Object.entries(q.options).forEach(([key, value]) => {
+                        const inputType = q.type === '单选题' ? 'radio' : 'checkbox';
+                        optionsHtml += `
+                            <div class="option-item" data-seq="${q.seq}" data-option="${key}">
+                                <label>
+                                    <input type="${inputType}" name="q${q.seq}" value="${key}">
+                                    <span class="option-label">${key}.</span>
+                                    <span class="option-text">${value}</span>
+                                </label>
+                            </div>`;
+                    });
+                    optionsHtml += '</div>';
+                } else {
+                    optionsHtml = `<textarea class="form-control short-answer-input" data-seq="${q.seq}" placeholder="请在此输入您的答案..."></textarea>`;
+                }
+                
+                qCard.innerHTML = `
+                    <div class="question-header">
+                        <div>
+                            <span class="question-type ${typeClass}">${typeLabel}</span>
+                            <span class="difficulty-badge ${diffClass}">${q.difficulty}</span>
+                        </div>
+                        <span class="question-number">第 ${q.seq} 题</span>
+                    </div>
+                    <div class="chapter-info"><i class="bi bi-book me-1"></i>${q.chapter} ${q.chapter_title}</div>
+                    <div class="question-text">${q.question}</div>
+                    ${optionsHtml}`;
+                
+                container.appendChild(qCard);
+            });
+            
+            bindOptionEvents();
+        }
+        
+        function bindOptionEvents() {
+            document.querySelectorAll('.option-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const seq = this.dataset.seq;
+                    const option = this.dataset.option;
+                    const input = this.querySelector('input');
+                    const qType = questions.find(q => q.seq == seq).type;
+                    
+                    if (qType === '单选题') {
+                        document.querySelectorAll(`[data-seq="${seq}"]`).forEach(opt => opt.classList.remove('selected'));
+                        this.classList.add('selected');
+                        input.checked = true;
+                        answers[seq] = option;
+                    } else {
+                        this.classList.toggle('selected');
+                        input.checked = !input.checked;
+                        const selected = [];
+                        document.querySelectorAll(`[data-seq="${seq}"].selected`).forEach(opt => selected.push(opt.dataset.option));
+                        answers[seq] = selected;
+                    }
+                    updateProgress();
+                });
+            });
+            
+            document.querySelectorAll('.short-answer-input').forEach(textarea => {
+                textarea.addEventListener('input', function() {
+                    answers[this.dataset.seq] = this.value.trim();
+                    updateProgress();
+                });
+            });
+        }
+        
+        function renderResults(results) {
+            const container = document.getElementById('resultsContainer');
+            container.innerHTML = '';
+            
+            results.forEach((r, index) => {
+                const rCard = document.createElement('div');
+                rCard.className = 'question-card fade-in';
+                
+                let resultIcon = r.is_correct ? '✓' : (r.score > 0 ? '△' : '✗');
+                let resultClass = r.is_correct ? 'text-success' : (r.score > 0 ? 'text-warning' : 'text-danger');
+                
+                let optionsHtml = '';
+                if (r.options) {
+                    optionsHtml = '<div class="options-container">';
+                    Object.entries(r.options).forEach(([key, value]) => {
+                        let optClass = '';
+                        const userAns = r.user_answer;
+                        const correctAns = r.correct_answer;
+                        const isSelected = (Array.isArray(userAns) && userAns.includes(key)) || userAns === key;
+                        const isCorrect = (Array.isArray(correctAns) && correctAns.includes(key)) || correctAns === key;
+                        
+                        if (isCorrect) optClass = 'correct';
+                        else if (isSelected && !isCorrect) optClass = 'wrong';
+                        
+                        const icon = isCorrect ? ' ✓' : (isSelected && !isCorrect ? ' ✗' : '');
+                        optionsHtml += `<div class="option-item ${optClass}"><label><span class="option-label">${key}.</span><span class="option-text">${value}${icon}</span></label></div>`;
+                    });
+                    optionsHtml += '</div>';
+                }
+                
+                rCard.innerHTML = `
+                    <div class="question-header">
+                        <div>
+                            <span class="question-type type-${r.type === '单选题' ? 'single' : r.type === '多选题' ? 'multiple' : 'short'}">${r.type}</span>
+                            <span class="result-mark ${resultClass}">${resultIcon}</span>
+                        </div>
+                        <span class="fw-bold">${r.score} / 10 分</span>
+                    </div>
+                    <div class="chapter-info"><i class="bi bi-book me-1"></i>${r.chapter} ${r.chapter_title}（第${r.page}页）</div>
+                    <div class="question-text">${r.seq}. ${r.question}</div>
+                    ${optionsHtml}
+                    ${r.type === '简答题' ? `
+                        <div class="answer-comparison">
+                            <p><strong>你的答案：</strong><span class="${r.score >= 10 ? 'text-success' : r.score >= 5 ? 'text-warning' : 'text-danger'}">${r.user_answer || '未作答'}</span></p>
+                            <p><strong>参考答案：</strong><span class="text-info">${r.correct_answer}</span></p>
+                        </div>` : `
+                        <div class="answer-comparison">
+                            <p><strong>你的答案：</strong>${Array.isArray(r.user_answer) ? r.user_answer.join(', ') : r.user_answer || '未作答'}</p>
+                            <p><strong>正确答案：</strong><span class="text-success">${Array.isArray(r.correct_answer) ? r.correct_answer.join(', ') : r.correct_answer}</span></p>
+                        </div>`}
+                    <div class="analysis-box">
+                        <h6><i class="bi bi-lightbulb me-2"></i>解析</h6>
+                        <p class="mb-0">${r.analysis}</p>
+                    </div>
+                    <div class="extension-box" id="extension-${r.seq}">
+                        <h6><i class="bi bi-search me-2"></i>前沿拓展</h6>
+                        <button class="btn btn-sm btn-outline-primary" onclick="loadExtension(${r.seq}, '${r.chapter_title}')">
+                            <i class="bi bi-arrow-clockwise me-1"></i>点击加载
+                        </button>
+                    </div>`;
+                
+                container.appendChild(rCard);
+            });
+        }
+        
+        async function loadExtension(seq, chapterTitle) {
+            const extDiv = document.getElementById(`extension-${seq}`);
+            extDiv.innerHTML = '<div class="text-center py-2"><div class="loading-spinner" style="border-top-color: #d97706;"></div> 加载中...</div>';
+            const q = questions.find(q => q.seq === seq);
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/exam/extension`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({question: q.question, chapter_title: chapterTitle})
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    extensions[seq] = data.extension;
+                    extDiv.innerHTML = `<h6><i class="bi bi-search me-2"></i>前沿拓展</h6><div class="small">${data.extension.replace(/\\n/g, '<br>')}</div>`;
+                } else {
+                    extDiv.innerHTML = `<div class="text-muted small">${data.message}</div>`;
+                }
+            } catch (error) {
+                extDiv.innerHTML = `<div class="text-danger small">加载失败：${error.message}</div>`;
+            }
+        }
+        
+        async function apiCall(endpoint, data) {
+            const response = await fetch(`${API_BASE}${endpoint}`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            });
+            return await response.json();
+        }
+        
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const studentId = document.getElementById('studentId').value.trim();
+            if (!studentId) { alert('请输入学号'); return; }
+            
+            const btn = this.querySelector('button[type="submit"]');
+            btn.disabled = true;
+            btn.innerHTML = '<div class="loading-spinner me-2"></div>验证中...';
+            
+            try {
+                const result = await apiCall('/api/exam/verify', {student_id: studentId});
+                if (result.success) {
+                    sessionId = result.session_id;
+                    document.getElementById('studentName').textContent = result.student.name;
+                    document.getElementById('studentIdDisplay').textContent = result.student.id;
+                    document.getElementById('studentMajor').textContent = result.student.major;
+                    showSection('readySection');
+                } else {
+                    alert(result.message);
+                }
+            } catch (error) {
+                alert('验证失败：' + error.message);
+            }
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-box-arrow-in-right me-2"></i>验证并进入考试';
+        });
+        
+        document.getElementById('startExamBtn').addEventListener('click', async function() {
+            this.disabled = true;
+            this.innerHTML = '<div class="loading-spinner me-2"></div>加载题目...';
+            
+            try {
+                const result = await apiCall('/api/exam/start', {session_id: sessionId});
+                if (result.success) {
+                    questions = result.questions;
+                    renderQuestions();
+                    showSection('examSection');
+                    timer = setInterval(updateTimer, 1000);
+                } else {
+                    alert(result.message);
+                    this.disabled = false;
+                    this.innerHTML = '<i class="bi bi-play-circle me-2"></i>开始答题';
+                }
+            } catch (error) {
+                alert('开始失败：' + error.message);
+                this.disabled = false;
+                this.innerHTML = '<i class="bi bi-play-circle me-2"></i>开始答题';
+            }
+        });
+        
+        document.getElementById('submitExamBtn').addEventListener('click', async function() {
+            const answeredCount = Object.keys(answers).length;
+            if (answeredCount < questions.length) {
+                if (!confirm(`还有 ${questions.length - answeredCount} 道题目未作答，确定要提交吗？`)) return;
+            }
+            
+            this.disabled = true;
+            this.innerHTML = '<div class="loading-spinner me-2"></div>提交中...';
+            
+            try {
+                clearInterval(timer);
+                const result = await apiCall('/api/exam/submit', {session_id: sessionId, answers: answers});
+                
+                if (result.success) {
+                    document.getElementById('scoreDisplay').textContent = result.score;
+                    
+                    let correct = 0, wrong = 0, partial = 0;
+                    result.results.forEach(r => {
+                        if (r.is_correct) correct++;
+                        else if (r.score > 0) partial++;
+                        else wrong++;
+                    });
+                    
+                    document.getElementById('correctCount').textContent = correct;
+                    document.getElementById('wrongCount').textContent = wrong;
+                    document.getElementById('partialCount').textContent = partial;
+                    
+                    let comment = result.score >= 90 ? '优秀！继续保持！' : 
+                                  result.score >= 80 ? '良好，再接再厉！' : 
+                                  result.score >= 60 ? '及格，需要加强学习。' : '不及格，请认真复习。';
+                    document.getElementById('scoreComment').textContent = comment;
+                    
+                    renderResults(result.results);
+                    showSection('resultSection');
+                } else {
+                    alert(result.message);
+                    this.disabled = false;
+                    this.innerHTML = '<i class="bi bi-check-circle me-2"></i>提交答卷';
+                }
+            } catch (error) {
+                alert('提交失败：' + error.message);
+                this.disabled = false;
+                this.innerHTML = '<i class="bi bi-check-circle me-2"></i>提交答卷';
+            }
+        });
+        
+        document.getElementById('exportReportBtn').addEventListener('click', async function() {
+            this.disabled = true;
+            this.innerHTML = '<div class="loading-spinner me-2"></div>生成中...';
+            
+            try {
+                const result = await apiCall('/api/exam/export', {session_id: sessionId, extensions: extensions});
+                if (result.success) {
+                    window.open(result.download_url, '_blank');
+                    alert('报告已生成，请在新窗口下载！');
+                } else {
+                    alert(result.message);
+                }
+            } catch (error) {
+                alert('导出失败：' + error.message);
+            }
+            
+            this.disabled = false;
+            this.innerHTML = '<i class="bi bi-download me-2"></i>导出学习报告';
+        });
+        
+        document.getElementById('restartBtn').addEventListener('click', function() {
+            if (confirm('确定要重新开始吗？')) location.reload();
+        });
+    </script>
+</body>
+</html>
+'''
+
+
+def get_exam_real_page() -> HTMLResponse:
+    """返回正式考核页面"""
+    return HTMLResponse(content=EXAM_REAL_HTML)
