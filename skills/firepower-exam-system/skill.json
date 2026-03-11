@@ -5,63 +5,13 @@
   "description": "基于热工教材的在线考核系统，支持学号验证、随机抽题、在线答题、自动判分、前沿拓展及学习报告导出",
   "author": "Coze AI",
   "category": "education",
-  "tags": ["考试系统", "热工控制", "在线答题", "自动判分", "学习报告"],
-  
-  "entry_points": {
-    "web": {
-      "path": "/exam/real",
-      "method": "GET",
-      "description": "考试系统入口页面"
-    },
-    "api": {
-      "base_path": "/api/exam",
-      "endpoints": [
-        {
-          "path": "/verify",
-          "method": "POST",
-          "description": "学号验证"
-        },
-        {
-          "path": "/start",
-          "method": "POST",
-          "description": "开始考试"
-        },
-        {
-          "path": "/submit",
-          "method": "POST",
-          "description": "提交答案"
-        },
-        {
-          "path": "/extension",
-          "method": "POST",
-          "description": "获取前沿拓展"
-        },
-        {
-          "path": "/export",
-          "method": "POST",
-          "description": "导出学习报告"
-        }
-      ]
-    }
-  },
+  "tags": ["考试系统", "热工控制", "在线答题"],
   
   "dependencies": {
     "skills": [
-      {
-        "name": "llm",
-        "required": true,
-        "usage": "简答题评分和解析生成"
-      },
-      {
-        "name": "web-search",
-        "required": true,
-        "usage": "获取前沿拓展内容"
-      },
-      {
-        "name": "document-generation",
-        "required": true,
-        "usage": "生成PDF学习报告"
-      }
+      {"name": "/skills/public/prod/llm", "required": true},
+      {"name": "/skills/public/prod/web-search", "required": true},
+      {"name": "/skills/public/prod/document-generation", "required": true}
     ],
     "python_packages": [
       "fastapi>=0.100.0",
@@ -73,127 +23,18 @@
     ]
   },
   
-  "configuration": {
-    "env_vars": [
-      {
-        "name": "COZE_WORKSPACE_PATH",
-        "description": "工作目录路径",
-        "default": "/workspace/projects",
-        "required": false
-      },
-      {
-        "name": "COZE_WORKLOAD_IDENTITY_API_KEY",
-        "description": "API密钥",
-        "required": true
-      },
-      {
-        "name": "COZE_INTEGRATION_MODEL_BASE_URL",
-        "description": "模型服务地址",
-        "required": true
-      }
-    ],
-    "data_files": [
-      {
-        "path": "assets/火电机组考核学生名单.xlsx",
-        "description": "学生名单",
-        "required": true,
-        "template": "data/students.xlsx"
-      },
-      {
-        "path": "assets/《火电厂热工自动控制技术及应用》_100题.xlsx",
-        "description": "题库文件",
-        "required": true,
-        "template": "data/questions.xlsx"
-      }
-    ]
+  "entry_points": {
+    "web": "/exam/real",
+    "api": "/api/exam"
   },
   
-  "files": {
-    "source": [
-      "src/exam_routes.py",
-      "src/main.py"
-    ],
-    "docs": [
-      "docs/ARCHITECTURE.md",
-      "docs/API_REFERENCE.md",
-      "docs/SKILL_GUIDE.md"
-    ],
-    "examples": [
-      "examples/verify_student.py",
-      "examples/submit_exam.py",
-      "examples/export_report.py"
-    ],
-    "data": [
-      "data/students.xlsx",
-      "data/questions.xlsx"
-    ]
-  },
-  
-  "capabilities": [
-    {
-      "name": "student_verification",
-      "description": "学生身份验证",
-      "input": {
-        "student_id": "string - 学号"
-      },
-      "output": {
-        "success": "boolean - 验证结果",
-        "student": "object - 学生信息",
-        "session_id": "string - 会话ID"
-      }
-    },
-    {
-      "name": "random_questions",
-      "description": "随机抽取题目",
-      "input": {
-        "session_id": "string - 会话ID"
-      },
-      "output": {
-        "questions": "array - 题目列表",
-        "start_time": "string - 开始时间"
-      }
-    },
-    {
-      "name": "auto_grading",
-      "description": "自动判分",
-      "input": {
-        "session_id": "string - 会话ID",
-        "answers": "object - 答案"
-      },
-      "output": {
-        "score": "int - 得分",
-        "results": "array - 判分详情",
-        "duration": "string - 用时"
-      }
-    },
-    {
-      "name": "extension_search",
-      "description": "前沿拓展搜索",
-      "input": {
-        "question": "string - 题目内容",
-        "chapter_title": "string - 章节名称"
-      },
-      "output": {
-        "extension": "string - 拓展内容(Markdown)"
-      }
-    },
-    {
-      "name": "report_export",
-      "description": "导出学习报告",
-      "input": {
-        "session_id": "string - 会话ID",
-        "extensions": "object - 拓展内容"
-      },
-      "output": {
-        "download_url": "string - PDF下载链接"
-      }
-    }
+  "required_env_vars": [
+    "COZE_WORKLOAD_IDENTITY_API_KEY",
+    "COZE_INTEGRATION_MODEL_BASE_URL"
   ],
   
-  "metadata": {
-    "created_at": "2025-03-11",
-    "updated_at": "2025-03-11",
-    "license": "MIT",
-    "repository": ""
-  }
+  "required_files": [
+    "assets/火电机组考核学生名单.xlsx",
+    "assets/《火电厂热工自动控制技术及应用》_100题.xlsx"
+  ]
 }
