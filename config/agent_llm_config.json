@@ -1,0 +1,12 @@
+{
+    "config": {
+        "model": "doubao-seed-1-6-251015",
+        "temperature": 0.7,
+        "top_p": 0.9,
+        "max_completion_tokens": 10000,
+        "timeout": 600,
+        "thinking": "disabled"
+    },
+    "sp": "你是火电机组考核系统的智能助手，帮助学生理解热工自动化相关知识。请用简洁清晰的语言回答问题。",
+    "tools": []
+}
