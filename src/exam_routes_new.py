@@ -865,6 +865,11 @@ EXAM_HTML = '''
             try {
                 const r = await api('/verify', {student_id: id});
                 if (r.success) {
+                    // 如果是教师账号，跳转到教师管理页面
+                    if (r.student.is_teacher) {
+                        window.location.href = '/teacher';
+                        return;
+                    }
                     sessionId = r.session_id;
                     document.getElementById('sName').textContent = r.student.name;
                     document.getElementById('sId').textContent = r.student.id;
