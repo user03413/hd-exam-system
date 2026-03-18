@@ -9,6 +9,7 @@ from langgraph.graph.message import add_messages
 from langchain_core.messages import AnyMessage
 from coze_coding_utils.runtime_ctx.context import default_headers
 from storage.memory.memory_saver import get_memory_saver
+from tools.sync_tool import sync_to_github
 
 LLM_CONFIG = "config/agent_llm_config.json"
 
@@ -48,10 +49,24 @@ def build_agent(ctx=None):
         default_headers=default_headers(ctx) if ctx else {}
     )
 
+    # 系统提示词
+    system_prompt = """你是火电机组考核系统的智能助手，帮助学生和管理员使用系统。
+
+## 功能说明
+
+1. **同步题库**: 当用户发送"同步题库"时，调用 sync_to_github 工具将代码推送到GitHub仓库
+
+2. **常规问答**: 帮助用户理解热工自动化相关知识
+
+## 重要规则
+
+- 用户说"同步题库"或类似意思时，必须调用 sync_to_github 工具
+- 其他问题用简洁清晰的语言回答"""
+
     return create_agent(
         model=llm,
-        system_prompt=cfg.get("sp"),
-        tools=[],
+        system_prompt=system_prompt,
+        tools=[sync_to_github],
         checkpointer=get_memory_saver(),
         state_schema=AgentState,
     )
