@@ -7,7 +7,7 @@ from coze_coding_utils.runtime_ctx.context import new_context
 
 # GitHub配置 - 请替换为您的GitHub用户名
 GITHUB_TOKEN = "096c68c5d22d5bb20fd31a1967a70277"
-GITHUB_USERNAME = "YOUR_GITHUB_USERNAME"  # 请替换为您的GitHub用户名
+GITHUB_USERNAME = "user03413"
 REPO_NAME = "hd-exam-system"
 
 
