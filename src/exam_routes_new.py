@@ -16,9 +16,40 @@ from coze_coding_utils.runtime_ctx.context import new_context
 WORKSPACE_PATH = os.getenv("COZE_WORKSPACE_PATH", "/workspace/projects")
 STUDENT_FILE = os.path.join(WORKSPACE_PATH, 'assets', '火电机组考核学生名单.xlsx')
 QUESTION_FILE = os.path.join(WORKSPACE_PATH, 'assets', '244题_热工自动化试题集.xlsx')
+EXAM_RECORDS_FILE = os.path.join(WORKSPACE_PATH, 'assets', 'exam_records.json')
 
 # 会话存储
 exam_sessions: Dict[str, Dict] = {}
+
+# 考试记录存储
+exam_records: List[Dict] = []
+
+
+def load_exam_records() -> List[Dict]:
+    """加载考试记录"""
+    global exam_records
+    try:
+        if os.path.exists(EXAM_RECORDS_FILE):
+            with open(EXAM_RECORDS_FILE, 'r', encoding='utf-8') as f:
+                exam_records = json.load(f)
+        return exam_records
+    except Exception as e:
+        print(f"加载考试记录失败: {e}")
+        exam_records = []
+        return exam_records
+
+
+def save_exam_records():
+    """保存考试记录"""
+    try:
+        with open(EXAM_RECORDS_FILE, 'w', encoding='utf-8') as f:
+            json.dump(exam_records, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        print(f"保存考试记录失败: {e}")
+
+
+# 初始化加载考试记录
+load_exam_records()
 
 
 def load_students() -> Dict[str, Dict]:
@@ -43,15 +74,29 @@ def load_students() -> Dict[str, Dict]:
             'major': '控制工程（测试）'
         }
         
+        # 添加教师管理账号
+        students['654321'] = {
+            'id': '654321',
+            'name': '教师管理员',
+            'major': '教师',
+            'is_teacher': True
+        }
+        
         return students
     except Exception as e:
         print(f"加载学生名单失败: {e}")
-        # 即使加载失败，也返回测试账号
+        # 即使加载失败，也返回测试账号和教师账号
         return {
             '123456': {
                 'id': '123456',
                 'name': '测试学生',
                 'major': '控制工程（测试）'
+            },
+            '654321': {
+                'id': '654321',
+                'name': '教师管理员',
+                'major': '教师',
+                'is_teacher': True
             }
         }
 
@@ -1008,6 +1053,7 @@ async def exam_submit(request: Request) -> JSONResponse:
         
         session = exam_sessions[session_id]
         questions = session['questions']
+        student = session.get('student', {})
         
         if not questions:
             return JSONResponse({'success': False, 'message': '未获取题目'})
@@ -1023,6 +1069,21 @@ async def exam_submit(request: Request) -> JSONResponse:
         exam_sessions[session_id]['total_score'] = total_score
         exam_sessions[session_id]['end_time_obj'] = end_time
         exam_sessions[session_id]['duration_seconds'] = duration_seconds
+        
+        # 保存考试记录（排除教师账号）
+        if not student.get('is_teacher'):
+            record = {
+                'student_id': student.get('id', ''),
+                'student_name': student.get('name', ''),
+                'major': student.get('major', ''),
+                'score': total_score,
+                'duration_seconds': duration_seconds,
+                'start_time': start_time_obj.strftime('%Y-%m-%d %H:%M:%S'),
+                'end_time': end_time.strftime('%Y-%m-%d %H:%M:%S'),
+                'results': results
+            }
+            exam_records.append(record)
+            save_exam_records()
         
         return JSONResponse({
             'success': True,
@@ -1103,3 +1164,264 @@ async def exam_export(request: Request) -> JSONResponse:
 def get_exam_page() -> HTMLResponse:
     """返回考核页面"""
     return HTMLResponse(content=EXAM_HTML)
+
+
+# ============== 教师管理功能 ==============
+
+TEACHER_HTML = '''
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>教师管理后台 - 火电机组考核系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root{--primary:#1a73e8;--success:#34a853;--danger:#ea4335;--warning:#fbbc04;--bg:#f8f9fa}
+        *{box-sizing:border-box}
+        body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);margin:0;min-height:100vh}
+        .header{background:linear-gradient(135deg,#34a853 0%,#2d8a47 100%);color:white;padding:15px 0;position:sticky;top:0;z-index:100;box-shadow:0 2px 10px rgba(0,0,0,0.1)}
+        .header h1{font-size:1.25rem;margin:0}
+        .container{max-width:1200px;margin:0 auto;padding:15px}
+        .card{background:white;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.08);margin-bottom:15px;border:none}
+        .card-body{padding:20px}
+        .btn-primary{background:var(--primary);border:none;border-radius:8px;padding:12px 24px;font-weight:500}
+        .btn-success{background:var(--success);border:none}
+        .stat-card{background:linear-gradient(135deg,var(--primary),#1557b0);color:white;border-radius:12px;padding:20px;text-align:center}
+        .stat-num{font-size:36px;font-weight:700}
+        .stat-label{font-size:14px;opacity:0.9}
+        .table{margin-bottom:0}
+        .table th{background:#f8f9fa;border-bottom:2px solid #dee2e6}
+        .score-high{color:var(--success);font-weight:600}
+        .score-mid{color:var(--warning);font-weight:600}
+        .score-low{color:var(--danger);font-weight:600}
+        .section{display:none}
+        .section.active{display:block}
+        @media(max-width:576px){.container{padding:10px}.stat-num{font-size:28px}}
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <h1><i class="bi bi-person-badge"></i> 教师管理后台</h1>
+            <div class="sub">学生学习情况统计</div>
+        </div>
+    </div>
+    
+    <div class="container">
+        <!-- 登录 -->
+        <div id="loginSec" class="section active">
+            <div class="card">
+                <div class="card-body text-center">
+                    <div style="width:80px;height:80px;background:linear-gradient(135deg,#34a853,#2d8a47);border-radius:50%;margin:0 auto 20px;display:flex;align-items:center;justify-content:center">
+                        <i class="bi bi-shield-lock" style="font-size:40px;color:white"></i>
+                    </div>
+                    <h5>教师登录</h5>
+                    <p class="text-muted small">请输入教师工号登录</p>
+                    <form id="loginForm">
+                        <input type="text" class="form-control mb-3" id="teacherId" placeholder="教师工号" required autocomplete="off">
+                        <button type="submit" class="btn btn-success w-100"><i class="bi bi-box-arrow-in-right me-2"></i>登录</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 统计面板 -->
+        <div id="statsSec" class="section">
+            <!-- 统计卡片 -->
+            <div class="row mb-4">
+                <div class="col-6 col-md-3 mb-3">
+                    <div class="stat-card">
+                        <div class="stat-num" id="totalStudents">0</div>
+                        <div class="stat-label">学生总数</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3 mb-3">
+                    <div class="stat-card" style="background:linear-gradient(135deg,#34a853,#2d8a47)">
+                        <div class="stat-num" id="examinedCount">0</div>
+                        <div class="stat-label">已考试人数</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3 mb-3">
+                    <div class="stat-card" style="background:linear-gradient(135deg,#fbbc04,#e6a800)">
+                        <div class="stat-num" id="avgScore">0</div>
+                        <div class="stat-label">平均分</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3 mb-3">
+                    <div class="stat-card" style="background:linear-gradient(135deg,#ea4335,#c5221f)">
+                        <div class="stat-num" id="passRate">0%</div>
+                        <div class="stat-label">及格率</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 详细记录 -->
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0"><i class="bi bi-list-ul me-2"></i>考试记录</h5>
+                        <button id="refreshBtn" class="btn btn-outline-primary btn-sm"><i class="bi bi-arrow-clockwise me-1"></i>刷新</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>学号</th>
+                                    <th>姓名</th>
+                                    <th>专业</th>
+                                    <th>成绩</th>
+                                    <th>用时</th>
+                                    <th>考试时间</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recordsBody">
+                                <tr><td colspan="6" class="text-center text-muted">暂无记录</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-3">
+                <button id="logoutBtn" class="btn btn-outline-secondary"><i class="bi bi-box-arrow-right me-2"></i>退出登录</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let teacherInfo = null;
+        
+        function show(id){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active')}
+        
+        async function loadStats(){
+            try{
+                const res=await fetch('/api/exam/teacher/stats');
+                const data=await res.json();
+                if(data.success){
+                    document.getElementById('totalStudents').textContent=data.stats.total_students;
+                    document.getElementById('examinedCount').textContent=data.stats.examined_count;
+                    document.getElementById('avgScore').textContent=data.stats.avg_score.toFixed(1);
+                    document.getElementById('passRate').textContent=data.stats.pass_rate.toFixed(1)+'%';
+                    
+                    const tbody=document.getElementById('recordsBody');
+                    if(data.records.length===0){
+                        tbody.innerHTML='<tr><td colspan="6" class="text-center text-muted">暂无考试记录</td></tr>';
+                    }else{
+                        tbody.innerHTML=data.records.map(r=>{
+                            const scoreClass=r.score>=80?'score-high':r.score>=60?'score-mid':'score-low';
+                            return `<tr>
+                                <td>${r.student_id}</td>
+                                <td>${r.student_name}</td>
+                                <td>${r.major}</td>
+                                <td class="${scoreClass}">${r.score}分</td>
+                                <td>${Math.floor(r.duration_seconds/60)}分${r.duration_seconds%60}秒</td>
+                                <td>${r.end_time}</td>
+                            </tr>`;
+                        }).join('');
+                    }
+                }else{
+                    alert(data.message);
+                }
+            }catch(e){
+                alert('加载失败：'+e.message);
+            }
+        }
+        
+        document.getElementById('loginForm').addEventListener('submit',async function(e){
+            e.preventDefault();
+            const id=document.getElementById('teacherId').value.trim();
+            if(!id)return alert('请输入教师工号');
+            
+            try{
+                const res=await fetch('/api/exam/teacher/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({teacher_id:id})});
+                const data=await res.json();
+                if(data.success){
+                    teacherInfo=data.teacher;
+                    show('statsSec');
+                    loadStats();
+                }else{
+                    alert(data.message);
+                }
+            }catch(e){
+                alert('登录失败：'+e.message);
+            }
+        });
+        
+        document.getElementById('refreshBtn').addEventListener('click',loadStats);
+        document.getElementById('logoutBtn').addEventListener('click',function(){if(confirm('确定退出？'))location.reload()});
+    </script>
+</body>
+</html>
+'''
+
+
+async def teacher_login(request: Request) -> JSONResponse:
+    """教师登录"""
+    try:
+        data = await request.json()
+        teacher_id = str(data.get('teacher_id', '')).strip()
+        
+        if not teacher_id:
+            return JSONResponse({'success': False, 'message': '请输入教师工号'})
+        
+        students = load_students()
+        
+        if teacher_id in students and students[teacher_id].get('is_teacher'):
+            return JSONResponse({
+                'success': True,
+                'message': '登录成功',
+                'teacher': students[teacher_id]
+            })
+        else:
+            return JSONResponse({'success': False, 'message': '教师工号不存在'})
+            
+    except Exception as e:
+        return JSONResponse({'success': False, 'message': f'登录失败：{str(e)}'})
+
+
+async def get_teacher_stats(request: Request) -> JSONResponse:
+    """获取统计数据"""
+    try:
+        students = load_students()
+        records = load_exam_records()
+        
+        # 统计学生数量（排除测试和教师账号）
+        total_students = len([s for s in students.values() if not s.get('is_teacher') and s.get('id') != '123456'])
+        
+        # 统计已考试学生
+        examined_ids = set(r['student_id'] for r in records if r['student_id'] != '123456')
+        examined_count = len(examined_ids)
+        
+        # 计算平均分和及格率
+        if records:
+            scores = [r['score'] for r in records if r['student_id'] != '123456']
+            avg_score = sum(scores) / len(scores) if scores else 0
+            passed = len([s for s in scores if s >= 60])
+            pass_rate = (passed / len(scores) * 100) if scores else 0
+        else:
+            avg_score = 0
+            pass_rate = 0
+        
+        # 按时间倒序排列记录
+        sorted_records = sorted(records, key=lambda x: x.get('end_time', ''), reverse=True)
+        
+        return JSONResponse({
+            'success': True,
+            'stats': {
+                'total_students': total_students,
+                'examined_count': examined_count,
+                'avg_score': avg_score,
+                'pass_rate': pass_rate
+            },
+            'records': sorted_records
+        })
+        
+    except Exception as e:
+        return JSONResponse({'success': False, 'message': f'获取统计失败：{str(e)}'})
+
+
+def get_teacher_page() -> HTMLResponse:
+    """返回教师管理页面"""
+    return HTMLResponse(content=TEACHER_HTML)
