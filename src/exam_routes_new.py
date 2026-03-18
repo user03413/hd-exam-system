@@ -747,7 +747,7 @@ EXAM_HTML = '''
                     optHtml = '<textarea class="short-input" data-seq="' + q.seq + '" placeholder="请输入答案..."></textarea>';
                 }
                 
-                div.innerHTML = '<div class="q-header"><span><span class="q-type ' + typeCls + '">' + q.type + '</span> <span class="' + diffCls + '">' + q.difficulty + '</span></span><span class="text-muted small">第' + q.seq + '题</span></div><div class="q-chapter"><i class="bi bi-book"></i> ' + q.chapter + (q.page ? '（第' + q.page + '页）' : '') + '</div><div class="q-text">' + q.question + '</div>' + optHtml;
+                div.innerHTML = '<div class="q-header"><span><span class="q-type ' + typeCls + '">' + q.type + '</span> <span class="' + diffCls + '">' + q.difficulty + '</span></span><span class="text-muted small">第' + q.seq + '题</span></div><div class="q-chapter"><i class="bi bi-book"></i> ' + q.chapter + (q.page ? '（第' + q.page + '页）' : '') + '</div><div class="q-text"><strong>' + q.seq + '、</strong>' + q.question + '</div>' + optHtml;
                 c.appendChild(div);
             });
             bindOpt();
@@ -817,7 +817,7 @@ EXAM_HTML = '''
                     ? '<div class="alert alert-light mt-2"><strong>你的答案：</strong>' + (ua || '未作答') + '<br><strong>参考答案：</strong>' + ca + '</div>'
                     : '<p class="mt-2 small"><strong>你的答案：</strong>' + (ua || '未作答') + ' &nbsp; <strong>正确答案：</strong>' + ca + '</p>';
                 
-                div.innerHTML = '<div class="q-header"><span><span class="q-type type-' + (r.type === '单选题' ? '单选' : r.type === '多选题' ? '多选' : '简答') + '">' + r.type + '</span> <span class="' + cls + '">' + icon + '</span></span><span class="fw-bold">' + r.score + '/10分</span></div><div class="q-chapter">' + r.chapter + '</div><div class="q-text">' + r.seq + '. ' + r.question + '</div>' + optHtml + ansHtml + '<div class="analysis"><h6><i class="bi bi-lightbulb"></i> 解析</h6><p class="mb-0 small">' + r.analysis + '</p></div><div class="ext" id="ext-' + r.seq + '"><h6><i class="bi bi-search"></i> 前沿拓展</h6><button class="btn btn-sm btn-outline-warning" onclick="loadExt(' + r.seq + ')">点击加载</button></div>';
+                div.innerHTML = '<div class="q-header"><span><span class="q-type type-' + (r.type === '单选题' ? '单选' : r.type === '多选题' ? '多选' : '简答') + '">' + r.type + '</span> <span class="' + cls + '">' + icon + '</span></span><span class="fw-bold">' + r.score + '/10分</span></div><div class="q-chapter">' + r.chapter + '</div><div class="q-text"><strong>' + r.seq + '、</strong>' + r.question + '</div>' + optHtml + ansHtml + '<div class="analysis"><h6><i class="bi bi-lightbulb"></i> 解析</h6><p class="mb-0 small">' + r.analysis + '</p></div><div class="ext" id="ext-' + r.seq + '"><h6><i class="bi bi-search"></i> 前沿拓展</h6><button class="btn btn-sm btn-outline-warning" onclick="loadExt(' + r.seq + ')">点击加载</button></div>';
                 c.appendChild(div);
             });
         }
