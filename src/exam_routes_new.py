@@ -35,10 +35,25 @@ def load_students() -> Dict[str, Dict]:
                 'name': str(row['姓名']).strip() if pd.notna(row['姓名']) else '',
                 'major': str(row.get('专业', '控制工程')).strip()
             }
+        
+        # 添加测试账号（不影响真实学生数据）
+        students['0000000000'] = {
+            'id': '0000000000',
+            'name': '测试学生',
+            'major': '控制工程（测试）'
+        }
+        
         return students
     except Exception as e:
         print(f"加载学生名单失败: {e}")
-        return {}
+        # 即使加载失败，也返回测试账号
+        return {
+            '0000000000': {
+                'id': '0000000000',
+                'name': '测试学生',
+                'major': '控制工程（测试）'
+            }
+        }
 
 
 def parse_difficulty(diff_str: str) -> str:
