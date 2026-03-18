@@ -1,15 +1,34 @@
 # 火电机组考核系统 - 部署指南
 
-## 当前部署状态
+## 🌐 长期访问地址（推荐使用）
 
-✅ 已成功部署到对象存储
+### ✅ 在线版本（支持教师端，长期可用）
+
+**学生考试入口**:
+```
+https://90c19216-7224-4e07-9c9b-2d1be18d1149.dev.coze.site/exam
+```
+
+**教师管理后台**:
+```
+https://90c19216-7224-4e07-9c9b-2d1be18d1149.dev.coze.site/teacher
+```
+
+**功能说明**:
+- ✅ 学生考试系统完整功能
+- ✅ 教师管理后台（查看统计数据、考试记录）
+- ✅ 考试记录永久保存
+- ✅ 长期可用，无时间限制
+- ✅ 自动维护，无需手动部署
+
+### ⚠️ 离线版本（不支持教师端，链接有有效期）
 
 **访问链接**: 
 ```
-https://coze-coding-project.tos.coze.site/coze_storage_7615535867213578280/exam-system/1773819718/index_996d32d3.html?sign=1776411719-da7db14bd1-0-5503903bdfa3a23e8d3648ece5a96fcdc00ee95a0f11e0fceb06ad7bc491bfe3
+https://coze-coding-project.tos.coze.site/coze_storage_7615535867213578280/exam-system/1773819718/index_996d32d3.html
 ```
 
-> ⚠️ 此链接有效期为30天
+> ⚠️ 此链接有效期为30天，且不支持教师端功能
 
 ## 如何获取永久链接
 

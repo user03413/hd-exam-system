@@ -1,6 +1,27 @@
 {
-  "url": "https://coze-coding-project.tos.coze.site/coze_storage_7615535867213578280/exam-system/1773819718/index_996d32d3.html?sign=1776411719-da7db14bd1-0-5503903bdfa3a23e8d3648ece5a96fcdc00ee95a0f11e0fceb06ad7bc491bfe3",
-  "deploy_time": "2026-03-18T15:41:59.979895",
+  "url": "https://90c19216-7224-4e07-9c9b-2d1be18d1149.dev.coze.site",
+  "exam_url": "https://90c19216-7224-4e07-9c9b-2d1be18d1149.dev.coze.site/exam",
+  "teacher_url": "https://90c19216-7224-4e07-9c9b-2d1be18d1149.dev.coze.site/teacher",
+  "deploy_time": "2026-03-18T17:45:00",
   "project": "hd-exam-system",
-  "type": "object_storage"
+  "type": "coze_platform",
+  "features": {
+    "student_exam": true,
+    "teacher_backend": true,
+    "exam_records": true,
+    "statistics": true,
+    "long_term_available": true
+  },
+  "accounts": {
+    "test_student": "123456",
+    "teacher": "654321",
+    "student_range": "220252216068-220252216186",
+    "total_students": 70
+  },
+  "notes": [
+    "此为Coze平台托管版本，长期可用",
+    "支持教师管理后台功能",
+    "考试记录永久保存",
+    "无需手动部署和维护"
+  ]
 }
