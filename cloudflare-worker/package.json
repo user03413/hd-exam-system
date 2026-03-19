@@ -1,0 +1,12 @@
+{
+  "name": "hd-exam-api",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev"
+  },
+  "dependencies": {
+    "itty-router": "^4.0.27"
+  }
+}

@@ -1,27 +1,53 @@
 {
-  "url": "https://90c19216-7224-4e07-9c9b-2d1be18d1149.dev.coze.site",
-  "exam_url": "https://90c19216-7224-4e07-9c9b-2d1be18d1149.dev.coze.site/exam",
-  "teacher_url": "https://90c19216-7224-4e07-9c9b-2d1be18d1149.dev.coze.site/teacher",
-  "deploy_time": "2026-03-18T17:45:00",
-  "project": "hd-exam-system",
-  "type": "coze_platform",
+  "project_name": "hd-exam-system",
+  "deploy_time": "2026-03-18T18:30:00",
+  
+  "platforms": {
+    "github": {
+      "url": "https://github.com/user03413/hd-exam-system",
+      "description": "代码仓库，版本管理"
+    },
+    "cloudflare": {
+      "pages_url": "https://hd-exam-system.pages.dev",
+      "workers_api": "https://hd-exam-api.771794850.workers.dev",
+      "account_id": "57d6cde2e053b14fd28bd963ddb0975b",
+      "database_id": "0cc8b804-1e56-4563-9b8d-f45a76370192",
+      "description": "完整版本（前端+后端+数据库）"
+    },
+    "coze": {
+      "exam_url": "https://90c19216-7224-4e07-9c9b-2d1be18d1149.dev.coze.site/exam",
+      "teacher_url": "https://90c19216-7224-4e07-9c9b-2d1be18d1149.dev.coze.site/teacher",
+      "description": "Coze 平台托管版本，功能完整"
+    }
+  },
+  
   "features": {
     "student_exam": true,
     "teacher_backend": true,
     "exam_records": true,
     "statistics": true,
-    "long_term_available": true
+    "database": "Cloudflare D1",
+    "backend": "Cloudflare Workers"
   },
+  
   "accounts": {
     "test_student": "123456",
     "teacher": "654321",
     "student_range": "220252216068-220252216186",
     "total_students": 70
   },
+  
+  "architecture": {
+    "frontend": "Cloudflare Pages (静态HTML)",
+    "backend": "Cloudflare Workers (Serverless API)",
+    "database": "Cloudflare D1 (SQLite)",
+    "cdn": "Cloudflare CDN (全球加速)"
+  },
+  
   "notes": [
-    "此为Coze平台托管版本，长期可用",
-    "支持教师管理后台功能",
-    "考试记录永久保存",
-    "无需手动部署和维护"
+    "Cloudflare Workers API 已部署，支持后端功能",
+    "D1 数据库已创建，包含学生和教师账号",
+    "前端页面需要配置 API 地址指向 Workers",
+    "所有服务永久免费，完全自主控制"
   ]
 }

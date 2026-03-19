@@ -7,4 +7,4 @@ account_id = "57d6cde2e053b14fd28bd963ddb0975b"
 [[d1_databases]]
 binding = "DB"
 database_name = "hd-exam-db"
-database_id = ""  # 将在创建数据库后填充
+database_id = "0cc8b804-1e56-4563-9b8d-f45a76370192"
