@@ -1,0 +1,10 @@
+name = "hd-exam-api"
+main = "src/worker.js"
+compatibility_date = "2024-01-01"
+
+account_id = "57d6cde2e053b14fd28bd963ddb0975b"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "hd-exam-db"
+database_id = ""  # 将在创建数据库后填充
