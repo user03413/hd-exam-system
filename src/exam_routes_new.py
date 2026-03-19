@@ -1430,3 +1430,249 @@ async def get_teacher_stats(request: Request) -> JSONResponse:
 def get_teacher_page() -> HTMLResponse:
     """返回教师管理页面"""
     return HTMLResponse(content=TEACHER_HTML)
+def get_teacher_page() -> HTMLResponse:
+    """返回教师管理页面"""
+    return HTMLResponse(content=TEACHER_HTML)
+
+
+# ============== 统一入口首页 ==============
+
+HOME_HTML = '''
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>火电机组考核系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1a73e8;
+            --success: #34a853;
+            --bg: #f8f9fa;
+        }
+        
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container-box {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 60px 50px;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .logo {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, var(--primary) 0%, #1557b0 100%);
+            border-radius: 50%;
+            margin: 0 auto 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 30px rgba(26, 115, 232, 0.3);
+        }
+        
+        .logo i {
+            font-size: 50px;
+            color: white;
+        }
+        
+        h1 {
+            color: #333;
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #666;
+            font-size: 16px;
+            margin-bottom: 40px;
+        }
+        
+        .entry-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .entry-card {
+            display: block;
+            padding: 30px;
+            border-radius: 15px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .entry-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 100%);
+        }
+        
+        .entry-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+        }
+        
+        .student-card {
+            background: linear-gradient(135deg, var(--primary) 0%, #1557b0 100%);
+            color: white;
+        }
+        
+        .teacher-card {
+            background: linear-gradient(135deg, var(--success) 0%, #2d8a47 100%);
+            color: white;
+        }
+        
+        .card-icon {
+            font-size: 40px;
+            margin-bottom: 15px;
+        }
+        
+        .card-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .card-desc {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .card-arrow {
+            position: absolute;
+            right: 30px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 24px;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        
+        .entry-card:hover .card-arrow {
+            opacity: 1;
+            right: 20px;
+        }
+        
+        .info-box {
+            margin-top: 40px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .info-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .info-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .info-item i {
+            margin-right: 10px;
+            color: var(--primary);
+        }
+        
+        @media (max-width: 576px) {
+            .container-box {
+                padding: 40px 30px;
+            }
+            
+            h1 {
+                font-size: 26px;
+            }
+            
+            .entry-card {
+                padding: 25px;
+            }
+            
+            .card-title {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container-box">
+        <div class="logo">
+            <i class="bi bi-lightning-charge-fill"></i>
+        </div>
+        
+        <h1>火电机组考核系统</h1>
+        <p class="subtitle">基于《火电厂热工自动控制技术及应用》教材</p>
+        
+        <div class="entry-cards">
+            <a href="exam" class="entry-card student-card">
+                <div class="card-icon">
+                    <i class="bi bi-mortarboard-fill"></i>
+                </div>
+                <div class="card-title">学生考试入口</div>
+                <div class="card-desc">学号验证 → 随机抽题 → 在线答题 → 自动判分</div>
+                <i class="bi bi-arrow-right card-arrow"></i>
+            </a>
+            
+            <a href="teacher" class="entry-card teacher-card">
+                <div class="card-icon">
+                    <i class="bi bi-person-badge-fill"></i>
+                </div>
+                <div class="card-title">教师管理入口</div>
+                <div class="card-desc">查看统计 · 考试记录 · 数据分析 · 成绩管理</div>
+                <i class="bi bi-arrow-right card-arrow"></i>
+            </a>
+        </div>
+        
+        <div class="info-box">
+            <div class="info-item">
+                <i class="bi bi-people-fill"></i>
+                <span>题库：244题 · 学生：70人</span>
+            </div>
+            <div class="info-item">
+                <i class="bi bi-book-fill"></i>
+                <span>题型：单选 + 多选 + 简答（共10题）</span>
+            </div>
+            <div class="info-item">
+                <i class="bi bi-shield-check"></i>
+                <span>测试账号：学生 123456 · 教师 654321</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+'''
+
+def get_home_page() -> HTMLResponse:
+    """返回统一入口首页"""
+    return HTMLResponse(content=HOME_HTML)

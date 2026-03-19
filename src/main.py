@@ -24,7 +24,8 @@ from coze_coding_utils.helper.stream_runner import AgentStreamRunner, WorkflowSt
 # 导入考核系统路由
 from exam_routes_new import (
     exam_verify, exam_start, exam_submit, exam_extension, exam_export, 
-    get_exam_page, teacher_login, get_teacher_stats, get_teacher_page
+    get_exam_page, teacher_login, get_teacher_stats, get_teacher_page,
+    get_home_page
 )
 
 setup_logging(
@@ -243,6 +244,7 @@ service = GraphService()
 app = FastAPI()
 
 # 注册考核系统路由
+app.add_api_route("/", get_home_page, methods=["GET"])
 app.add_api_route("/api/exam/verify", exam_verify, methods=["POST"])
 app.add_api_route("/api/exam/start", exam_start, methods=["POST"])
 app.add_api_route("/api/exam/submit", exam_submit, methods=["POST"])
