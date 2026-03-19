@@ -181,5 +181,191 @@
         "difficulty": "中等"
       }
     ]
+  },
+  {
+    "student_id": "123456",
+    "student_name": "测试学生",
+    "major": "控制工程（测试）",
+    "score": 0,
+    "duration_seconds": 5,
+    "start_time": "2026-03-19 14:52:27",
+    "end_time": "2026-03-19 14:52:32",
+    "results": [
+      {
+        "seq": 1,
+        "type": "单选题",
+        "question": "在单元机组机炉负荷指令处理中，TF代表哪种控制方式？",
+        "options": {
+          "A": "锅炉跟随汽机",
+          "B": "汽机跟随锅炉",
+          "C": "机炉协调",
+          "D": "手动"
+        },
+        "user_answer": "",
+        "correct_answer": "B",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "TF（Turbine Follow）代表汽机跟随锅炉方式，即锅炉调负荷，汽机调阀门维持汽压。",
+        "chapter": "第十一章",
+        "page": "170",
+        "difficulty": "基础"
+      },
+      {
+        "seq": 2,
+        "type": "单选题",
+        "question": "为什么现代大型锅炉的再热汽温控制，通常不采用喷水减温作为主要调节手段？",
+        "options": {
+          "A": "会显著降低机组的循环热效率（热经济性）",
+          "B": "喷水减温响应太慢",
+          "C": "无法控制再热蒸汽压力",
+          "D": "减温水量不足"
+        },
+        "user_answer": "",
+        "correct_answer": "A",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "再热器处喷水相当于增加了低品位蒸汽做功，会严重降低整个热力循环的热效率。因此再热汽温主要靠烟气侧调节，喷水仅作事故保护。",
+        "chapter": "第八章",
+        "page": "110",
+        "difficulty": "困难"
+      },
+      {
+        "seq": 3,
+        "type": "单选题",
+        "question": "在 AGC 远控运行模式下，单元机组的目标负荷指令（ULD）主要来源于？",
+        "options": {
+          "A": "运行人员手动设定",
+          "B": "电网调度中心下发的遥调指令",
+          "C": "汽包压力计算",
+          "D": "发电机电压"
+        },
+        "user_answer": "",
+        "correct_answer": "B",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "投入AGC后，最高指挥权交由电网，调度中心计算机根据电网频率和潮流，通过远动通道直接向机组下发指令。",
+        "chapter": "第十一章",
+        "page": "171",
+        "difficulty": "中等"
+      },
+      {
+        "seq": 4,
+        "type": "单选题",
+        "question": "锅炉跟随（BF）控制方式的主要优缺点是？",
+        "options": {
+          "A": "汽压极其稳定",
+          "B": "能充分利用锅炉蓄热，负荷响应极快，但主汽压波动较大",
+          "C": "汽温容易超限",
+          "D": "导致泵跳闸"
+        },
+        "user_answer": "",
+        "correct_answer": "B",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "BF方式调门瞬间开大，利用蓄热增加产汽量，响应极快；但由于燃烧跟进需要时间，短时内会导致汽压大幅下降波动。",
+        "chapter": "第十一章",
+        "page": "172",
+        "difficulty": "中等"
+      },
+      {
+        "seq": 5,
+        "type": "多选题",
+        "question": "现代大型机组的汽轮机旁路控制系统，从工艺和控制范围上通常可划分为哪些部分？",
+        "options": {
+          "A": "高压旁路压力及减温控制",
+          "B": "低压旁路压力及减温控制",
+          "C": "凝汽器真空控制",
+          "D": "发电机控制"
+        },
+        "user_answer": "",
+        "correct_answer": "AB",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "旁路系统主要由高压旁路（降主汽至再热冷段）和低压旁路（降再热汽至凝汽器）两部分压力和温度控制组成。",
+        "chapter": "第十四章",
+        "page": "220",
+        "difficulty": "中等"
+      },
+      {
+        "seq": 6,
+        "type": "多选题",
+        "question": "汽轮机旁路控制系统中的核心执行元件——旁路减温减压阀，通常需具备哪些特性？",
+        "options": {
+          "A": "极快开启速度",
+          "B": "能承受极大压降",
+          "C": "优良的减温水雾化",
+          "D": "大流量低噪声"
+        },
+        "user_answer": "",
+        "correct_answer": "ABCD",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "旁路阀在紧急工况动作必须开启极快；需将高温高压降至中低压承受巨压并喷水，故快开、耐大压降、强雾化和低噪声是必备特性。",
+        "chapter": "第十四章",
+        "page": "226",
+        "difficulty": "中等"
+      },
+      {
+        "seq": 7,
+        "type": "多选题",
+        "question": "汽包锅炉的给水控制系统在机组启动初期（低负荷）和正常运行（高负荷）阶段的控制策略差异通常是？",
+        "options": {
+          "A": "低负荷阶段常采用单冲量",
+          "B": "高负荷阶段常采用三冲量",
+          "C": "低负荷三冲量",
+          "D": "高负荷单冲量"
+        },
+        "user_answer": "",
+        "correct_answer": "AB",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "低负荷时蒸汽流量小且测不准，虚假水位不明显，采用单冲量；高负荷（通常30%以上）切换为三冲量以克服虚假水位和水压扰动。",
+        "chapter": "第九章",
+        "page": "125",
+        "difficulty": "中等"
+      },
+      {
+        "seq": 8,
+        "type": "简答题",
+        "question": "什么是汽包锅炉的“虚假水位”现象？简述其产生的主要原因。",
+        "options": {},
+        "user_answer": "",
+        "correct_answer": "见解析",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "虚假水位是指蒸汽负荷突变时，汽包水位短时间内呈现出与实际水量增减相反的动态现象。原因：蒸汽流量突增导致汽包压力急降，炉水饱和温度降低发生附加汽化，汽泡容积急剧膨胀，将水位瞬间“托高”。",
+        "chapter": "第九章",
+        "page": "118",
+        "difficulty": "中等"
+      },
+      {
+        "seq": 9,
+        "type": "简答题",
+        "question": "什么是锅炉跟随控制方式（BF）？简述其工作原理及主要的优缺点。",
+        "options": {},
+        "user_answer": "",
+        "correct_answer": "见解析",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "原理：汽机主控接受负荷指令调节调门开度改变功率；锅炉主控将汽压作被控量调节燃料“跟随”耗汽量变化。优点：机组对负荷响应极快。缺点：锅炉调节迟延导致主汽压在变负荷初期产生剧烈波动。",
+        "chapter": "第十一章",
+        "page": "171",
+        "difficulty": "困难"
+      },
+      {
+        "seq": 10,
+        "type": "简答题",
+        "question": "什么是汽机跟随控制方式（TF）？简述其工作原理及主要的优缺点。",
+        "options": {},
+        "user_answer": "",
+        "correct_answer": "见解析",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "原理：锅炉主控接受负荷指令调节燃料改变产汽量；汽机主控将汽压作被控量调节阀门“跟随”产汽量维持汽压。优点：汽压极稳定，运行安全。缺点：功率改变全赖锅炉缓慢燃烧，负荷响应极其迟缓。",
+        "chapter": "第十一章",
+        "page": "170",
+        "difficulty": "困难"
+      }
+    ]
   }
 ]
