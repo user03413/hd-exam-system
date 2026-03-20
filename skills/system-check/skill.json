@@ -1,0 +1,36 @@
+{
+  "name": "system-check",
+  "display_name": "系统检查技能",
+  "version": "1.0.0",
+  "description": "检查火电机组考核系统的运行状态，包括文件、数据库、Git、凭证等",
+  "author": "Coze AI",
+  "category": "monitoring",
+  "tags": ["系统检查", "状态监控", "诊断"],
+  
+  "commands": {
+    "files": {
+      "description": "检查本地文件",
+      "usage": "python system_check.py files"
+    },
+    "database": {
+      "description": "检查 D1 数据库",
+      "usage": "python system_check.py database"
+    },
+    "git": {
+      "description": "检查 Git 状态",
+      "usage": "python system_check.py git"
+    },
+    "credentials": {
+      "description": "检查凭证配置",
+      "usage": "python system_check.py credentials"
+    },
+    "full": {
+      "description": "完整系统检查",
+      "usage": "python system_check.py full"
+    },
+    "report": {
+      "description": "生成检查报告",
+      "usage": "python system_check.py report"
+    }
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "name": "one-click",
+  "display_name": "一键部署技能",
+  "version": "1.0.0",
+  "description": "整合所有技能，提供一键部署能力",
+  "author": "Coze AI",
+  "category": "devops",
+  "tags": ["一键部署", "自动化", "集成"],
+  
+  "commands": {
+    "sync_and_deploy": {
+      "description": "一键同步部署（Git + Cloudflare）",
+      "usage": "python one_click_deploy.py sync_and_deploy [message]"
+    },
+    "full_sync": {
+      "description": "完整同步部署（包含数据同步）",
+      "usage": "python one_click_deploy.py full_sync"
+    },
+    "quick_deploy": {
+      "description": "快速部署",
+      "usage": "python one_click_deploy.py quick_deploy"
+    },
+    "init_deploy": {
+      "description": "初始化部署（首次部署）",
+      "usage": "python one_click_deploy.py init_deploy"
+    },
+    "info": {
+      "description": "显示技能信息",
+      "usage": "python one_click_deploy.py info"
+    }
+  },
+  
+  "dependencies": {
+    "skills": ["data-sync", "git-sync", "cloudflare-deploy", "system-check"]
+  }
+}
