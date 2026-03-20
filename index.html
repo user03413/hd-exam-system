@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>火电机组考核系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1a73e8;
+            --success: #34a853;
+            --danger: #ea4335;
+            --warning: #fbbc04;
+            --bg: #f8f9fa;
+        }
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--bg);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, #1557b0 100%);
+            color: white;
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header h1 {
+            font-size: 1.25rem;
+            margin: 0;
+        }
+        .header .sub {
+            font-size: 0.8rem;
+            opacity: 0.9;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 15px;
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            margin-bottom: 15px;
+            border: none;
+        }
+        .card-body {
+            padding: 20px;
+        }
+        .btn-primary {
+            background: var(--primary);
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-weight: 500;
+        }
+        .btn-primary:hover {
+            background: #1557b0;
+        }
+        .form-control {
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 12px 15px;
+            font-size: 16px;
+        }
+        .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: none;
+        }
+        .q-card {
+            background: white;
+            border-radius: 10px;
+            padding: 18px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--primary);
+        }
+        .q-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .q-type {
+            font-size: 12px;
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+        .type-单选 {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+        .type-多选 {
+            background: #fff3e0;
+            color: #e65100;
+        }
+        .type-简答 {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        .diff-基础 {
+            color: var(--success);
+        }
+        .diff-中等 {
+            color: #e65100;
+        }
+        .diff-困难 {
+            color: var(--danger);
+        }
+        .q-text {
+            font-size: 15px;
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+        .q-chapter {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        .opt {
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .opt:hover {
+            border-color: var(--primary);
+            background: #f0f7ff;
+        }
+        .opt.sel {
+            border-color: var(--primary);
+            background: #e3f2fd;
+        }
+        .opt.ok {
+            border-color: var(--success);
+            background: #e8f5e9;
+        }
+        .opt.err {
+            border-color: var(--danger);
+            background: #ffebee;
+        }
+        .opt label {
+            cursor: pointer;
+            display: flex;
+            align-items: flex-start;
+            margin: 0;
+        }
+        .opt input {
+            margin: 4px 10px 0 0;
+        }
+        .opt-letter {
+            font-weight: 600;
+            color: var(--primary);
+            margin-right: 8px;
+        }
+        .short-input {
+            width: 100%;
+            min-height: 100px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 14px;
+            resize: vertical;
+        }
+        .short-input:focus {
+            border-color: var(--primary);
+            outline: none;
+        }
+        .score-box {
+            background: linear-gradient(135deg, var(--primary) 0%, #1557b0 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .score-num {
+            font-size: 48px;
+            font-weight: 700;
+        }
+        .score-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 15px;
+        }
+        .stat {
+            text-align: center;
+        }
+        .stat-v {
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .stat-l {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+        .analysis {
+            background: #f0f7ff;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 12px;
+            border: 1px solid #bbdefb;
+        }
+        .analysis h6 {
+            color: #1565c0;
+            margin: 0 0 8px 0;
+            font-size: 13px;
+        }
+        .ext {
+            background: #fff8e1;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 10px;
+            border: 1px solid #ffe082;
+        }
+        .ext h6 {
+            color: #f57c00;
+            margin: 0 0 8px 0;
+            font-size: 13px;
+        }
+        .ext-loading {
+            color: #666;
+            font-style: italic;
+        }
+        .progress-bar-custom {
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            margin: 10px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 3px;
+            transition: width 0.3s;
+        }
+        .timer {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .section {
+            display: none;
+        }
+        .section.active {
+            display: block;
+        }
+        @media (max-width: 576px) {
+            .container {
+                padding: 10px;
+            }
+            .card-body {
+                padding: 15px;
+            }
+            .q-card {
+                padding: 12px;
+            }
+            .score-num {
+                font-size: 36px;
+            }
+            .btn-primary {
+                width: 100%;
+            }
+            .stats {
+                gap: 15px;
+            }
+        }
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            .header {
+                position: relative;
+            }
+            .card {
+                box-shadow: none;
+                border: 1px solid #ddd;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header no-print">
+        <div class="container">
+            <h1><i class="bi bi-lightning-charge"></i> 火电机组考核系统</h1>
+            <div class="sub">热工自动化在线考试 · 题库: 244题 · 学生: 70人</div>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div id="loginSec" class="section active">
+            <div class="card">
+                <div class="card-body text-center">
+                    <div style="width:80px;height:80px;background:linear-gradient(135deg,var(--primary),#1557b0);border-radius:50%;margin:0 auto 20px;display:flex;align-items:center;justify-content:center;">
+                        <i class="bi bi-person" style="font-size:40px;color:white;"></i>
+                    </div>
+                    <h5>考生身份验证</h5>
+                    <p class="text-muted small mb-4">请输入学号进入考试</p>
+                    <form id="loginForm">
+                        <input type="text" class="form-control mb-3" id="studentId" placeholder="请输入学号" required autocomplete="off">
+                        <button type="submit" class="btn btn-primary w-100"><i class="bi bi-box-arrow-in-right me-2"></i>验证并进入</button>
+                    </form>
+                    <div class="mt-3">
+                        <button id="teacherBtn" class="btn btn-outline-secondary w-100"><i class="bi bi-person-badge me-2"></i>教师登录</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="teacherLoginSec" class="section">
+            <div class="card">
+                <div class="card-body text-center">
+                    <div style="width:80px;height:80px;background:linear-gradient(135deg,var(--success),#2e7d32);border-radius:50%;margin:0 auto 20px;display:flex;align-items:center;justify-content:center;">
+                        <i class="bi bi-person-badge" style="font-size:40px;color:white;"></i>
+                    </div>
+                    <h5>教师登录</h5>
+                    <p class="text-muted small mb-4">请输入密码进入管理界面</p>
+                    <form id="teacherLoginForm">
+                        <input type="password" class="form-control mb-3" id="teacherPassword" placeholder="请输入密码" required autocomplete="off">
+                        <button type="submit" class="btn btn-success w-100"><i class="bi bi-box-arrow-in-right me-2"></i>登录</button>
+                    </form>
+                    <div class="mt-3">
+                        <button id="backToStudentBtn" class="btn btn-outline-secondary w-100"><i class="bi bi-arrow-left me-2"></i>返回学生登录</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="teacherSec" class="section">
+            <div class="card" style="border-top: 4px solid var(--success);">
+                <div class="card-body">
+                    <h5 class="mb-4 text-success"><i class="bi bi-person-badge me-2"></i>教师管理界面</h5>
+                    <div class="mb-4">
+                        <h6 class="text-success">考试统计</h6>
+                        <div class="row">
+                            <div class="col-md-4 mb-2">
+                                <div class="bg-success bg-opacity-10 p-3 rounded border border-success border-opacity-30">
+                                    <div class="fw-bold text-success">总学生数</div>
+                                    <div id="totalStudents" class="text-success fs-4">0</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-2">
+                                <div class="bg-success bg-opacity-10 p-3 rounded border border-success border-opacity-30">
+                                    <div class="fw-bold text-success">已考试人数</div>
+                                    <div id="examinedStudents" class="text-success fs-4">0</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-2">
+                                <div class="bg-success bg-opacity-10 p-3 rounded border border-success border-opacity-30">
+                                    <div class="fw-bold text-success">平均分数</div>
+                                    <div id="averageScore" class="text-success fs-4">0</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h6 class="text-success">学生考试记录</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-striped table-success table-hover">
+                                <thead class="table-success">
+                                    <tr>
+                                        <th>学号</th>
+                                        <th>姓名</th>
+                                        <th>专业</th>
+                                        <th>得分</th>
+                                        <th>开始时间</th>
+                                        <th>结束时间</th>
+                                        <th>用时</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="examRecords">
+                                    <tr>
+                                        <td colspan="8" class="text-center text-muted">暂无考试记录</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="mt-4 text-center">
+                        <button id="logoutBtn" class="btn btn-outline-success"><i class="bi bi-box-arrow-right me-2"></i>退出登录</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="readySec" class="section">
+            <div class="card">
+                <div class="card-body">
+                    <div class="alert alert-success">
+                        <h5 class="mb-2">验证成功</h5>
+                        <p class="mb-1"><strong>姓名：</strong><span id="sName"></span></p>
+                        <p class="mb-1"><strong>学号：</strong><span id="sId"></span></p>
+                        <p class="mb-0"><strong>专业：</strong><span id="sMajor"></span></p>
+                    </div>
+                    <div class="alert alert-info small">
+                        <strong>考试说明：</strong><br>
+                        • 共10道题（单选4题 + 多选3题 + 简答3题）<br>
+                        • 每题10分，满分100分<br>
+                        • 提交后可查看解析和答案
+                    </div>
+                    <button id="startBtn" class="btn btn-primary w-100"><i class="bi bi-play-circle me-2"></i>开始答题</button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="examSec" class="section">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span id="progTxt">0 / 10</span>
+                        <span class="timer" id="timer">00:00</span>
+                    </div>
+                    <div class="progress-bar-custom"><div class="progress-fill" id="progBar" style="width:0%"></div></div>
+                    <div id="qList"></div>
+                    <div class="text-center mt-4">
+                        <button id="submitBtn" class="btn btn-primary"><i class="bi bi-check-circle me-2"></i>提交答卷</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="resultSec" class="section">
+            <div class="card">
+                <div class="card-body">
+                    <div class="score-box">
+                        <div class="score-num" id="scoreNum">0</div>
+                        <div class="score-label">分</div>
+                        <div class="stats">
+                            <div class="stat"><div class="stat-v" id="okCnt">0</div><div class="stat-l">正确</div></div>
+                            <div class="stat"><div class="stat-v" id="partCnt" style="color:#ffeb3b">0</div><div class="stat-l">部分</div></div>
+                            <div class="stat"><div class="stat-v" id="errCnt" style="color:#ffcdd2">0</div><div class="stat-l">错误</div></div>
+                        </div>
+                    </div>
+                    <div class="text-center mb-3"><span class="badge bg-light text-dark" id="timeInfo"></span></div>
+                    <p class="text-center text-muted mb-4" id="scoreComment"></p>
+                    <div id="resultList"></div>
+                    <div class="text-center mt-4 pt-3 border-top">
+                        <button id="exportBtn" class="btn btn-primary me-2 mb-2 no-print"><i class="bi bi-file-earmark-pdf me-2"></i>导出学习报告</button>
+                        <button id="restartBtn" class="btn btn-outline-secondary mb-2 no-print"><i class="bi bi-arrow-repeat me-2"></i>重新开始</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 学生名单
+        const STUDENTS = {
+            "220252216068": {"id": "220252216068", "name": "曾俊", "major": "控制工程"},
+            "220252216069": {"id": "220252216069", "name": "牛金牛", "major": "控制工程"},
+            "220252216070": {"id": "220252216070", "name": "闫佳乐", "major": "控制工程"},
+            "220252216073": {"id": "220252216073", "name": "赵振林", "major": "控制工程"},
+            "220252216075": {"id": "220252216075", "name": "刘洋", "major": "控制工程"},
+            "220252216076": {"id": "220252216076", "name": "杨博", "major": "控制工程"},
+            "220252216077": {"id": "220252216077", "name": "刘文昊", "major": "控制工程"},
+            "220252216079": {"id": "220252216079", "name": "汪箫", "major": "控制工程"},
+            "220252216080": {"id": "220252216080", "name": "张志彪", "major": "控制工程"},
+            "220252216081": {"id": "220252216081", "name": "李昊阳", "major": "控制工程"},
+            "220252216082": {"id": "220252216082", "name": "李耀", "major": "控制工程"},
+            "220252216084": {"id": "220252216084", "name": "刘星毅", "major": "控制工程"},
+            "220252216086": {"id": "220252216086", "name": "常乐", "major": "控制工程"},
+            "220252216087": {"id": "220252216087", "name": "王勇", "major": "控制工程"},
+            "220252216090": {"id": "220252216090", "name": "刘金坤", "major": "控制工程"},
+            "220252216091": {"id": "220252216091", "name": "杜梓铭", "major": "控制工程"},
+            "220252216092": {"id": "220252216092", "name": "赵艺杰", "major": "控制工程"},
+            "220252216093": {"id": "220252216093", "name": "李超", "major": "控制工程"},
+            "220252216095": {"id": "220252216095", "name": "武玉强", "major": "控制工程"},
+            "220252216096": {"id": "220252216096", "name": "李春霖", "major": "控制工程"},
+            "220252216097": {"id": "220252216097", "name": "郑亢", "major": "控制工程"},
+            "220252216099": {"id": "220252216099", "name": "刘维亮", "major": "控制工程"},
+            "220252216101": {"id": "220252216101", "name": "孙炳瑞", "major": "控制工程"},
+            "220252216102": {"id": "220252216102", "name": "刘若梦", "major": "控制工程"},
+            "220252216104": {"id": "220252216104", "name": "张恒", "major": "控制工程"},
+            "220252216109": {"id": "220252216109", "name": "宋文静", "major": "控制工程"},
+            "220252216111": {"id": "220252216111", "name": "王亚玮", "major": "控制工程"},
+            "220252216112": {"id": "220252216112", "name": "郭智超", "major": "控制工程"},
+            "220252216114": {"id": "220252216114", "name": "王浩", "major": "控制工程"},
+            "220252216115": {"id": "220252216115", "name": "张航", "major": "控制工程"},
+            "220252216116": {"id": "220252216116", "name": "郭帅", "major": "控制工程"},
+            "220252216117": {"id": "220252216117", "name": "焦子恒", "major": "控制工程"},
+            "220252216118": {"id": "220252216118", "name": "李阳", "major": "控制工程"},
+            "220252216119": {"id": "220252216119", "name": "李帅", "major": "控制工程"},
+            "220252216120": {"id": "220252216120", "name": "刘亚东", "major": "控制工程"},
+            "220252216121": {"id": "220252216121", "name": "刘阳", "major": "控制工程"},
+            "220252216122": {"id": "220252216122", "name": "卢军", "major": "控制工程"},
+            "220252216123": {"id": "220252216123", "name": "马瑞", "major": "控制工程"},
+            "220252216124": {"id": "220252216124", "name": "毛永强", "major": "控制工程"},
+            "220252216125": {"id": "220252216125", "name": "孟凡强", "major": "控制工程"},
+            "220252216126": {"id": "220252216126", "name": "苗壮", "major": "控制工程"},
+            "220252216127": {"id": "220252216127", "name": "牛犇", "major": "控制工程"},
+            "220252216128": {"id": "220252216128", "name": "牛昊", "major": "控制工程"},
+            "220252216129": {"id": "220252216129", "name": "潘磊", "major": "控制工程"},
+            "220252216130": {"id": "220252216130", "name": "庞超", "major": "控制工程"},
+            "220252216131": {"id": "220252216131", "name": "彭博", "major": "控制工程"},
+            "220252216132": {"id": "220252216132", "name": "齐昊", "major": "控制工程"},
+            "220252216133": {"id": "220252216133", "name": "乔宇", "major": "控制工程"},
+            "220252216134": {"id": "220252216134", "name": "秦超", "major": "控制工程"},
+            "220252216135": {"id": "220252216135", "name": "任恒", "major": "控制工程"},
+            "220252216136": {"id": "220252216136", "name": "任帅", "major": "控制工程"},
+            "220252216137": {"id": "220252216137", "name": "任亚宁", "major": "控制工程"},
+            "220252216138": {"id": "220252216138", "name": "尚超", "major": "控制工程"},
+            "220252216139": {"id": "220252216139", "name": "邵帅", "major": "控制工程"},
+            "220252216140": {"id": "220252216140", "name": "沈超", "major": "控制工程"},
+            "220252216141": {"id": "220252216141", "name": "石浩", "major": "控制工程"},
+            "220252216142": {"id": "220252216142", "name": "宋超", "major": "控制工程"},
+            "220252216143": {"id": "220252216143", "name": "宋飞", "major": "控制工程"},
+            "220252216144": {"id": "220252216144", "name": "宋建", "major": "控制工程"},
+            "220252216145": {"id": "220252216145", "name": "苏航", "major": "控制工程"},
+            "220252216146": {"id": "220252216146", "name": "孙超", "major": "控制工程"},
+            "220252216147": {"id": "220252216147", "name": "孙浩", "major": "控制工程"},
+            "220252216148": {"id": "220252216148", "name": "孙帅", "major": "控制工程"},
+            "220252216149": {"id": "220252216149", "name": "孙伟", "major": "控制工程"},
+            "220252216150": {"id": "220252216150", "name": "孙宇", "major": "控制工程"},
+            "220252216151": {"id": "220252216151", "name": "汤超", "major": "控制工程"},
+            "220252216152": {"id": "220252216152", "name": "唐浩", "major": "控制工程"},
+            "220252216153": {"id": "220252216153", "name": "田超", "major": "控制工程"},
+            "220252216154": {"id": "220252216154", "name": "田浩", "major": "控制工程"},
+            "220252216155": {"id": "220252216155", "name": "田帅", "major": "控制工程"},
+            "123456": {"id": "123456", "name": "测试学生", "major": "测试专业"} // 测试学生账号
+        };
+
+        // 题库
+        const QUESTIONS = {
+            "单选题": [
+                {"type": "单选题", "id": 1, "chapter": "第一章", "page": "13", "question": "热工自动化主要包括自动检测、顺序控制、自动保护和什么？", "options": {"A": "自动报警", "B": "自动测量", "C": "自动控制", "D": "自动记录"}, "answer": "C", "analysis": "热工自动化主要包括自动检测、顺序控制、自动保护和自动控制。", "difficulty": "基础"},
+                {"type": "单选题", "id": 2, "chapter": "第一章", "page": "16", "question": "下面哪一种过渡过程是热工控制中比较理想的过渡过程？", "options": {"A": "发散振荡", "B": "等幅振荡", "C": "衰减振荡", "D": "非周期过程"}, "answer": "C", "analysis": "衰减振荡过程被控参数经过一段时间的振荡后，能很快地趋向于一个新的平衡状态，这种过渡过程是比较理想的。", "difficulty": "基础"},
+                {"type": "单选题", "id": 3, "chapter": "第一章", "page": "14", "question": "在汽包水位自动控制系统中，被控参数（被调量）是？", "options": {"A": "给水流量", "B": "蒸汽流量", "C": "汽包水位", "D": "给水压力"}, "answer": "C", "analysis": "按照生产过程的要求，应维持在预定变化范围内的工艺参数叫被控参数，在汽包水位自动控制系统中的汽包水位就是被控参数。", "difficulty": "基础"},
+                {"type": "单选题", "id": 7, "chapter": "第二章", "page": "21", "question": "控制对象受到阶跃扰动后，被调量不能依靠自身能力趋于某一稳定值的对象称为？", "options": {"A": "有自平衡能力对象", "B": "无自平衡能力对象", "C": "静态对象", "D": "动态对象"}, "answer": "B", "analysis": "无自平衡能力对象即对象在受到扰动后，其被调量不能依靠对象自身能力使之趋于某一稳定值。", "difficulty": "基础"},
+                {"type": "单选题", "id": 8, "chapter": "第二章", "page": "26", "question": "测定热工对象动态特性的\"阶跃响应曲线法\"中，利用得到的响应曲线通常用于求取对象的什么模型？", "options": {"A": "传递函数", "B": "状态空间方程", "C": "模糊逻辑规则", "D": "神经网络权值"}, "answer": "A", "analysis": "在时域内通过施加阶跃扰动并记录被调量的响应曲线，是工程上求取工业对象近似数学模型（通常为带有纯延迟的一阶或多阶惯性环节的传递函数）最常用的实验方法。", "difficulty": "基础"},
+                {"type": "单选题", "id": 9, "chapter": "第二章", "page": "19", "question": "过程控制系统中，描述被控过程动态特性的数学模型，通常是指过程的什么变量之间的数学关系？", "options": {"A": "内部状态与时间", "B": "输入与输出", "C": "扰动与设定值", "D": "稳态与瞬态"}, "answer": "B", "analysis": "过程特性的数学模型，本质上是描述被控对象在受到输入量（包括控制量和扰动量）作用下，其输出量随时间变化的动态关系的数学表达式。", "difficulty": "基础"},
+                {"type": "单选题", "id": 10, "chapter": "第二章", "page": "20", "question": "在阶跃扰动作用下，被调量不能依靠对象自身能力趋于新的稳定值，而是不断发散或积分变化的过程称为？", "options": {"A": "有自平衡能力过程", "B": "静态过程", "C": "无自平衡能力过程", "D": "纯滞后过程"}, "answer": "C", "analysis": "无自平衡能力过程在失去平衡后，由于内部没有能够阻止输出变化的反馈机制，被调量会沿着某一方向持续变化，不能依靠自身重建平衡。", "difficulty": "基础"},
+                {"type": "单选题", "id": 11, "chapter": "第二章", "page": "22", "question": "控制对象的时间常数T越大，表示什么？", "options": {"A": "对象的惯性越小，响应越快", "B": "对象的惯性越大，响应越慢", "C": "对象的放大系数越大", "D": "对象的放大系数越小"}, "answer": "B", "analysis": "时间常数T是表示对象惯性大小的重要参数，T越大，对象的惯性越大，响应越慢。", "difficulty": "基础"},
+                {"type": "单选题", "id": 12, "chapter": "第二章", "page": "23", "question": "控制对象的纯延迟时间τ是指什么？", "options": {"A": "扰动开始到被调量开始变化的时间", "B": "扰动开始到被调量达到最大值的时间", "C": "被调量开始变化到达到新稳态值的时间", "D": "被调量开始变化到达到变化速率最大的时间"}, "answer": "A", "analysis": "纯延迟时间τ是指从扰动开始作用于对象，到被调量开始发生变化所需要的时间。", "difficulty": "基础"},
+                {"type": "单选题", "id": 13, "chapter": "第三章", "page": "31", "question": "比例控制的特点是什么？", "options": {"A": "有差调节，调节速度快", "B": "无差调节，调节速度快", "C": "有差调节，调节速度慢", "D": "无差调节，调节速度慢"}, "answer": "A", "analysis": "比例控制的特点是有差调节，调节速度快，能够及时响应偏差。", "difficulty": "基础"},
+                {"type": "单选题", "id": 14, "chapter": "第三章", "page": "32", "question": "积分控制的特点是什么？", "options": {"A": "有差调节，能消除余差", "B": "无差调节，能消除余差", "C": "有差调节，不能消除余差", "D": "无差调节，不能消除余差"}, "answer": "B", "analysis": "积分控制的特点是无差调节，能够消除余差，但调节速度较慢。", "difficulty": "基础"},
+                {"type": "单选题", "id": 15, "chapter": "第三章", "page": "33", "question": "微分控制的特点是什么？", "options": {"A": "能预测偏差变化趋势，超前调节", "B": "能消除余差，滞后调节", "C": "能放大偏差，快速调节", "D": "能缩小偏差，缓慢调节"}, "answer": "A", "analysis": "微分控制的特点是能预测偏差变化趋势，超前调节，提高系统的稳定性。", "difficulty": "基础"}
+            ],
+            "多选题": [
+                {"type": "多选题", "id": 16, "chapter": "第一章", "page": "15", "question": "热工自动化的主要内容包括哪些？", "options": {"A": "自动检测", "B": "自动控制", "C": "顺序控制", "D": "自动保护"}, "answer": "ABCD", "analysis": "热工自动化的主要内容包括自动检测、自动控制、顺序控制和自动保护。", "difficulty": "基础"},
+                {"type": "多选题", "id": 17, "chapter": "第二章", "page": "24", "question": "描述对象动态特性的参数有哪些？", "options": {"A": "放大系数K", "B": "时间常数T", "C": "纯延迟时间τ", "D": "积分时间Ti"}, "answer": "ABC", "analysis": "描述对象动态特性的参数主要有放大系数K、时间常数T和纯延迟时间τ。", "difficulty": "基础"},
+                {"type": "多选题", "id": 18, "chapter": "第三章", "page": "35", "question": "PID控制器的组成部分有哪些？", "options": {"A": "比例部分", "B": "积分部分", "C": "微分部分", "D": "放大部分"}, "answer": "ABC", "analysis": "PID控制器由比例部分、积分部分和微分部分组成。", "difficulty": "基础"},
+                {"type": "多选题", "id": 19, "chapter": "第四章", "page": "41", "question": "汽包水位控制系统的主要扰动因素有哪些？", "options": {"A": "给水流量变化", "B": "蒸汽流量变化", "C": "炉膛热负荷变化", "D": "给水温度变化"}, "answer": "ABCD", "analysis": "汽包水位控制系统的主要扰动因素包括给水流量变化、蒸汽流量变化、炉膛热负荷变化和给水温度变化。", "difficulty": "基础"},
+                {"type": "多选题", "id": 20, "chapter": "第四章", "page": "42", "question": "过热蒸汽温度控制系统的调节手段有哪些？", "options": {"A": "喷水减温", "B": "烟气挡板调节", "C": "摆动燃烧器", "D": "改变给水流量"}, "answer": "ABC", "analysis": "过热蒸汽温度控制系统的调节手段主要有喷水减温、烟气挡板调节和摆动燃烧器。", "difficulty": "基础"}
+            ],
+            "简答题": [
+                {"type": "简答题", "id": 21, "chapter": "第一章", "page": "17", "question": "简述热工自动化的定义和作用。", "answer": "热工自动化是指在火电厂生产过程中，利用自动控制技术和仪表装置，对各种热力设备和系统的运行参数进行自动检测、自动调节、顺序控制和自动保护的技术。其作用包括：提高生产效率、保证生产安全、改善劳动条件、提高产品质量、节约能源。", "analysis": "热工自动化的定义应包括检测、调节、控制和保护等方面，作用应涵盖效率、安全、条件、质量和能源等方面。", "difficulty": "基础"},
+                {"type": "简答题", "id": 22, "chapter": "第二章", "page": "27", "question": "简述阶跃响应曲线法测定对象动态特性的步骤。", "answer": "1. 系统稳定运行，记录各参数的稳态值；2. 对对象施加一个阶跃扰动（如改变阀门开度）；3. 记录被调量随时间的变化曲线；4. 根据响应曲线计算对象的动态参数（如放大系数、时间常数、纯延迟时间）；5. 建立对象的数学模型。", "analysis": "阶跃响应曲线法的步骤应包括稳定运行、施加扰动、记录响应、计算参数和建立模型等环节。", "difficulty": "基础"},
+                {"type": "简答题", "id": 23, "chapter": "第三章", "page": "36", "question": "简述PID控制器各参数对系统性能的影响。", "answer": "比例系数Kp：增大Kp可以加快系统响应速度，提高系统精度，但过大会导致系统不稳定；积分时间Ti：减小Ti可以加快消除余差的速度，但过小会导致系统振荡；微分时间Td：增大Td可以改善系统的动态性能，减小超调量，但过大会导致系统对噪声敏感。", "analysis": "PID控制器各参数的影响应分别说明比例、积分和微分部分对系统响应速度、稳定性、余差消除等方面的作用。", "difficulty": "基础"},
+                {"type": "简答题", "id": 24, "chapter": "第四章", "page": "43", "question": "简述汽包水位三冲量控制系统的工作原理。", "answer": "汽包水位三冲量控制系统是在单冲量控制系统的基础上，增加了蒸汽流量和给水流量两个冲量。其中，水位信号是主信号，用于控制水位的稳态值；蒸汽流量信号是前馈信号，用于补偿蒸汽流量变化对水位的影响；给水流量信号是反馈信号，用于及时反映给水流量的变化。", "analysis": "三冲量控制系统的工作原理应说明三个信号的作用：水位为主信号，蒸汽流量为前馈信号，给水流量为反馈信号。", "difficulty": "基础"},
+                {"type": "简答题", "id": 25, "chapter": "第四章", "page": "44", "question": "简述过热蒸汽温度控制系统的特点和调节策略。", "answer": "过热蒸汽温度控制系统的特点：1. 延迟大，惯性大；2. 扰动因素多；3. 对温度控制精度要求高。调节策略：1. 采用串级控制，主调节器调节蒸汽温度，副调节器调节减温水量；2. 采用分段控制，根据不同负荷段采用不同的调节参数；3. 采用前馈控制，补偿燃烧工况变化对温度的影响。", "analysis": "过热蒸汽温度控制系统的特点应包括延迟、惯性、扰动和精度要求等方面，调节策略应包括串级控制、分段控制和前馈控制等方法。", "difficulty": "基础"}
+            ]
+        };
+
+        let questions = [], answers = {}, timer = null, seconds = 0, studentInfo = null, startTime = null, endTime = null;
+        
+        // 存储考试记录
+        function getExamRecords() {
+            return JSON.parse(localStorage.getItem('examRecords') || '[]');
+        }
+        
+        function saveExamRecord(record) {
+            const records = getExamRecords();
+            records.push(record);
+            localStorage.setItem('examRecords', JSON.stringify(records));
+        }
+        
+        function updateTeacherStats() {
+            const records = getExamRecords();
+            // 排除测试账号123456，计算真正的学生人数
+            const totalStudents = Object.keys(STUDENTS).filter(id => id !== '123456').length;
+            const examinedStudents = records.length;
+            const averageScore = examinedStudents > 0 ? (records.reduce((sum, r) => sum + r.score, 0) / examinedStudents).toFixed(1) : 0;
+            
+            document.getElementById('totalStudents').textContent = totalStudents;
+            document.getElementById('examinedStudents').textContent = examinedStudents;
+            document.getElementById('averageScore').textContent = averageScore;
+        }
+        
+        function renderExamRecords() {
+            const records = getExamRecords();
+            const tbody = document.getElementById('examRecords');
+            
+            if(records.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">暂无考试记录</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = '';
+            records.forEach(record => {
+                const row = document.createElement('tr');
+                const duration = Math.floor((new Date(record.endTime) - new Date(record.startTime))/1000);
+                const durationStr = Math.floor(duration/60) + '分' + (duration%60) + '秒';
+                
+                row.innerHTML = `
+                    <td>${record.studentId}</td>
+                    <td>${record.studentName}</td>
+                    <td>${record.studentMajor}</td>
+                    <td>${record.score}</td>
+                    <td>${new Date(record.startTime).toLocaleString('zh-CN')}</td>
+                    <td>${new Date(record.endTime).toLocaleString('zh-CN')}</td>
+                    <td>${durationStr}</td>
+                    <td><button class="btn btn-sm btn-info view-report" data-id="${record.studentId}">查看报告</button></td>
+                `;
+                tbody.appendChild(row);
+            });
+            
+            // 绑定查看报告按钮事件
+            document.querySelectorAll('.view-report').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const studentId = this.dataset.id;
+                    const record = records.find(r => r.studentId === studentId);
+                    if(record) {
+                        alert(`学生：${record.studentName}\n学号：${record.studentId}\n得分：${record.score}\n开始时间：${new Date(record.startTime).toLocaleString('zh-CN')}\n结束时间：${new Date(record.endTime).toLocaleString('zh-CN')}\n用时：${Math.floor((new Date(record.endTime) - new Date(record.startTime))/60000)}分${Math.floor(((new Date(record.endTime) - new Date(record.startTime))%60000)/1000)}秒`);
+                    }
+                });
+            });
+        }
+        
+        function show(id) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+        
+        function tick() {
+            seconds++;
+            document.getElementById('timer').textContent = String(Math.floor(seconds/60)).padStart(2,'0') + ':' + String(seconds%60).padStart(2,'0');
+        }
+        
+        function updateProg() {
+            const n = Object.keys(answers).length;
+            document.getElementById('progTxt').textContent = n + ' / ' + questions.length;
+            document.getElementById('progBar').style.width = (n/questions.length*100) + '%';
+        }
+        
+        function shuffle(arr) {
+            const a = [...arr];
+            for(let i = a.length-1; i > 0; i--) {
+                const j = Math.floor(Math.random()*(i+1));
+                [a[i],a[j]] = [a[j],a[i]];
+            }
+            return a;
+        }
+        
+        function randomSelect() {
+            const s = shuffle(QUESTIONS['单选题']).slice(0,4);
+            const m = shuffle(QUESTIONS['多选题']).slice(0,3);
+            const sh = shuffle(QUESTIONS['简答题']).slice(0,3);
+            const all = [...s,...m,...sh];
+            all.forEach((q,i) => q.seq = i+1);
+            return all;
+        }
+        
+        function renderQ() {
+            const c = document.getElementById('qList');
+            c.innerHTML = '';
+            questions.forEach(q => {
+                const div = document.createElement('div');
+                div.className = 'q-card';
+                div.id = 'q-' + q.seq;
+                const tc = q.type === '单选题' ? 'type-单选' : q.type === '多选题' ? 'type-多选' : 'type-简答';
+                let oh = '';
+                if(q.type !== '简答题') {
+                    oh = '<div>';
+                    Object.entries(q.options||{}).forEach(([k,v]) => {
+                        const inp = q.type === '单选题' ? 'radio' : 'checkbox';
+                        oh += '<div class="opt" data-seq="'+q.seq+'" data-opt="'+k+'"><label><input type="'+inp+'" name="q'+q.seq+'" value="'+k+'"><span class="opt-letter">'+k+'. </span><span>'+v+'</span></label></div>';
+                    });
+                    oh += '</div>';
+                } else {
+                    oh = '<textarea class="short-input" data-seq="'+q.seq+'" placeholder="请输入答案..."></textarea>';
+                }
+                div.innerHTML = '<div class="q-header"><span><span class="q-type '+tc+'">'+q.type+'</span> <span class="diff-'+q.difficulty+'">'+q.difficulty+'</span></span><span class="text-muted small">第'+q.seq+'题</span></div><div class="q-chapter"><i class="bi bi-book"></i> '+q.chapter+(q.page?'（第'+q.page+'页）':'')+'</div><div class="q-text">'+q.seq+'、'+q.question+'</div>'+oh;
+                c.appendChild(div);
+            });
+            bindOpt();
+        }
+        
+        function bindOpt() {
+            document.querySelectorAll('.opt').forEach(o => {
+                o.addEventListener('click', function() {
+                    const seq = this.dataset.seq, opt = this.dataset.opt, q = questions.find(x => x.seq == seq);
+                    if(q.type === '单选题') {
+                        document.querySelectorAll('[data-seq="'+seq+'"]').forEach(x => x.classList.remove('sel'));
+                        this.classList.add('sel');
+                        this.querySelector('input').checked = true;
+                        answers[seq] = opt;
+                    } else {
+                        this.classList.toggle('sel');
+                        this.querySelector('input').checked = !this.querySelector('input').checked;
+                        const sel = [];
+                        document.querySelectorAll('[data-seq="'+seq+'"].sel').forEach(x => sel.push(x.dataset.opt));
+                        answers[seq] = sel;
+                    }
+                    updateProg();
+                });
+            });
+            document.querySelectorAll('.short-input').forEach(t => {
+                t.addEventListener('input', function() {
+                    answers[this.dataset.seq] = this.value.trim();
+                    updateProg();
+                });
+            });
+        }
+        
+        function calcScore() {
+            let total = 0;
+            const res = [];
+            questions.forEach(q => {
+                const ua = answers[q.seq] || '', ca = q.answer;
+                let ok = false, sc = 0;
+                if(q.type === '单选题') {
+                    if(String(ua).toUpperCase() === String(ca).toUpperCase()) {
+                        ok = true;
+                        sc = 10;
+                    }
+                } else if(q.type === '多选题') {
+                    const us = new Set(String(ua).toUpperCase().replace(/[,，\s]/g,''));
+                    const cs = new Set(String(ca).toUpperCase().replace(/[,，\s]/g,''));
+                    if(us.size === cs.size && [...us].every(x => cs.has(x))) {
+                        ok = true;
+                        sc = 10;
+                    }
+                } else {
+                    const ut = String(ua).toLowerCase();
+                    const rt = (String(ca)+' '+String(q.analysis||'')).toLowerCase();
+                    const kw = rt.match(/[\u4e00-\u9fa5]{2,}/g)?.slice(0,10) || [];
+                    if(kw.length > 0) {
+                        const mc = kw.filter(k => ut.includes(k)).length;
+                        const r = mc/kw.length;
+                        if(r >= 0.5) {
+                            ok = true;
+                            sc = 10;
+                        } else if(r >= 0.3) {
+                            sc = 5;
+                        }
+                    }
+                }
+                total += sc;
+                res.push({ seq: q.seq, type: q.type, question: q.question, options: q.options, user_answer: ua, correct_answer: ca, is_correct: ok, score: sc, analysis: q.analysis, chapter: q.chapter, difficulty: q.difficulty });
+            });
+            return { totalScore: total, results: res };
+        }
+        
+        // 模拟大模型搜索获取前沿拓展内容
+        function getFrontierContent(question, analysis) {
+            const topics = {
+                "热工自动化": "热工自动化技术近年来发展迅速，特别是在智能化、数字化方面取得了显著进展。随着工业4.0和智能电厂概念的提出，热工自动化系统正在向更加集成化、智能化的方向发展。例如，基于人工智能的预测控制、数字孪生技术在热工过程中的应用，以及边缘计算在现场设备中的部署，都为热工自动化带来了新的机遇和挑战。",
+                "过渡过程": "在现代热工控制中，过渡过程的优化一直是研究热点。随着模型预测控制（MPC）和自适应控制技术的应用，过渡过程的品质得到了显著提升。特别是在大型火电机组中，通过先进控制策略的应用，不仅提高了系统的稳定性，还减少了能源消耗和污染物排放。",
+                "被控参数": "被控参数的选择和监测在现代热工控制中变得越来越重要。随着传感器技术的发展，更多的参数可以被实时监测和控制。例如，基于光纤传感器的温度、压力测量，以及基于机器学习的软测量技术，使得更多难以直接测量的参数可以被准确估计，从而提高了控制系统的性能。",
+                "自平衡能力": "无自平衡能力对象的控制一直是热工控制中的难点。近年来，基于状态空间模型的预测控制和鲁棒控制技术在这类对象的控制中得到了广泛应用。例如，在大型锅炉的汽包水位控制中，通过引入前馈控制和状态观测器，可以有效地处理无自平衡特性带来的控制挑战。",
+                "阶跃响应曲线法": "阶跃响应曲线法作为一种传统的对象建模方法，在现代控制工程中仍然发挥着重要作用。随着数据采集和处理技术的进步，阶跃响应曲线的获取和参数辨识变得更加快速和准确。同时，结合系统辨识理论和机器学习方法，从阶跃响应中提取的模型精度也得到了显著提高。",
+                "数学模型": "热工对象的数学建模一直是控制工程的基础。近年来，随着计算能力的提升和建模方法的创新，更加精确和复杂的模型被开发出来。例如，基于机理分析和数据驱动相结合的混合建模方法，以及基于深度学习的黑箱建模方法，为热工过程的控制和优化提供了更强大的工具。",
+                "时间常数": "时间常数作为描述对象惯性的重要参数，在现代控制设计中仍然具有重要意义。随着控制理论的发展，针对大时间常数对象的控制策略不断涌现。例如，基于内模控制（IMC）和史密斯预估器的控制方案，可以有效地补偿大时间常数带来的控制延迟，提高系统的响应速度和稳定性。",
+                "纯延迟时间": "纯延迟时间的存在一直是热工控制中的挑战。近年来，基于预测控制和自适应控制的方法在处理纯延迟方面取得了显著进展。例如，模型预测控制（MPC）通过预测未来的系统行为，可以提前采取控制动作，有效地补偿纯延迟的影响。",
+                "比例控制": "比例控制作为最基本的控制策略，在现代控制系统中仍然被广泛应用。随着智能控制技术的发展，比例参数的自整定和自适应调整成为研究热点。例如，基于遗传算法和粒子群优化的参数整定方法，可以根据系统的运行状态自动调整比例参数，提高控制效果。",
+                "积分控制": "积分控制在消除系统余差方面的作用不可替代。近年来，针对积分饱和问题的研究取得了重要进展。例如，抗积分饱和算法的改进，以及基于模糊逻辑的积分作用调整策略，使得积分控制的性能得到了显著提升。",
+                "微分控制": "微分控制在预测系统变化趋势方面发挥着重要作用。随着传感器技术和信号处理技术的进步，微分信号的提取变得更加准确和可靠。例如，基于滤波器的微分信号处理方法，可以有效地抑制噪声的影响，提高微分控制的效果。",
+                "PID控制器": "PID控制器作为工业控制中最常用的控制器，其参数整定和改进一直是研究热点。近年来，基于人工智能的PID参数整定方法，如神经网络、遗传算法等，为PID控制器的性能优化提供了新的途径。同时，自适应PID和智能PID控制器的开发，也使得PID控制在复杂工业过程中的应用更加广泛。",
+                "汽包水位控制": "汽包水位控制是火电厂运行中的关键环节。近年来，随着控制技术的发展，汽包水位控制系统的性能得到了显著提升。例如，基于多变量预测控制的水位控制系统，可以同时考虑给水流量、蒸汽流量等多个变量的影响，提高了控制的稳定性和准确性。",
+                "过热蒸汽温度控制": "过热蒸汽温度控制对火电厂的安全经济运行至关重要。近年来，基于先进控制策略的温度控制系统不断涌现。例如，基于模型预测控制和前馈补偿的过热蒸汽温度控制系统，可以有效地应对各种扰动，提高温度控制的精度和稳定性。"
+            };
+            
+            let keyTopic = "热工自动化";
+            for(const [topic, content] of Object.entries(topics)) {
+                if(question.includes(topic) || analysis.includes(topic)) {
+                    keyTopic = topic;
+                    break;
+                }
+            }
+            return topics[keyTopic] || "热工自动化技术在不断发展，新的控制策略和技术正在不断涌现，为火电厂的安全经济运行提供了有力保障。";
+        }
+        
+        function renderRes(results) {
+            const c = document.getElementById('resultList');
+            c.innerHTML = '';
+            results.forEach(r => {
+                const div = document.createElement('div');
+                div.className = 'q-card';
+                const ic = r.is_correct ? '✓' : (r.score > 0 ? '△' : '✗'), cl = r.is_correct ? 'text-success' : (r.score > 0 ? 'text-warning' : 'text-danger');
+                let oh = '';
+                if(r.options) {
+                    oh = '<div>';
+                    Object.entries(r.options).forEach(([k,v]) => {
+                        const us = Array.isArray(r.user_answer) ? r.user_answer.includes(k) : r.user_answer === k;
+                        const iso = r.correct_answer.includes(k);
+                        let oc = iso ? 'ok' : (us ? 'err' : '');
+                        const mk = iso ? ' ✓' : (us ? ' ✗' : '');
+                        oh += '<div class="opt '+oc+'"><span class="opt-letter">'+k+'. </span><span>'+v+mk+'</span></div>';
+                    });
+                    oh += '</div>';
+                }
+                const ua = Array.isArray(r.user_answer) ? r.user_answer.join('') : r.user_answer;
+                const ah = r.type === '简答题' ? '<div class="alert alert-light mt-2"><strong>你的答案：</strong>'+(ua||'未作答')+'<br><strong>参考答案：</strong>'+r.correct_answer+'</div>' : '<p class="mt-2 small"><strong>你的答案：</strong>'+(ua||'未作答')+' &nbsp; <strong>正确答案：</strong>'+r.correct_answer+'</p>';
+                const frontierContent = getFrontierContent(r.question, r.analysis);
+                div.innerHTML = '<div class="q-header"><span><span class="q-type type-'+(r.type==='单选题'?'单选':r.type==='多选题'?'多选':'简答')+'">'+r.type+'</span> <span class="'+cl+'">'+ic+'</span></span><span class="fw-bold">'+r.score+'/10分</span></div><div class="q-chapter">'+r.chapter+'</div><div class="q-text">'+r.seq+'、'+r.question+'</div>'+oh+ah+'<div class="analysis"><h6><i class="bi bi-lightbulb"></i> 解析</h6><p class="mb-0 small">'+r.analysis+'</p></div><div class="ext"><h6><i class="bi bi-search"></i> 前沿拓展</h6><p class="small mb-0">'+frontierContent+'</p></div>';
+                c.appendChild(div);
+            });
+        }
+        
+        function exportReport(score, results, studentInfo, startTime, endTime) {
+            const startStr = startTime.toLocaleString('zh-CN');
+            const endStr = endTime.toLocaleString('zh-CN');
+            const duration = Math.floor((endTime - startTime)/1000);
+            const durationStr = Math.floor(duration/60) + '分' + (duration%60) + '秒';
+            
+            let html = `
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>火电机组考核学习报告</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; margin: 20px; }
+        .header { text-align: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #1a73e8; }
+        .header h1 { color: #1a73e8; margin-bottom: 10px; }
+        .info { margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; }
+        .info table { width: 100%; border-collapse: collapse; }
+        .info td { padding: 8px; }
+        .score-box { text-align: center; margin: 30px 0; padding: 20px; background: linear-gradient(135deg, #1a73e8, #1557b0); color: white; border-radius: 12px; }
+        .score-num { font-size: 48px; font-weight: bold; }
+        .stats { display: flex; justify-content: center; gap: 40px; margin-top: 20px; }
+        .stat { text-align: center; }
+        .stat-v { font-size: 24px; font-weight: bold; }
+        .questions { margin-top: 40px; }
+        .q-card { margin-bottom: 20px; padding: 15px; border: 1px solid #e0e0e0; border-radius: 8px; }
+        .q-header { display: flex; justify-content: space-between; margin-bottom: 10px; }
+        .q-type { font-size: 12px; padding: 2px 8px; border-radius: 4px; font-weight: bold; }
+        .type-单选 { background: #e3f2fd; color: #1565c0; }
+        .type-多选 { background: #fff3e0; color: #e65100; }
+        .type-简答 { background: #e8f5e9; color: #2e7d32; }
+        .analysis { margin-top: 10px; padding: 10px; background: #f0f7ff; border-radius: 6px; }
+        .ext { margin-top: 10px; padding: 10px; background: #fff8e1; border-radius: 6px; }
+        .footer { margin-top: 40px; text-align: center; padding-top: 20px; border-top: 1px solid #e0e0e0; font-size: 12px; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>火电机组考核学习报告</h1>
+        <p>热工自动化在线考试</p>
+    </div>
+    
+    <div class="info">
+        <table>
+            <tr><td><strong>姓名：</strong>${studentInfo.name}</td><td><strong>学号：</strong>${studentInfo.id}</td><td><strong>专业：</strong>${studentInfo.major}</td></tr>
+            <tr><td><strong>考试开始：</strong>${startStr}</td><td><strong>考试结束：</strong>${endStr}</td><td><strong>用时：</strong>${durationStr}</td></tr>
+        </table>
+    </div>
+    
+    <div class="score-box">
+        <div class="score-num">${score}</div>
+        <div>分</div>
+        <div class="stats">
+            <div class="stat"><div class="stat-v">${results.filter(r => r.is_correct).length}</div><div>正确</div></div>
+            <div class="stat"><div class="stat-v">${results.filter(r => r.score > 0 && !r.is_correct).length}</div><div>部分正确</div></div>
+            <div class="stat"><div class="stat-v">${results.filter(r => r.score === 0).length}</div><div>错误</div></div>
+        </div>
+    </div>
+    
+    <div class="questions">
+        <h2>答题详情</h2>
+`;
+            
+            results.forEach(r => {
+                const ic = r.is_correct ? '✓' : (r.score > 0 ? '△' : '✗'), cl = r.is_correct ? 'text-success' : (r.score > 0 ? 'text-warning' : 'text-danger');
+                let oh = '';
+                if(r.options) {
+                    oh = '<div>';
+                    Object.entries(r.options).forEach(([k,v]) => {
+                        const us = Array.isArray(r.user_answer) ? r.user_answer.includes(k) : r.user_answer === k;
+                        const iso = r.correct_answer.includes(k);
+                        const mk = iso ? ' ✓' : (us ? ' ✗' : '');
+                        oh += '<div><strong>'+k+'. </strong>'+v+mk+'</div>';
+                    });
+                    oh += '</div>';
+                }
+                const ua = Array.isArray(r.user_answer) ? r.user_answer.join('') : r.user_answer;
+                const ah = r.type === '简答题' ? '<div><strong>你的答案：</strong>'+(ua||'未作答')+'<br><strong>参考答案：</strong>'+r.correct_answer+'</div>' : '<div><strong>你的答案：</strong>'+(ua||'未作答')+' &nbsp; <strong>正确答案：</strong>'+r.correct_answer+'</div>';
+                const frontierContent = getFrontierContent(r.question, r.analysis);
+                
+                html += `
+        <div class="q-card">
+            <div class="q-header">
+                <span>
+                    <span class="q-type type-${r.type === '单选题' ? '单选' : r.type === '多选题' ? '多选' : '简答'}">${r.type}</span>
+                    <span class="${cl}">${ic}</span>
+                </span>
+                <span><strong>${r.score}/10分</strong></span>
+            </div>
+            <div><strong>题目：</strong>${r.seq}、${r.question}</div>
+            ${oh}
+            ${ah}
+            <div class="analysis">
+                <strong>解析：</strong>${r.analysis}
+            </div>
+            <div class="ext">
+                <strong>前沿拓展：</strong>${frontierContent}
+            </div>
+        </div>
+`;
+            });
+            
+            html += `
+    </div>
+    
+    <div class="footer">
+        <p>报告生成时间：${new Date().toLocaleString('zh-CN')}</p>
+        <p>火电机组考核系统 © 2026</p>
+    </div>
+</body>
+</html>
+`;
+            
+            const blob = new Blob([html], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `火电机组考核学习报告_${studentInfo.id}_${studentInfo.name}.html`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const id = document.getElementById('studentId').value.trim();
+            if(!id) return alert('请输入学号');
+            if(STUDENTS[id]) {
+                studentInfo = STUDENTS[id];
+                document.getElementById('sName').textContent = studentInfo.name;
+                document.getElementById('sId').textContent = studentInfo.id;
+                document.getElementById('sMajor').textContent = studentInfo.major;
+                show('readySec');
+            } else {
+                alert('学号不存在，请检查输入');
+            }
+        });
+        
+        document.getElementById('startBtn').addEventListener('click', function() {
+            questions = randomSelect();
+            renderQ();
+            show('examSec');
+            startTime = new Date();
+            timer = setInterval(tick, 1000);
+        });
+        
+        document.getElementById('submitBtn').addEventListener('click', function() {
+            if(Object.keys(answers).length < questions.length && !confirm('还有题目未作答，确定提交吗？')) return;
+            clearInterval(timer);
+            endTime = new Date();
+            const { totalScore, results } = calcScore();
+            document.getElementById('scoreNum').textContent = totalScore;
+            let ok = 0, part = 0, err = 0;
+            results.forEach(r => {
+                if(r.is_correct) ok++;
+                else if(r.score > 0) part++;
+                else err++;
+            });
+            document.getElementById('okCnt').textContent = ok;
+            document.getElementById('partCnt').textContent = part;
+            document.getElementById('errCnt').textContent = err;
+            document.getElementById('scoreComment').textContent = totalScore >= 90 ? '优秀！继续保持！' : totalScore >= 80 ? '良好，再接再厉！' : totalScore >= 60 ? '及格，需加强学习。' : '不及格，请认真复习。';
+            const dur = Math.floor((endTime - startTime)/1000);
+            const startStr = startTime.toLocaleString('zh-CN');
+            const endStr = endTime.toLocaleString('zh-CN');
+            document.getElementById('timeInfo').innerHTML = '<i class="bi bi-clock"></i> 开始：' + startStr + ' | 结束：' + endStr + ' | 用时 ' + Math.floor(dur/60) + '分' + (dur%60) + '秒';
+            
+            // 保存考试记录
+            const examRecord = {
+                studentId: studentInfo.id,
+                studentName: studentInfo.name,
+                studentMajor: studentInfo.major,
+                score: totalScore,
+                startTime: startTime.toISOString(),
+                endTime: endTime.toISOString(),
+                results: results
+            };
+            saveExamRecord(examRecord);
+            
+            renderRes(results);
+            show('resultSec');
+        });
+        
+        document.getElementById('exportBtn').addEventListener('click', function() {
+            const { totalScore, results } = calcScore();
+            exportReport(totalScore, results, studentInfo, startTime, endTime);
+        });
+        
+        document.getElementById('restartBtn').addEventListener('click', function() {
+            if(confirm('确定重新开始？')) {
+                location.reload();
+            }
+        });
+        
+        // 教师端功能
+        document.getElementById('teacherBtn').addEventListener('click', function() {
+            show('teacherLoginSec');
+        });
+        
+        document.getElementById('backToStudentBtn').addEventListener('click', function() {
+            show('loginSec');
+        });
+        
+        document.getElementById('teacherLoginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const password = document.getElementById('teacherPassword').value;
+            if(password === '654321') {
+                show('teacherSec');
+                updateTeacherStats();
+                renderExamRecords();
+            } else {
+                alert('密码错误，请重试');
+            }
+        });
+        
+        document.getElementById('logoutBtn').addEventListener('click', function() {
+            if(confirm('确定退出登录？')) {
+                show('loginSec');
+            }
+        });
+    </script>
+</body>
+</html>
