@@ -553,5 +553,191 @@
         "difficulty": "困难"
       }
     ]
+  },
+  {
+    "student_id": "123456",
+    "student_name": "测试学生",
+    "major": "控制工程（测试）",
+    "score": 0,
+    "duration_seconds": 5,
+    "start_time": "2026-03-20 10:16:13",
+    "end_time": "2026-03-20 10:16:19",
+    "results": [
+      {
+        "seq": 1,
+        "type": "单选题",
+        "question": "在一阶惯性加纯滞后模型中，纯滞后τ和时间常数T的比值（τ/T）经常用来衡量过程的控制难度。该比值越大，表明对象？",
+        "options": {
+          "A": "越容易控制",
+          "B": "越难控制，系统越容易振荡",
+          "C": "稳态误差越小",
+          "D": "控制器越不需要积分作用"
+        },
+        "user_answer": "",
+        "correct_answer": "B",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "τ/T 越大，意味着系统在死区时间内累积的偏差越大，而对象的惯性又不能及时反映控制作用，控制难度剧增，常规PID很难获得良好品质。",
+        "chapter": "第二章",
+        "page": "27",
+        "difficulty": "困难"
+      },
+      {
+        "seq": 2,
+        "type": "单选题",
+        "question": "采用“直接能量平衡（DEB）”策略时，通常用什么参数最准确代表汽机实际消耗能量？",
+        "options": {
+          "A": "有功功率",
+          "B": "汽轮机调节级压力 p1​",
+          "C": "主汽流量",
+          "D": "真空"
+        },
+        "user_answer": "",
+        "correct_answer": "B",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "调节级压力 p1​ 与流入汽机的蒸汽能量呈严格线性对应关系，排除了电网频率波动干扰，是表征汽机耗热最准确信号。",
+        "chapter": "第十一章",
+        "page": "185",
+        "difficulty": "困难"
+      },
+      {
+        "seq": 3,
+        "type": "单选题",
+        "question": "如果锅炉汽包水位过高（满水），可能会导致什么严重后果？",
+        "options": {
+          "A": "炉膛爆炸",
+          "B": "蒸汽带水，导致过热器结垢并可能损坏汽轮机叶片",
+          "C": "破坏水循环",
+          "D": "烧坏水冷壁管"
+        },
+        "user_answer": "",
+        "correct_answer": "B",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "水位过高会破坏汽水分离装置的正常工作，导致蒸汽携带大量水分盐分，重则水滴进入汽轮机打坏叶片（水击）。",
+        "chapter": "第九章",
+        "page": "116",
+        "difficulty": "基础"
+      },
+      {
+        "seq": 4,
+        "type": "单选题",
+        "question": "积分控制（I控制）的主要作用是？",
+        "options": {
+          "A": "提高响应速度",
+          "B": "消除静态偏差",
+          "C": "减小动态偏差",
+          "D": "产生超前控制"
+        },
+        "user_answer": "",
+        "correct_answer": "B",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "只要有偏差存在，积分控制作用一直增加，直到偏差为零。因此积分控制消除了稳态偏差，实现无差控制。",
+        "chapter": "第三章",
+        "page": "35",
+        "difficulty": "中等"
+      },
+      {
+        "seq": 5,
+        "type": "多选题",
+        "question": "影响单元机组负荷响应速度及动态特性的主要因素有？",
+        "options": {
+          "A": "锅炉的蓄热量大小",
+          "B": "制粉系统的惯性和迟延",
+          "C": "汽轮机容积的迟延",
+          "D": "汽包水位的动态波动"
+        },
+        "user_answer": "",
+        "correct_answer": "ABC",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "负荷响应主要受到锅炉侧蓄热量、制粉系统的巨大延迟，以及汽轮机高压缸及管路蒸汽容积迟延的共同影响。",
+        "chapter": "第十一章",
+        "page": "173",
+        "difficulty": "中等"
+      },
+      {
+        "seq": 6,
+        "type": "多选题",
+        "question": "在分析锅炉汽包水位动态特性时，以下哪些因素被视为引起水位变化的扰动量？",
+        "options": {
+          "A": "主蒸汽流量的变化",
+          "B": "给水流量的变化",
+          "C": "炉内燃烧热负荷的变化",
+          "D": "环境温度的微小波动"
+        },
+        "user_answer": "",
+        "correct_answer": "ABC",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "引起汽包水位变化的三个主要扰动是：蒸汽负荷扰动（产生虚假水位）、给水流量扰动和燃烧放热量扰动。环境温度影响可忽略。",
+        "chapter": "第九章",
+        "page": "128",
+        "difficulty": "中等"
+      },
+      {
+        "seq": 7,
+        "type": "多选题",
+        "question": "单元机组协调控制系统在异常工况下的快速保护功能（如 RB），通常会联锁触发以下哪些动作？",
+        "options": {
+          "A": "强制解除机炉协调方式",
+          "B": "快速降低目标负荷指令至安全值",
+          "C": "联锁切除部分制粉系统（燃料）",
+          "D": "自动开启旁路防超压"
+        },
+        "user_answer": "",
+        "correct_answer": "ABCD",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "RB触发时会自动解除协调，强降目标负荷至极限内，同时为配合降负荷和防超压切除相应燃料，并可能开启旁路。",
+        "chapter": "第十一章",
+        "page": "185",
+        "difficulty": "困难"
+      },
+      {
+        "seq": 8,
+        "type": "简答题",
+        "question": "简述微分调节作用具有“超前控制”的物理意义，并说明它对系统过渡过程的积极影响。",
+        "options": {},
+        "user_answer": "",
+        "correct_answer": "见解析",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "物理意义：微分根据偏差“变化速度”动作，在偏差刚露头且有扩大趋势时，立即输出强大修正信号，具预见性。积极影响：等效于增加物理阻尼，减小动态超调量，缩短过渡时间，改善大滞后对象稳定性。",
+        "chapter": "第三章",
+        "page": "48",
+        "difficulty": "困难"
+      },
+      {
+        "seq": 9,
+        "type": "简答题",
+        "question": "简述单元机组协调控制系统（CCS）的主要任务及其对外、对内的控制目标。",
+        "options": {},
+        "user_answer": "",
+        "correct_answer": "见解析",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "对外任务：快速准确响应电网负荷指令，参与电网调峰调频；对内任务：协调锅炉和汽机动作，使能量供应与耗汽量匹配，维持主汽压、汽温等关键参数在安全范围内。",
+        "chapter": "第十一章",
+        "page": "166",
+        "difficulty": "中等"
+      },
+      {
+        "seq": 10,
+        "type": "简答题",
+        "question": "什么是自动控制系统的过渡过程？",
+        "options": {},
+        "user_answer": "",
+        "correct_answer": "见解析",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "当有扰动发生时，系统的平衡状态被破坏，被调量偏离给定值，经过调节直到系统重新建立平衡。系统从一个平衡状态过渡到另一个平衡状态的过程，称为控制系统的过渡过程。",
+        "chapter": "第一章",
+        "page": "16",
+        "difficulty": "中等"
+      }
+    ]
   }
 ]
