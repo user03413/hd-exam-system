@@ -1,0 +1,7 @@
+# 忽略文件
+*.zip
+*.xlsx
+*.xls
+*.pdf
+*.docx
+*_files/
