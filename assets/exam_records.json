@@ -367,5 +367,191 @@
         "difficulty": "困难"
       }
     ]
+  },
+  {
+    "student_id": "123456",
+    "student_name": "测试学生",
+    "major": "控制工程（测试）",
+    "score": 0,
+    "duration_seconds": 7,
+    "start_time": "2026-03-20 10:14:42",
+    "end_time": "2026-03-20 10:14:49",
+    "results": [
+      {
+        "seq": 1,
+        "type": "单选题",
+        "question": "在比例微分（PD）调节规律中，微分作用是根据偏差的什么特征进行控制信号输出的？",
+        "options": {
+          "A": "偏差的累积总和",
+          "B": "偏差的绝对大小",
+          "C": "偏差的变化速度（变化率）",
+          "D": "偏差的极性"
+        },
+        "user_answer": "",
+        "correct_answer": "C",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "微分控制规律的方程为 u(t)=Td​⋅(de/dt)，即调节器的微分输出量直接与输入偏差随时间的变化率（导数）成正比。",
+        "chapter": "第三章",
+        "page": "47",
+        "difficulty": "基础"
+      },
+      {
+        "seq": 2,
+        "type": "单选题",
+        "question": "在引入了“热量信号”构成的串级燃料量控制系统中，主调节器的控制对象是？",
+        "options": {
+          "A": "燃料量指令",
+          "B": "主蒸汽压力",
+          "C": "炉膛温度",
+          "D": "热量信号"
+        },
+        "user_answer": "",
+        "correct_answer": "B",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "该串级系统的主被控参数是最终工艺指标——主蒸汽压力。主调节器根据汽压偏差输出热量需求指令。",
+        "chapter": "第十章",
+        "page": "156",
+        "difficulty": "中等"
+      },
+      {
+        "seq": 3,
+        "type": "单选题",
+        "question": "过程的时间常数T越大，意味着该过程在受到扰动后输出量的响应速度？",
+        "options": {
+          "A": "越快",
+          "B": "越慢",
+          "C": "发生震荡",
+          "D": "保持不变"
+        },
+        "user_answer": "",
+        "correct_answer": "B",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "时间常数T代表了过程容量与阻力的乘积，T越大，表示物料或能量充放的惯性越大，系统对扰动的响应速度就越慢。",
+        "chapter": "第二章",
+        "page": "26",
+        "difficulty": "基础"
+      },
+      {
+        "seq": 4,
+        "type": "单选题",
+        "question": "锅炉跟随（BF）控制方式下，机组对电网指令的响应速度相比于协调方式通常？",
+        "options": {
+          "A": "更快",
+          "B": "更慢",
+          "C": "相同",
+          "D": "不确定"
+        },
+        "user_answer": "",
+        "correct_answer": "A",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "BF方式下汽机调门直接响应指令，充分利用了锅炉蓄热，因此实际功率响应速度极快，但会导致汽压波动较大。",
+        "chapter": "第十一章",
+        "page": "172",
+        "difficulty": "中等"
+      },
+      {
+        "seq": 5,
+        "type": "多选题",
+        "question": "对热工自动控制设备与系统的要求主要包括哪些？",
+        "options": {
+          "A": "工作可靠",
+          "B": "专用的监控装置",
+          "C": "抗干扰性能强",
+          "D": "使用和维护方便"
+        },
+        "user_answer": "",
+        "correct_answer": "ABCD",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "对热工自动控制设备与系统的要求包括：工作可靠；专用的监控装置；设备的抗干扰性能强；使用和维护方便。",
+        "chapter": "第一章",
+        "page": "14",
+        "difficulty": "中等"
+      },
+      {
+        "seq": 6,
+        "type": "多选题",
+        "question": "衡量一个控制过程质量的动态指标主要有？",
+        "options": {
+          "A": "衰减比或衰减率",
+          "B": "最大偏差或超调量",
+          "C": "调节时间",
+          "D": "余差"
+        },
+        "user_answer": "",
+        "correct_answer": "ABC",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "衰减比或衰减率、最大偏差或超调量和调节时间是衡量控制系统的动态指标，而余差是衡量控制系统的静态指标。",
+        "chapter": "第一章",
+        "page": "17",
+        "difficulty": "困难"
+      },
+      {
+        "seq": 7,
+        "type": "多选题",
+        "question": "影响单元机组负荷响应速度及动态特性的主要因素有？",
+        "options": {
+          "A": "锅炉的蓄热量大小",
+          "B": "制粉系统的惯性和迟延",
+          "C": "汽轮机容积的迟延",
+          "D": "汽包水位的动态波动"
+        },
+        "user_answer": "",
+        "correct_answer": "ABC",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "负荷响应主要受到锅炉侧蓄热量、制粉系统的巨大延迟，以及汽轮机高压缸及管路蒸汽容积迟延的共同影响。",
+        "chapter": "第十一章",
+        "page": "173",
+        "difficulty": "中等"
+      },
+      {
+        "seq": 8,
+        "type": "简答题",
+        "question": "什么是汽包锅炉的“虚假水位”现象？简述其产生的主要原因。",
+        "options": {},
+        "user_answer": "",
+        "correct_answer": "见解析",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "虚假水位是指蒸汽负荷突变时，汽包水位短时间内呈现出与实际水量增减相反的动态现象。原因：蒸汽流量突增导致汽包压力急降，炉水饱和温度降低发生附加汽化，汽泡容积急剧膨胀，将水位瞬间“托高”。",
+        "chapter": "第九章",
+        "page": "118",
+        "difficulty": "中等"
+      },
+      {
+        "seq": 9,
+        "type": "简答题",
+        "question": "简述锅炉燃烧自动控制系统的三个基本任务。",
+        "options": {},
+        "user_answer": "",
+        "correct_answer": "见解析",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "1)控制主汽压稳定：调节燃料量，使锅炉产热与外界耗热相适应；2)保证燃烧经济性：调节送风量维持最佳风煤比；3)维持锅炉安全环境：调节引风量，使炉膛维持在微负压状态防外喷或漏风。",
+        "chapter": "第十章",
+        "page": "142",
+        "difficulty": "中等"
+      },
+      {
+        "seq": 10,
+        "type": "简答题",
+        "question": "什么是比例调节的静态偏差（余差）？它产生的原因是什么？",
+        "options": {},
+        "user_answer": "",
+        "correct_answer": "见解析",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "静态偏差是指系统受扰动重新稳态后，被调量与设定值之间的不可消除偏差。原因：比例控制器的输出增量依赖输入偏差。当负荷改变需新输出开度时，必须有稳态偏差维持此输出，故为“有差调节”。",
+        "chapter": "第三章",
+        "page": "40",
+        "difficulty": "困难"
+      }
+    ]
   }
 ]

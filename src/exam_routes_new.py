@@ -1663,10 +1663,6 @@ HOME_HTML = '''
                 <i class="bi bi-book-fill"></i>
                 <span>题型：单选 + 多选 + 简答（共10题）</span>
             </div>
-            <div class="info-item">
-                <i class="bi bi-shield-check"></i>
-                <span>测试账号：学生 123456 · 教师 654321</span>
-            </div>
         </div>
     </div>
 </body>
