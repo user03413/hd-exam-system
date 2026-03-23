@@ -739,5 +739,371 @@
         "difficulty": "中等"
       }
     ]
+  },
+  {
+    "student_id": "123456",
+    "student_name": "测试学生",
+    "major": "控制工程（测试）",
+    "score": 0,
+    "duration_seconds": 9,
+    "start_time": "2026-03-20 15:27:43",
+    "end_time": "2026-03-20 15:27:52",
+    "results": [
+      {
+        "seq": 1,
+        "type": "单选题",
+        "question": "采用“直接能量平衡（DEB）”策略时，通常用什么参数最准确代表汽机实际消耗能量？",
+        "options": {
+          "A": "有功功率",
+          "B": "汽轮机调节级压力 p1​",
+          "C": "主汽流量",
+          "D": "真空"
+        },
+        "user_answer": "",
+        "correct_answer": "B",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "调节级压力 p1​ 与流入汽机的蒸汽能量呈严格线性对应关系，排除了电网频率波动干扰，是表征汽机耗热最准确信号。",
+        "chapter": "第十一章",
+        "page": "185",
+        "difficulty": "困难"
+      },
+      {
+        "seq": 2,
+        "type": "单选题",
+        "question": "在现代电网调度与火电厂协调控制中，缩写 AGC 通常指的是什么？",
+        "options": {
+          "A": "自动电压控制",
+          "C": "自动燃烧",
+          "D": "数字电液控制"
+        },
+        "user_answer": "",
+        "correct_answer": "B",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "AGC是指机组CCS接受电网调度中心下发的实时指令，自动改变出力以满足电网二次调频和经济调度的运行模式。",
+        "chapter": "第十一章",
+        "page": "170",
+        "difficulty": "基础"
+      },
+      {
+        "seq": 3,
+        "type": "单选题",
+        "question": "采用改变燃烧器倾角（摆角）来调节汽温时，当燃烧器倾角向下摆动时，炉膛出口烟温和过热/再热汽温通常会如何变化？",
+        "options": {
+          "A": "升高",
+          "B": "降低",
+          "C": "保持不变",
+          "D": "先升后降"
+        },
+        "user_answer": "",
+        "correct_answer": "B",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "倾角向下摆动会降低炉膛火焰中心，使得水冷壁吸收更多热量，导致炉膛出口烟温降低，进而使布置在对流烟道中的过热/再热汽温降低。",
+        "chapter": "第八章",
+        "page": "112",
+        "difficulty": "困难"
+      },
+      {
+        "seq": 4,
+        "type": "单选题",
+        "question": "模型预测控制（MPC）相比常规PID，处理哪类问题时具有不可替代的优势？",
+        "options": {
+          "A": "多变量强耦合和带硬约束条件",
+          "B": "单回路快速响应",
+          "C": "无迟延对象",
+          "D": "降成本"
+        },
+        "user_answer": "",
+        "correct_answer": "A",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "MPC的滚动优化算法可显式加入变量上下限及变化率等硬约束条件，并能原生处理多变量间强耦合，这是PID无法做到的。",
+        "chapter": "第十六/七章",
+        "page": "268",
+        "difficulty": "困难"
+      },
+      {
+        "seq": 5,
+        "type": "多选题",
+        "question": "一个典型的模糊控制器通常由以下哪些基本部分组成？",
+        "options": {
+          "A": "模糊化接口",
+          "B": "知识库（规则库）",
+          "C": "模糊推理机",
+          "D": "解模糊接口"
+        },
+        "user_answer": "",
+        "correct_answer": "ABCD",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "输入先“模糊化”，根据“知识库”规则由“推理机”推理，最后通过“解模糊”接口转化为精确控制信号。",
+        "chapter": "第十五章",
+        "page": "246",
+        "difficulty": "中等"
+      },
+      {
+        "seq": 6,
+        "type": "多选题",
+        "question": "对热工自动控制设备与系统的要求主要包括哪些？",
+        "options": {
+          "A": "工作可靠",
+          "B": "专用的监控装置",
+          "C": "抗干扰性能强",
+          "D": "使用和维护方便"
+        },
+        "user_answer": "",
+        "correct_answer": "ABCD",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "对热工自动控制设备与系统的要求包括：工作可靠；专用的监控装置；设备的抗干扰性能强；使用和维护方便。",
+        "chapter": "第一章",
+        "page": "14",
+        "difficulty": "中等"
+      },
+      {
+        "seq": 7,
+        "type": "多选题",
+        "question": "直流锅炉与汽包锅炉相比，在动态特性上的主要区别包括？",
+        "options": {
+          "A": "无汽包，没有水位变化的缓冲能力",
+          "B": "蓄热量小，反应灵敏",
+          "C": "各段受热面界限不固定",
+          "D": "水位极难控制"
+        },
+        "user_answer": "",
+        "correct_answer": "ABC",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "直流炉无汽包蓄热量小且加热界限变动；但正因无汽包，故不存在“汽包水位”控制参数（D错）。",
+        "chapter": "第十二章",
+        "page": "188",
+        "difficulty": "困难"
+      },
+      {
+        "seq": 8,
+        "type": "简答题",
+        "question": "简述协调控制系统中“直接能量平衡（DEB）”控制策略的基本物理思想。",
+        "options": {},
+        "user_answer": "",
+        "correct_answer": "见解析",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "思想：利用机组稳态时锅炉输入热量应与汽轮机耗热量相等原理。用“汽轮机调节级压力”与目标负荷对比，直接推算锅炉所需燃料热量指令，强制锅炉提供匹配热量。前馈型控制极大克服燃烧迟延。",
+        "chapter": "第十一章",
+        "page": "185",
+        "difficulty": "困难"
+      },
+      {
+        "seq": 9,
+        "type": "简答题",
+        "question": "简述汽包锅炉“三冲量”给水控制系统的工作原理。",
+        "options": {},
+        "user_answer": "",
+        "correct_answer": "见解析",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "三冲量以汽包水位为主反馈，蒸汽流量为前馈补偿，给水流量为副反馈组成串级前馈混合系统。蒸汽前馈快速克服“虚假水位”导致的误动作；给水流量副环迅速消除给水压力波动引起的水量内扰；汽包水位主环最终确保无差回到给定值。",
+        "chapter": "第九章",
+        "page": "122",
+        "difficulty": "困难"
+      },
+      {
+        "seq": 10,
+        "type": "简答题",
+        "question": "为什么锅炉再热汽温的控制一般不采用喷水减温作为主要调节手段？",
+        "options": {},
+        "user_answer": "",
+        "correct_answer": "见解析",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "过多使用喷水减温会增加低压缸做功的蒸汽流量，但由于这部分蒸汽未经过高压缸最高参数做功环节，会显著降低机组的循环热效率。因此再热汽温常采用烟气挡板等烟气侧调节作为主要手段，喷水仅作超温保护。",
+        "chapter": "第八章",
+        "page": "110",
+        "difficulty": "中等"
+      }
+    ]
+  },
+  {
+    "student_id": "123456",
+    "student_name": "测试学生",
+    "major": "控制工程（测试）",
+    "score": 0,
+    "duration_seconds": 5,
+    "start_time": "2026-03-23 10:10:44",
+    "end_time": "2026-03-23 10:10:50",
+    "results": [
+      {
+        "seq": 1,
+        "type": "单选题",
+        "question": "比例控制规律应用于有自平衡能力的对象时，其控制结果存在的一个固有的原理性缺点是？",
+        "options": {
+          "A": "响应速度过慢",
+          "B": "容易引起积分饱和",
+          "C": "系统一定会失稳",
+          "D": "存在不可消除的静态偏差（余差）"
+        },
+        "user_answer": "",
+        "correct_answer": "D",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "比例控制器只有在存在偏差时才能维持一定的控制输出增量。当负荷改变需要新的稳态控制输出时，必然要有相应的稳态偏差存在，即有差调节。",
+        "chapter": "第三章",
+        "page": "40",
+        "difficulty": "基础"
+      },
+      {
+        "seq": 2,
+        "type": "单选题",
+        "question": "在串级结构的三冲量给水控制系统中，主调节器（水位调节器）通常采用的控制规律是？",
+        "options": {
+          "A": "纯 P",
+          "B": "双位控制"
+        },
+        "user_answer": "",
+        "correct_answer": "C",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "主回路负责保证汽包水位最终精确稳定在设定值上，实现无静差控制，因此主调节器必须带有积分作用（PI 或 PID）。",
+        "chapter": "第九章",
+        "page": "125",
+        "difficulty": "中等"
+      },
+      {
+        "seq": 3,
+        "type": "单选题",
+        "question": "控制对象受到阶跃扰动后，被调量不能依靠自身能力趋于某一稳定值的对象称为？",
+        "options": {
+          "A": "有自平衡能力对象",
+          "B": "无自平衡能力对象",
+          "C": "静态对象",
+          "D": "动态对象"
+        },
+        "user_answer": "",
+        "correct_answer": "B",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "无自平衡能力对象即对象在受到扰动后，其被调量不能依靠对象自身能力使之趋于某一稳定值。",
+        "chapter": "第二章",
+        "page": "21",
+        "difficulty": "基础"
+      },
+      {
+        "seq": 4,
+        "type": "单选题",
+        "question": "大型火电机组主蒸汽温度控制主要采用的方法是？",
+        "options": {
+          "A": "改变烟气挡板",
+          "B": "喷水减温",
+          "C": "改变燃烧器倾角",
+          "D": "调整送风量"
+        },
+        "user_answer": "",
+        "correct_answer": "B",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "主蒸汽（过热蒸汽）温度控制最普遍且最灵敏的手段是采用喷水减温器，通过改变减温水流量来调节汽温。",
+        "chapter": "第八章",
+        "page": "102",
+        "difficulty": "中等"
+      },
+      {
+        "seq": 5,
+        "type": "多选题",
+        "question": "影响单元机组负荷响应速度及动态特性的主要因素有？",
+        "options": {
+          "A": "锅炉的蓄热量大小",
+          "B": "制粉系统的惯性和迟延",
+          "C": "汽轮机容积的迟延",
+          "D": "汽包水位的动态波动"
+        },
+        "user_answer": "",
+        "correct_answer": "ABC",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "负荷响应主要受到锅炉侧蓄热量、制粉系统的巨大延迟，以及汽轮机高压缸及管路蒸汽容积迟延的共同影响。",
+        "chapter": "第十一章",
+        "page": "173",
+        "difficulty": "中等"
+      },
+      {
+        "seq": 6,
+        "type": "多选题",
+        "question": "相比于单回路控制系统，串级控制系统的主要特点包括？",
+        "options": {
+          "A": "对进入副回路的二次干扰具有很强的克服能力",
+          "B": "可以使副回路的时间常数大大减小",
+          "C": "提高了系统的工作频率",
+          "D": "有一定的自适应能力"
+        },
+        "user_answer": "",
+        "correct_answer": "ABCD",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "串级控制系统特点：克服二次干扰能力强；减小副回路时间常数；提高工作频率；具有一定的自适应能力。",
+        "chapter": "第五章",
+        "page": "68-71",
+        "difficulty": "困难"
+      },
+      {
+        "seq": 7,
+        "type": "多选题",
+        "question": "单元机组协调控制系统（CCS）的典型运行方式通常包括哪些？",
+        "options": {
+          "D": "手动（Manual）"
+        },
+        "user_answer": "",
+        "correct_answer": "ABCD",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "CCS根据设备运行状况可切入多种工作模式，主要包含机炉协调、汽机跟随、锅炉跟随、机炉手动等方式。",
+        "chapter": "第十一章",
+        "page": "168",
+        "difficulty": "中等"
+      },
+      {
+        "seq": 8,
+        "type": "简答题",
+        "question": "直吹式制粉系统和中间储仓式制粉系统在燃料自动控制的动态特性上有什么主要区别？",
+        "options": {},
+        "user_answer": "",
+        "correct_answer": "见解析",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "储仓式调节粉仓下方的给粉机，煤粉立即入炉，对指令响应快无明显滞后。直吹式无粉仓，调节最前端给煤机，煤需经传送、碾磨干燥再吹入炉膛，存在极大纯迟延和容量迟延，控制难度远大于储仓式。",
+        "chapter": "第十章",
+        "page": "147",
+        "difficulty": "中等"
+      },
+      {
+        "seq": 9,
+        "type": "简答题",
+        "question": "简述模糊控制策略在火电厂热工自动控制应用中的主要优点。",
+        "options": {},
+        "user_answer": "",
+        "correct_answer": "见解析",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "1)不依赖被控对象精确数学模型，特适合火电厂中非线性、时变大滞后复杂对象；2)具较强鲁棒性对环境干扰适应强；3)规则易懂，能将优秀运行人员专家经验直接融入自动控制中。",
+        "chapter": "第十五章",
+        "page": "248",
+        "difficulty": "困难"
+      },
+      {
+        "seq": 10,
+        "type": "简答题",
+        "question": "在利用阶跃响应曲线法测定过程动态特性时，对测试条件有哪些基本要求？",
+        "options": {},
+        "user_answer": "",
+        "correct_answer": "见解析",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "1) 测定前系统必须处于稳定的定常工况；2) 施加的阶跃扰动应足够快速；3) 阶跃幅值应适中，既要保证响应信号足够大克服噪声，又要确保对象未脱离线性工作区；4) 记录时间应足够长，直至被调量完全进入新稳态；5) 尽量避免其他未知的随机干扰。",
+        "chapter": "第二章",
+        "page": "24",
+        "difficulty": "困难"
+      }
+    ]
   }
 ]
