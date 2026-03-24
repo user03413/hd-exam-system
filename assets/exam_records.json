@@ -1105,5 +1105,373 @@
         "difficulty": "困难"
       }
     ]
+  },
+  {
+    "student_id": "123456",
+    "student_name": "测试学生",
+    "major": "控制工程（测试）",
+    "score": 0,
+    "duration_seconds": 6,
+    "start_time": "2026-03-23 11:29:02",
+    "end_time": "2026-03-23 11:29:09",
+    "results": [
+      {
+        "seq": 1,
+        "type": "单选题",
+        "question": "[修正项] 衰减振荡过程的衰减比通常期望为？（补充题）",
+        "options": {
+          "A": "4:1 到 10:1 之间",
+          "B": "1:1",
+          "C": "0:1",
+          "D": "发散"
+        },
+        "user_answer": "",
+        "correct_answer": "A",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "工程上最期望的良好过渡过程是衰减振荡，通常最佳衰减比为4:1到10:1。",
+        "chapter": "第一章",
+        "page": "16",
+        "difficulty": "基础"
+      },
+      {
+        "seq": 2,
+        "type": "单选题",
+        "question": "在“给水全程自动控制系统”中，随着机组负荷从点火逐渐上升到满负荷，给水执行机构通常会经历怎样的切换过程？",
+        "options": {
+          "A": "始终靠泵控制",
+          "B": "旁路小阀 -> 主给水大阀 -> 给水泵转速调节",
+          "C": "主阀 -> 旁路阀",
+          "D": "不切换"
+        },
+        "user_answer": "",
+        "correct_answer": "C",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "启动初期用旁路小阀控制（保证小流量线性）；负荷上升后小阀满载，平滑切换至主给水大阀；高负荷下切换为泵转速控制以节能。",
+        "chapter": "第九章",
+        "page": "128",
+        "difficulty": "困难"
+      },
+      {
+        "seq": 3,
+        "type": "单选题",
+        "question": "在引风控制系统中，为了维持炉膛负压的稳定，执行机构通常是调节？",
+        "options": {
+          "A": "送风机动叶",
+          "B": "给煤机转速",
+          "C": "引风机静叶或转速",
+          "D": "一次风挡板"
+        },
+        "user_answer": "",
+        "correct_answer": "C",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "引风控制系统通过改变引风机的出力（调节引风机挡板、静叶或变频转速）来改变抽气量，维持负压平衡。",
+        "chapter": "第十章",
+        "page": "153",
+        "difficulty": "基础"
+      },
+      {
+        "seq": 4,
+        "type": "单选题",
+        "question": "锅炉的“热量信号”通常由以下哪两个参数通过计算合成得到？",
+        "options": {
+          "A": "给水与蒸汽流量",
+          "B": "主蒸汽流量与汽包压力的微分（变化率）",
+          "C": "燃料与送风",
+          "D": "排烟温度与氧量"
+        },
+        "user_answer": "",
+        "correct_answer": "B",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "炉膛放热量一部分用于产生蒸汽（主蒸汽流量），另一部分用于改变锅炉蓄热（汽包压力变化率表征），两者相加即为热量信号。",
+        "chapter": "第十章",
+        "page": "149",
+        "difficulty": "困难"
+      },
+      {
+        "seq": 5,
+        "type": "多选题",
+        "question": "模型预测控制（MPC）等先进控制策略在火电厂中主要应用于解决哪些问题？",
+        "options": {
+          "A": "大纯滞后系统的控制",
+          "B": "多变量强耦合系统解耦",
+          "C": "带约束条件的优化控制",
+          "D": "单回路液位控制"
+        },
+        "user_answer": "",
+        "correct_answer": "ABC",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "MPC在处理大迟延、多变量耦合以及多约束复杂工业过程时表现出明显优势（如机炉协调和主汽温）。单回路液位用PID即可（D错）。",
+        "chapter": "第十六/七章",
+        "page": "265",
+        "difficulty": "困难"
+      },
+      {
+        "seq": 6,
+        "type": "多选题",
+        "question": "衡量一个控制过程质量的动态指标主要有？",
+        "options": {
+          "A": "衰减比或衰减率",
+          "B": "最大偏差或超调量",
+          "C": "调节时间",
+          "D": "余差"
+        },
+        "user_answer": "",
+        "correct_answer": "ABC",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "衰减比或衰减率、最大偏差或超调量和调节时间是衡量控制系统的动态指标，而余差是衡量控制系统的静态指标。",
+        "chapter": "第一章",
+        "page": "17",
+        "difficulty": "困难"
+      },
+      {
+        "seq": 7,
+        "type": "多选题",
+        "question": "现代大型机组的汽轮机旁路控制系统，从工艺和控制范围上通常可划分为哪些部分？",
+        "options": {
+          "A": "高压旁路压力及减温控制",
+          "B": "低压旁路压力及减温控制",
+          "C": "凝汽器真空控制",
+          "D": "发电机控制"
+        },
+        "user_answer": "",
+        "correct_answer": "AB",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "旁路系统主要由高压旁路（降主汽至再热冷段）和低压旁路（降再热汽至凝汽器）两部分压力和温度控制组成。",
+        "chapter": "第十四章",
+        "page": "220",
+        "difficulty": "中等"
+      },
+      {
+        "seq": 8,
+        "type": "简答题",
+        "question": "什么是过程的纯迟延（纯滞后）和容量迟延？它们产生的原因有何不同？",
+        "options": {},
+        "user_answer": "",
+        "correct_answer": "见解析",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "纯迟延是指输入发生变化后，输出需要等待一段时间才开始发生变化的现象，原因通常是物料/能量在管道中传输需要时间。容量迟延是指输出虽立即开始变化，但由于系统存在容纳物料/能量的“容量”和阻碍其传递的“阻力”，导致变化速度不能瞬间达到最大，表现为指数或S型缓慢变化的过程。",
+        "chapter": "第二章",
+        "page": "21",
+        "difficulty": "困难"
+      },
+      {
+        "seq": 9,
+        "type": "简答题",
+        "question": "比例积分（PI）控制规律中，积分作用的引入会带来什么优缺点？",
+        "options": {},
+        "user_answer": "",
+        "correct_answer": "见解析",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "优点是只要有偏差存在积分控制作用就一直增加，从而消除系统的稳态偏差，实现无差控制；缺点是积分控制作用迟缓，会恶化系统的动态品质，使过渡过程的振荡加剧，导致控制系统稳定性下降。",
+        "chapter": "第三章",
+        "page": "35-36",
+        "difficulty": "困难"
+      },
+      {
+        "seq": 10,
+        "type": "简答题",
+        "question": "简述有自平衡能力对象与无自平衡能力对象的区别。",
+        "options": {},
+        "user_answer": "",
+        "correct_answer": "见解析",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "有自平衡能力对象是指受到干扰作用后，在不需要任何外力控制下，依靠自身能力可自发恢复到新平衡的对象；无自平衡能力对象是指受到扰动后，被调量不能依靠自身能力使之趋于稳定值，会不断变化的对象。",
+        "chapter": "第二章",
+        "page": "21",
+        "difficulty": "困难"
+      }
+    ]
+  },
+  {
+    "student_id": "123456",
+    "student_name": "测试学生",
+    "major": "控制工程（测试）",
+    "score": 0,
+    "duration_seconds": 5,
+    "start_time": "2026-03-23 16:51:51",
+    "end_time": "2026-03-23 16:51:57",
+    "results": [
+      {
+        "seq": 1,
+        "type": "单选题",
+        "question": "[修正项] 单闭环比值控制系统的缺点？（补充题）",
+        "options": {
+          "A": "主动量不受控",
+          "B": "从动量不受控",
+          "C": "无法计算比值",
+          "D": "过于复杂"
+        },
+        "user_answer": "",
+        "correct_answer": "A",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "仅对从动量进行闭环控制跟随主动量，若主动量自身发生波动，系统无法控制主动量恢复，导致总流量波动。",
+        "chapter": "第七章",
+        "page": "85",
+        "difficulty": "基础"
+      },
+      {
+        "seq": 2,
+        "type": "单选题",
+        "question": "采用“直接能量平衡（DEB）”策略时，通常用什么参数最准确代表汽机实际消耗能量？",
+        "options": {
+          "A": "有功功率",
+          "B": "汽轮机调节级压力 p1​",
+          "C": "主汽流量",
+          "D": "真空"
+        },
+        "user_answer": "",
+        "correct_answer": "B",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "调节级压力 p1​ 与流入汽机的蒸汽能量呈严格线性对应关系，排除了电网频率波动干扰，是表征汽机耗热最准确信号。",
+        "chapter": "第十一章",
+        "page": "185",
+        "difficulty": "困难"
+      },
+      {
+        "seq": 3,
+        "type": "单选题",
+        "question": "相比于常规PID，模糊控制（Fuzzy Control）在热工过程中的主要优势是？",
+        "options": {
+          "A": "结构简单",
+          "B": "消除静差能力更强",
+          "C": "不需要精确数学模型",
+          "D": "运算最快"
+        },
+        "user_answer": "",
+        "correct_answer": "C",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "热工对象往往具高度非线性和大迟延。模糊控制基于经验规则推理，不需要被控对象精确数学模型，鲁棒性强。",
+        "chapter": "第十五章",
+        "page": "245",
+        "difficulty": "中等"
+      },
+      {
+        "seq": 4,
+        "type": "单选题",
+        "question": "在气动执行机构中，安装“阀门定位器”的主要目的是什么？",
+        "options": {
+          "A": "改变阀门流量特性",
+          "B": "克服阀杆摩擦力和不平衡力，实现准确定位",
+          "C": "提高气源压力",
+          "D": "实现气开气关转换"
+        },
+        "user_answer": "",
+        "correct_answer": "B",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "阀门定位器与气动机构配套使用，形成闭环位置控制系统，主要用于克服填料摩擦力、流体不平衡力等，保证阀门开度严格按照控制信号准确定位。",
+        "chapter": "第四章",
+        "page": "48",
+        "difficulty": "中等"
+      },
+      {
+        "seq": 5,
+        "type": "多选题",
+        "question": "直流锅炉由于没有汽包，其控制系统的主要任务与汽包炉有所不同，主要包括哪些？",
+        "options": {
+          "A": "保持燃水比精确比例",
+          "B": "控制汽包水位稳定",
+          "C": "维持主汽压稳定",
+          "D": "维持微过热点温度稳定"
+        },
+        "user_answer": "",
+        "correct_answer": "ACD",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "直流炉无汽包不控水位（B错）。核心任务是保持严格燃水比以控相变点位置，维持汽温，同时维持主汽压。",
+        "chapter": "第十二章",
+        "page": "188",
+        "difficulty": "困难"
+      },
+      {
+        "seq": 6,
+        "type": "多选题",
+        "question": "在串级控制系统的设计和参数整定中，关于主、副控制器的描述，正确的是？",
+        "options": {
+          "A": "副回路主要起快速抗扰作用，副控制器一般采用纯 P 或 PI 规律",
+          "C": "整定时通常按照“先副后主”的顺序进行",
+          "D": "主、副控制器必须同时采用纯比例控制"
+        },
+        "user_answer": "",
+        "correct_answer": "ABC",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "副回路要求快速消除扰动允许微小静差（P或PI）；主回路要求精确维持给定值（PI或PID）；整定参数时需先闭合副环再闭合主环。",
+        "chapter": "第五章",
+        "page": "72",
+        "difficulty": "困难"
+      },
+      {
+        "seq": 7,
+        "type": "多选题",
+        "question": "单元机组协调控制系统（CCS）的典型运行方式通常包括哪些？",
+        "options": {
+          "D": "手动（Manual）"
+        },
+        "user_answer": "",
+        "correct_answer": "ABCD",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "CCS根据设备运行状况可切入多种工作模式，主要包含机炉协调、汽机跟随、锅炉跟随、机炉手动等方式。",
+        "chapter": "第十一章",
+        "page": "168",
+        "difficulty": "中等"
+      },
+      {
+        "seq": 8,
+        "type": "简答题",
+        "question": "简述模糊控制策略在火电厂热工自动控制应用中的主要优点。",
+        "options": {},
+        "user_answer": "",
+        "correct_answer": "见解析",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "1)不依赖被控对象精确数学模型，特适合火电厂中非线性、时变大滞后复杂对象；2)具较强鲁棒性对环境干扰适应强；3)规则易懂，能将优秀运行人员专家经验直接融入自动控制中。",
+        "chapter": "第十五章",
+        "page": "248",
+        "difficulty": "困难"
+      },
+      {
+        "seq": 9,
+        "type": "简答题",
+        "question": "什么是过程的纯迟延（纯滞后）和容量迟延？它们产生的原因有何不同？",
+        "options": {},
+        "user_answer": "",
+        "correct_answer": "见解析",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "纯迟延是指输入发生变化后，输出需要等待一段时间才开始发生变化的现象，原因通常是物料/能量在管道中传输需要时间。容量迟延是指输出虽立即开始变化，但由于系统存在容纳物料/能量的“容量”和阻碍其传递的“阻力”，导致变化速度不能瞬间达到最大，表现为指数或S型缓慢变化的过程。",
+        "chapter": "第二章",
+        "page": "21",
+        "difficulty": "困难"
+      },
+      {
+        "seq": 10,
+        "type": "简答题",
+        "question": "简述协调控制系统中“直接能量平衡（DEB）”控制策略的基本物理思想。",
+        "options": {},
+        "user_answer": "",
+        "correct_answer": "见解析",
+        "is_correct": false,
+        "score": 0,
+        "analysis": "思想：利用机组稳态时锅炉输入热量应与汽轮机耗热量相等原理。用“汽轮机调节级压力”与目标负荷对比，直接推算锅炉所需燃料热量指令，强制锅炉提供匹配热量。前馈型控制极大克服燃烧迟延。",
+        "chapter": "第十一章",
+        "page": "185",
+        "difficulty": "困难"
+      }
+    ]
   }
 ]
