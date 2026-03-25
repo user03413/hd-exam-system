@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>章节API测试</title>
+</head>
+<body>
+    <h1>章节API测试</h1>
+    <button onclick="testAPI()">测试API</button>
+    <div id="result" style="margin-top:20px; padding:20px; background:#f0f0f0;"></div>
+    
+    <script>
+        async function testAPI() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '正在测试...';
+            
+            try {
+                // 测试章节API
+                const res = await fetch('/api/exam/chapters');
+                const data = await res.json();
+                
+                resultDiv.innerHTML = '<h3>API响应:</h3>' + 
+                    '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+                
+                if (data.success && data.chapters) {
+                    resultDiv.innerHTML += '<h3>章节列表:</h3><ul>';
+                    data.chapters.forEach(ch => {
+                        resultDiv.innerHTML += '<li>' + ch.chapter + ' (' + ch.count + '题)</li>';
+                    });
+                    resultDiv.innerHTML += '</ul>';
+                }
+            } catch (e) {
+                resultDiv.innerHTML = '<h3>错误:</h3><pre>' + e.message + '</pre>';
+            }
+        }
+    </script>
+</body>
+</html>

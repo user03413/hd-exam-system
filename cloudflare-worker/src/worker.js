@@ -172,6 +172,13 @@ router.get('/teacher', () => {
   });
 });
 
+// 测试API页面
+router.get('/test-api', () => {
+  return new Response(getTestAPIHTML(), {
+    headers: { 'Content-Type': 'text/html; charset=utf-8', ...corsHeaders }
+  });
+});
+
 // 学号验证
 router.post('/api/exam/verify', async (request) => {
   try {

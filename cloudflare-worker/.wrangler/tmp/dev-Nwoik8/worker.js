@@ -202,6 +202,11 @@ router.get("/teacher", () => {
     headers: { "Content-Type": "text/html; charset=utf-8", ...corsHeaders }
   });
 });
+router.get("/test-api", () => {
+  return new Response(getTestAPIHTML(), {
+    headers: { "Content-Type": "text/html; charset=utf-8", ...corsHeaders }
+  });
+});
 router.post("/api/exam/verify", async (request) => {
   try {
     const data = await request.json();

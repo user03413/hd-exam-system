@@ -1262,6 +1262,35 @@ TEACHER_HTML = '''
                 </div>
             </div>
             
+            <!-- 章节出题功能 -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="mb-3"><i class="bi bi-book-half me-2"></i>章节出题</h5>
+                    <p class="text-muted small mb-3">选择章节生成专属考试链接，学生通过该链接只能考所选章节的题目</p>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">选择章节</label>
+                        <select class="form-select" id="chapterSelect">
+                            <option value="">-- 全题库（不限制章节）--</option>
+                        </select>
+                    </div>
+                    
+                    <button class="btn btn-primary" onclick="generateChapterLink()">
+                        <i class="bi bi-link-45deg me-2"></i>生成考试链接
+                    </button>
+                    
+                    <div id="linkDisplay" class="mt-3" style="display:none">
+                        <div class="alert alert-info mb-0">
+                            <strong>考试链接：</strong><br>
+                            <input type="text" class="form-control mt-2" id="examLink" readonly>
+                            <button class="btn btn-sm btn-outline-primary mt-2" onclick="copyLink()">
+                                <i class="bi bi-clipboard me-1"></i>复制链接
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
             <!-- 详细记录 -->
             <div class="card">
                 <div class="card-body">
@@ -1332,6 +1361,57 @@ TEACHER_HTML = '''
             }catch(e){
                 alert('加载失败：'+e.message);
             }
+            
+            // 加载章节列表
+            loadChapters();
+        }
+        
+        // 加载章节列表
+        async function loadChapters(){
+            try{
+                const res=await fetch('/api/exam/chapters');
+                const data=await res.json();
+                
+                if(data.success && data.chapters){
+                    const select=document.getElementById('chapterSelect');
+                    data.chapters.forEach(ch => {
+                        const option=document.createElement('option');
+                        option.value=ch.chapter;
+                        option.textContent=ch.chapter + ' (' + ch.count + '题)';
+                        select.appendChild(option);
+                    });
+                }
+            }catch(e){
+                console.error('加载章节失败', e);
+            }
+        }
+        
+        // 生成章节考试链接
+        async function generateChapterLink(){
+            const chapter=document.getElementById('chapterSelect').value;
+            
+            try{
+                const url='/api/exam/chapter-link' + (chapter ? '?chapter=' + encodeURIComponent(chapter) : '');
+                const res=await fetch(url);
+                const data=await res.json();
+                
+                if(data.success){
+                    document.getElementById('examLink').value=data.link;
+                    document.getElementById('linkDisplay').style.display='block';
+                }else{
+                    alert('生成链接失败：' + data.message);
+                }
+            }catch(e){
+                alert('生成链接失败：' + e.message);
+            }
+        }
+        
+        // 复制链接
+        function copyLink(){
+            const linkInput=document.getElementById('examLink');
+            linkInput.select();
+            document.execCommand('copy');
+            alert('链接已复制到剪贴板！');
         }
         
         document.getElementById('loginForm').addEventListener('submit',async function(e){
@@ -1425,6 +1505,57 @@ async def get_teacher_stats(request: Request) -> JSONResponse:
         
     except Exception as e:
         return JSONResponse({'success': False, 'message': f'获取统计失败：{str(e)}'})
+
+
+async def get_chapters(request: Request) -> JSONResponse:
+    """获取章节列表"""
+    try:
+        # 从题库中统计章节
+        questions = load_questions()
+        
+        # 统计每个章节的题目数量
+        chapter_count = {}
+        for q in questions:
+            chapter = q.get('chapter', '未分类')
+            chapter_count[chapter] = chapter_count.get(chapter, 0) + 1
+        
+        # 转换为列表并排序
+        chapters = [{'chapter': k, 'count': v} for k, v in chapter_count.items()]
+        chapters.sort(key=lambda x: x['chapter'])
+        
+        return JSONResponse({
+            'success': True,
+            'chapters': chapters
+        })
+        
+    except Exception as e:
+        return JSONResponse({'success': False, 'message': f'获取章节失败：{str(e)}'})
+
+
+async def get_chapter_link(request: Request) -> JSONResponse:
+    """生成章节考试链接"""
+    try:
+        # 获取章节参数
+        chapter = request.query_params.get('chapter', '')
+        
+        # 生成链接
+        base_url = str(request.base_url).rstrip('/')
+        link_id = __import__('random').randrange(10000000, 99999999)
+        
+        if chapter:
+            exam_link = f"{base_url}/exam?chapter={__import__('urllib').parse.quote(chapter)}&linkId={link_id}"
+        else:
+            exam_link = f"{base_url}/exam?linkId={link_id}"
+        
+        return JSONResponse({
+            'success': True,
+            'link': exam_link,
+            'chapter': chapter if chapter else '全题库',
+            'linkId': str(link_id)
+        })
+        
+    except Exception as e:
+        return JSONResponse({'success': False, 'message': f'生成链接失败：{str(e)}'})
 
 
 def get_teacher_page() -> HTMLResponse:
