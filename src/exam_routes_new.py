@@ -1534,9 +1534,29 @@ async def get_chapters(request: Request) -> JSONResponse:
         
         # 转换为列表并排序
         chapters = [{'chapter': k, 'count': v} for k, v in chapter_count.items()]
-        chapters.sort(key=lambda x: x['chapter'])
+        
+        # 按章节号排序（提取数字）
+        def extract_chapter_num(chapter_obj):
+            import re
+            chapter_name = chapter_obj['chapter']
+            # 提取章节号中的数字
+            match = re.search(r'第([一二三四五六七八九十百]+)章', chapter_name)
+            if match:
+                chinese_num = match.group(1)
+                # 中文数字转阿拉伯数字
+                chinese_to_arabic = {
+                    '一': 1, '二': 2, '三': 3, '四': 4, '五': 5,
+                    '六': 6, '七': 7, '八': 8, '九': 9, '十': 10,
+                    '十一': 11, '十二': 12, '十三': 13, '十四': 14, '十五': 15,
+                    '十六': 16, '十七': 17, '十八': 18, '十九': 19, '二十': 20
+                }
+                return chinese_to_arabic.get(chinese_num, 999)
+            return 999
+        
+        chapters.sort(key=extract_chapter_num)
         
         print(f"章节统计完成: 共{len(chapters)}个章节")
+        print(f"章节列表: {chapters}")
         
         return JSONResponse({
             'success': True,
