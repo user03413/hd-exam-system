@@ -1369,20 +1369,30 @@ TEACHER_HTML = '''
         // 加载章节列表
         async function loadChapters(){
             try{
+                console.log('开始加载章节列表...');
                 const res=await fetch('/api/exam/chapters');
                 const data=await res.json();
                 
+                console.log('章节API返回:', data);
+                
                 if(data.success && data.chapters){
                     const select=document.getElementById('chapterSelect');
+                    console.log('找到章节数量:', data.chapters.length);
+                    
                     data.chapters.forEach(ch => {
                         const option=document.createElement('option');
                         option.value=ch.chapter;
                         option.textContent=ch.chapter + ' (' + ch.count + '题)';
                         select.appendChild(option);
                     });
+                    
+                    console.log('章节列表加载完成');
+                } else {
+                    console.error('章节API返回失败:', data.message);
                 }
             }catch(e){
                 console.error('加载章节失败', e);
+                alert('加载章节失败：' + e.message);
             }
         }
         
@@ -1511,17 +1521,22 @@ async def get_chapters(request: Request) -> JSONResponse:
     """获取章节列表"""
     try:
         # 从题库中统计章节
-        questions = load_questions()
+        questions_dict = load_questions()
         
         # 统计每个章节的题目数量
         chapter_count = {}
-        for q in questions:
-            chapter = q.get('chapter', '未分类')
-            chapter_count[chapter] = chapter_count.get(chapter, 0) + 1
+        
+        # 遍历所有题型的所有题目
+        for q_type, questions_list in questions_dict.items():
+            for q in questions_list:
+                chapter = q.get('chapter', '未分类')
+                chapter_count[chapter] = chapter_count.get(chapter, 0) + 1
         
         # 转换为列表并排序
         chapters = [{'chapter': k, 'count': v} for k, v in chapter_count.items()]
         chapters.sort(key=lambda x: x['chapter'])
+        
+        print(f"章节统计完成: 共{len(chapters)}个章节")
         
         return JSONResponse({
             'success': True,
@@ -1529,6 +1544,9 @@ async def get_chapters(request: Request) -> JSONResponse:
         })
         
     except Exception as e:
+        print(f"获取章节失败: {e}")
+        import traceback
+        traceback.print_exc()
         return JSONResponse({'success': False, 'message': f'获取章节失败：{str(e)}'})
 
 
