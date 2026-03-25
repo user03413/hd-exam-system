@@ -608,6 +608,9 @@ EXAM_HTML = '''
                         <i class="bi bi-person" style="font-size:40px;color:white;"></i>
                     </div>
                     <h5>考生身份验证</h5>
+                    <div id="loginChapterInfo" class="alert alert-primary mb-3" style="display:none;">
+                        <i class="bi bi-book me-2"></i><strong>本次考试章节：</strong><span id="loginChapter"></span>
+                    </div>
                     <p class="text-muted small mb-4">请输入学号进入考试</p>
                     <form id="loginForm">
                         <input type="text" class="form-control mb-3" id="studentId" placeholder="请输入学号" required autocomplete="off">
@@ -628,6 +631,9 @@ EXAM_HTML = '''
                         <p class="mb-1"><strong>姓名：</strong><span id="sName"></span></p>
                         <p class="mb-1"><strong>学号：</strong><span id="sId"></span></p>
                         <p class="mb-0"><strong>专业：</strong><span id="sMajor"></span></p>
+                    </div>
+                    <div id="readyChapterInfo" class="alert alert-primary" style="display:none;">
+                        <i class="bi bi-book me-2"></i><strong>考试章节：</strong><span id="readyChapter"></span>
                     </div>
                     <div class="alert alert-info small">
                         <strong>考试说明：</strong><br>
@@ -712,9 +718,12 @@ EXAM_HTML = '''
         let sessionId = null, questions = [], answers = {}, extensions = {}, timer = null, seconds = 0;
         let currentChapter = chapterParam || ''; // 当前考试章节
         
-        // 如果有章节参数，更新页面标题
+        // 页面加载时立即显示章节信息（如果有）
         if (currentChapter) {
             document.getElementById('examTitle').textContent = currentChapter + ' - 热工自动化在线考试';
+            // 在登录页显示章节信息
+            document.getElementById('loginChapter').textContent = currentChapter;
+            document.getElementById('loginChapterInfo').style.display = 'block';
         }
         
         function show(secId) {
@@ -886,9 +895,12 @@ EXAM_HTML = '''
                     document.getElementById('sId').textContent = r.student.id;
                     document.getElementById('sMajor').textContent = r.student.major;
                     
-                    // 显示考试章节
+                    // 显示考试章节（在标题、准备页都要显示）
                     if (r.chapter) {
+                        currentChapter = r.chapter; // 更新章节信息
                         document.getElementById('examTitle').textContent = r.chapter + ' - 热工自动化在线考试';
+                        document.getElementById('readyChapter').textContent = r.chapter;
+                        document.getElementById('readyChapterInfo').style.display = 'block';
                     }
                     
                     show('readySec');
