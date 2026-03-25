@@ -177,6 +177,7 @@ router.post('/api/exam/verify', async (request) => {
   try {
     const data = await request.json();
     const studentId = data.student_id;
+    const chapter = data.chapter; // 接收章节参数
     
     if (!studentId) {
       return new Response(JSON.stringify({
@@ -207,14 +208,16 @@ router.post('/api/exam/verify', async (request) => {
       sessions[sessionId] = {
         student: { id: result.id, name: result.name, major: result.major },
         questions: null,
-        startTime: Date.now()
+        startTime: Date.now(),
+        chapter: chapter // 保存章节信息
       };
       
       return new Response(JSON.stringify({
         success: true,
-        message: `验证成功，欢迎 ${result.name} 同学！`,
+        message: `验证成功，欢迎 ${result.name} 同学！${chapter ? '（' + chapter + '专题考试）' : ''}`,
         student: { id: result.id, name: result.name, major: result.major },
-        session_id: sessionId
+        session_id: sessionId,
+        chapter: chapter
       }), {
         headers: { 'Content-Type': 'application/json', ...corsHeaders }
       });
@@ -252,18 +255,38 @@ router.post('/api/exam/start', async (request) => {
       });
     }
     
-    // 从数据库随机抽题
-    const singleQuestions = await request.env.DB.prepare(
-      'SELECT * FROM questions WHERE type = ? ORDER BY RANDOM() LIMIT 4'
-    ).bind('单选题').all();
+    // 获取章节参数（如果有）
+    const chapter = sessions[sessionId].chapter;
     
-    const multipleQuestions = await request.env.DB.prepare(
-      'SELECT * FROM questions WHERE type = ? ORDER BY RANDOM() LIMIT 3'
-    ).bind('多选题').all();
+    let singleQuestions, multipleQuestions, shortQuestions;
     
-    const shortQuestions = await request.env.DB.prepare(
-      'SELECT * FROM questions WHERE type = ? ORDER BY RANDOM() LIMIT 3'
-    ).bind('简答题').all();
+    if (chapter) {
+      // 按章节抽题
+      singleQuestions = await request.env.DB.prepare(
+        'SELECT * FROM questions WHERE type = ? AND chapter = ? ORDER BY RANDOM() LIMIT 4'
+      ).bind('单选题', chapter).all();
+      
+      multipleQuestions = await request.env.DB.prepare(
+        'SELECT * FROM questions WHERE type = ? AND chapter = ? ORDER BY RANDOM() LIMIT 3'
+      ).bind('多选题', chapter).all();
+      
+      shortQuestions = await request.env.DB.prepare(
+        'SELECT * FROM questions WHERE type = ? AND chapter = ? ORDER BY RANDOM() LIMIT 3'
+      ).bind('简答题', chapter).all();
+    } else {
+      // 从数据库随机抽题（全题库）
+      singleQuestions = await request.env.DB.prepare(
+        'SELECT * FROM questions WHERE type = ? ORDER BY RANDOM() LIMIT 4'
+      ).bind('单选题').all();
+      
+      multipleQuestions = await request.env.DB.prepare(
+        'SELECT * FROM questions WHERE type = ? ORDER BY RANDOM() LIMIT 3'
+      ).bind('多选题').all();
+      
+      shortQuestions = await request.env.DB.prepare(
+        'SELECT * FROM questions WHERE type = ? ORDER BY RANDOM() LIMIT 3'
+      ).bind('简答题').all();
+    }
     
     // 合并题目并编号
     const allQuestions = [];
@@ -550,6 +573,68 @@ router.get('/api/exam/teacher/stats', async (request) => {
   }
 });
 
+// 获取章节列表
+router.get('/api/exam/chapters', async (request) => {
+  try {
+    const result = await request.env.DB.prepare(
+      'SELECT chapter, COUNT(*) as count FROM questions GROUP BY chapter ORDER BY chapter'
+    ).all();
+    
+    return new Response(JSON.stringify({
+      success: true,
+      chapters: result.results || []
+    }), {
+      headers: { 'Content-Type': 'application/json', ...corsHeaders }
+    });
+  } catch (error) {
+    return new Response(JSON.stringify({
+      success: false,
+      message: '获取章节失败'
+    }), {
+      headers: { 'Content-Type': 'application/json', ...corsHeaders }
+    });
+  }
+});
+
+// 生成章节考试链接
+router.get('/api/exam/chapter-link', async (request) => {
+  try {
+    const url = new URL(request.url);
+    const chapter = url.searchParams.get('chapter');
+    
+    if (!chapter) {
+      return new Response(JSON.stringify({
+        success: false,
+        message: '请指定章节'
+      }), {
+        headers: { 'Content-Type': 'application/json', ...corsHeaders }
+      });
+    }
+    
+    // 生成唯一链接ID
+    const linkId = Math.random().toString(36).substring(2, 10);
+    
+    // 存储章节考试信息（实际应存入KV，这里简化处理）
+    const examLink = `${url.origin}/exam?chapter=${encodeURIComponent(chapter)}&linkId=${linkId}`;
+    
+    return new Response(JSON.stringify({
+      success: true,
+      link: examLink,
+      chapter: chapter,
+      linkId: linkId
+    }), {
+      headers: { 'Content-Type': 'application/json', ...corsHeaders }
+    });
+  } catch (error) {
+    return new Response(JSON.stringify({
+      success: false,
+      message: '生成链接失败'
+    }), {
+      headers: { 'Content-Type': 'application/json', ...corsHeaders }
+    });
+  }
+});
+
 // 生成 session ID
 function generateSessionId() {
   return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
@@ -685,6 +770,21 @@ function getExamHTML() {
         let sessionId = '';
         let questions = [];
         let answers = {};
+        let chapter = null; // 章节参数
+        
+        // 从URL获取章节参数
+        window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            chapter = urlParams.get('chapter');
+            
+            // 如果有章节参数，显示提示
+            if (chapter) {
+                const hint = document.createElement('div');
+                hint.className = 'alert alert-warning text-center mb-3';
+                hint.innerHTML = '<i class="bi bi-book-half me-2"></i>专题考试：<strong>' + chapter + '</strong>';
+                document.querySelector('.container').insertBefore(hint, document.querySelector('.container').firstChild);
+            }
+        };
         
         async function verifyStudent() {
             const studentId = document.getElementById('studentId').value.trim();
@@ -694,7 +794,10 @@ function getExamHTML() {
                 const res = await fetch('/api/exam/verify', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({student_id: studentId})
+                    body: JSON.stringify({
+                        student_id: studentId,
+                        chapter: chapter // 传递章节参数
+                    })
                 });
                 const data = await res.json();
                 
@@ -702,6 +805,16 @@ function getExamHTML() {
                     sessionId = data.session_id;
                     document.getElementById('studentName').textContent = data.student.name;
                     document.getElementById('studentIdDisplay').textContent = data.student.id;
+                    
+                    // 显示章节信息
+                    if (data.chapter) {
+                        const readySection = document.getElementById('readySection');
+                        const chapterAlert = document.createElement('div');
+                        chapterAlert.className = 'alert alert-warning text-center';
+                        chapterAlert.innerHTML = '<i class="bi bi-book-half me-2"></i>专题考试：<strong>' + data.chapter + '</strong>';
+                        readySection.querySelector('.card-body').insertBefore(chapterAlert, readySection.querySelector('.alert-success'));
+                    }
+                    
                     showSection('readySection');
                 } else {
                     alert(data.message);
@@ -954,6 +1067,35 @@ function getTeacherHTML() {
                 </div>
             </div>
             
+            <!-- 章节出题功能 -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5><i class="bi bi-book-half me-2"></i>章节出题</h5>
+                    <p class="text-muted small mb-3">选择章节生成专属考试链接，学生通过该链接只能考所选章节的题目</p>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">选择章节</label>
+                        <select class="form-select" id="chapterSelect">
+                            <option value="">-- 全题库（不限制章节）--</option>
+                        </select>
+                    </div>
+                    
+                    <button class="btn btn-primary" onclick="generateChapterLink()">
+                        <i class="bi bi-link-45deg me-2"></i>生成考试链接
+                    </button>
+                    
+                    <div id="linkDisplay" class="mt-3" style="display:none">
+                        <div class="alert alert-info mb-0">
+                            <strong>考试链接：</strong><br>
+                            <input type="text" class="form-control mt-2" id="examLink" readonly>
+                            <button class="btn btn-sm btn-outline-primary mt-2" onclick="copyLink()">
+                                <i class="bi bi-clipboard me-1"></i>复制链接
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
             <div class="card">
                 <div class="card-body">
                     <h5><i class="bi bi-list-ul me-2"></i>考试记录</h5>
@@ -1014,6 +1156,57 @@ function getTeacherHTML() {
             } catch (e) {
                 console.error('加载统计失败', e);
             }
+            
+            // 加载章节列表
+            loadChapters();
+        }
+        
+        // 加载章节列表
+        async function loadChapters() {
+            try {
+                const res = await fetch('/api/exam/chapters');
+                const data = await res.json();
+                
+                if (data.success && data.chapters) {
+                    const select = document.getElementById('chapterSelect');
+                    data.chapters.forEach(ch => {
+                        const option = document.createElement('option');
+                        option.value = ch.chapter;
+                        option.textContent = ch.chapter + ' (' + ch.count + '题)';
+                        select.appendChild(option);
+                    });
+                }
+            } catch (e) {
+                console.error('加载章节失败', e);
+            }
+        }
+        
+        // 生成章节考试链接
+        async function generateChapterLink() {
+            const chapter = document.getElementById('chapterSelect').value;
+            
+            try {
+                const url = '/api/exam/chapter-link' + (chapter ? '?chapter=' + encodeURIComponent(chapter) : '');
+                const res = await fetch(url);
+                const data = await res.json();
+                
+                if (data.success) {
+                    document.getElementById('examLink').value = data.link;
+                    document.getElementById('linkDisplay').style.display = 'block';
+                } else {
+                    alert('生成链接失败：' + data.message);
+                }
+            } catch (e) {
+                alert('生成链接失败：' + e.message);
+            }
+        }
+        
+        // 复制链接
+        function copyLink() {
+            const linkInput = document.getElementById('examLink');
+            linkInput.select();
+            document.execCommand('copy');
+            alert('链接已复制到剪贴板！');
         }
         
         function showSection(id) {
