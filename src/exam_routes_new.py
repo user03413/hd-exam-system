@@ -595,7 +595,7 @@ EXAM_HTML = '''
     <div class="header">
         <div class="container">
             <h1><i class="bi bi-lightning-charge"></i> 火电机组考核系统</h1>
-            <div class="sub">热工自动化在线考试</div>
+            <div class="sub" id="examTitle">热工自动化在线考试</div>
         </div>
     </div>
     
@@ -704,7 +704,18 @@ EXAM_HTML = '''
     </div>
 
     <script>
+        // 读取URL参数中的章节信息
+        const urlParams = new URLSearchParams(window.location.search);
+        const chapterParam = urlParams.get('chapter');
+        const linkIdParam = urlParams.get('linkId');
+        
         let sessionId = null, questions = [], answers = {}, extensions = {}, timer = null, seconds = 0;
+        let currentChapter = chapterParam || ''; // 当前考试章节
+        
+        // 如果有章节参数，更新页面标题
+        if (currentChapter) {
+            document.getElementById('examTitle').textContent = currentChapter + ' - 热工自动化在线考试';
+        }
         
         function show(secId) {
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
@@ -863,7 +874,7 @@ EXAM_HTML = '''
             btn.innerHTML = '<span class="loading me-2"></span>验证中...';
             
             try {
-                const r = await api('/verify', {student_id: id});
+                const r = await api('/verify', {student_id: id, chapter: currentChapter});
                 if (r.success) {
                     // 如果是教师账号，跳转到教师管理页面
                     if (r.student.is_teacher) {
@@ -874,6 +885,12 @@ EXAM_HTML = '''
                     document.getElementById('sName').textContent = r.student.name;
                     document.getElementById('sId').textContent = r.student.id;
                     document.getElementById('sMajor').textContent = r.student.major;
+                    
+                    // 显示考试章节
+                    if (r.chapter) {
+                        document.getElementById('examTitle').textContent = r.chapter + ' - 热工自动化在线考试';
+                    }
+                    
                     show('readySec');
                 } else {
                     alert(r.message);
@@ -977,6 +994,7 @@ async def exam_verify(request: Request) -> JSONResponse:
     try:
         data = await request.json()
         student_id = str(data.get('student_id', '')).strip()
+        chapter = data.get('chapter', '')  # 接收章节参数
         
         if not student_id:
             return JSONResponse({'success': False, 'message': '请输入学号'})
@@ -991,20 +1009,54 @@ async def exam_verify(request: Request) -> JSONResponse:
         
         exam_sessions[session_id] = {
             'student': student,
+            'chapter': chapter,  # 保存章节参数到session
             'questions': None,
             'answers': {},
             'start_time': datetime.now().isoformat()
         }
         
-        return JSONResponse({
+        response_data = {
             'success': True,
             'message': f"验证成功，欢迎 {student['name']} 同学！",
             'student': student,
             'session_id': session_id
-        })
+        }
+        
+        # 如果有章节信息，返回给前端显示
+        if chapter:
+            response_data['chapter'] = chapter
+        
+        return JSONResponse(response_data)
         
     except Exception as e:
         return JSONResponse({'success': False, 'message': f'验证失败：{str(e)}'})
+
+
+def filter_questions_by_chapter(all_questions: Dict, chapter: str) -> Dict:
+    """根据章节筛选题目"""
+    if not chapter:
+        return all_questions
+    
+    filtered = {'单选题': [], '多选题': [], '简答题': []}
+    
+    for q_type in ['单选题', '多选题', '简答题']:
+        for q in all_questions[q_type]:
+            # 章节匹配：支持"第一章"、"第一章 基础知识"等多种格式
+            q_chapter = q.get('chapter', '')
+            # 提取章节号（如"第一章"、"第九章"等）
+            chapter_match = re.search(r'第([一二三四五六七八九十百]+)章', chapter)
+            q_chapter_match = re.search(r'第([一二三四五六七八九十百]+)章', q_chapter)
+            
+            if chapter_match and q_chapter_match:
+                # 比较章节号
+                if chapter_match.group(1) == q_chapter_match.group(1):
+                    filtered[q_type].append(q)
+            elif chapter in q_chapter or q_chapter in chapter:
+                # 简单包含匹配
+                filtered[q_type].append(q)
+    
+    print(f"章节筛选: {chapter} -> 单选{len(filtered['单选题'])}题, 多选{len(filtered['多选题'])}题, 简答{len(filtered['简答题'])}题")
+    return filtered
 
 
 async def exam_start(request: Request) -> JSONResponse:
@@ -1016,7 +1068,23 @@ async def exam_start(request: Request) -> JSONResponse:
         if not session_id or session_id not in exam_sessions:
             return JSONResponse({'success': False, 'message': '会话无效，请重新登录'})
         
+        session = exam_sessions[session_id]
+        chapter = session.get('chapter', '')  # 从session中获取章节参数
+        
         all_questions = load_questions()
+        
+        # 如果有章节参数，筛选题目
+        if chapter:
+            all_questions = filter_questions_by_chapter(all_questions, chapter)
+            
+            # 检查筛选后的题目数量
+            total_questions = len(all_questions['单选题']) + len(all_questions['多选题']) + len(all_questions['简答题'])
+            if total_questions < 10:
+                return JSONResponse({
+                    'success': False, 
+                    'message': f'该章节题目数量不足（仅{total_questions}题），无法生成试卷'
+                })
+        
         selected_questions = random_select_questions(all_questions, 10)
         
         start_time = datetime.now()
@@ -1035,14 +1103,23 @@ async def exam_start(request: Request) -> JSONResponse:
                 'difficulty': q['difficulty']
             })
         
-        return JSONResponse({
+        response_data = {
             'success': True,
             'questions': questions_for_client,
             'total': len(questions_for_client),
             'start_time': start_time.strftime('%Y-%m-%d %H:%M:%S')
-        })
+        }
+        
+        # 如果有章节信息，返回给前端
+        if chapter:
+            response_data['chapter'] = chapter
+        
+        return JSONResponse(response_data)
         
     except Exception as e:
+        print(f"开始考试失败: {e}")
+        import traceback
+        traceback.print_exc()
         return JSONResponse({'success': False, 'message': f'开始考试失败：{str(e)}'})
 
 
