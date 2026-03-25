@@ -1576,14 +1576,19 @@ async def get_chapter_link(request: Request) -> JSONResponse:
         # 获取章节参数
         chapter = request.query_params.get('chapter', '')
         
-        # 生成链接
-        base_url = str(request.base_url).rstrip('/')
+        # 生成链接ID
         link_id = __import__('random').randrange(10000000, 99999999)
+        
+        # 使用Coze平台地址（从环境变量或配置中获取）
+        import os
+        base_url = os.getenv('COZE_BASE_URL', 'https://90c19216-7224-4e07-9c9b-2d1be18d1149.dev.coze.site')
         
         if chapter:
             exam_link = f"{base_url}/exam?chapter={__import__('urllib').parse.quote(chapter)}&linkId={link_id}"
         else:
             exam_link = f"{base_url}/exam?linkId={link_id}"
+        
+        print(f"生成考试链接: {exam_link}")
         
         return JSONResponse({
             'success': True,
@@ -1593,6 +1598,9 @@ async def get_chapter_link(request: Request) -> JSONResponse:
         })
         
     except Exception as e:
+        print(f"生成链接失败: {e}")
+        import traceback
+        traceback.print_exc()
         return JSONResponse({'success': False, 'message': f'生成链接失败：{str(e)}'})
 
 
