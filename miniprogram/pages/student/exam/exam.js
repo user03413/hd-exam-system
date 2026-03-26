@@ -19,7 +19,7 @@ Page({
     const app = getApp()
     
     // 检查是否已登录
-    if (!app.globalData.sessionId) {
+    if (!app || !app.globalData || !app.globalData.sessionId) {
       util.showError('请先登录')
       setTimeout(() => {
         wx.redirectTo({
@@ -53,11 +53,17 @@ Page({
   // 开始考试
   async startExam() {
     const app = getApp()
+    const sessionId = app && app.globalData ? app.globalData.sessionId : null
+    
+    if (!sessionId) {
+      util.showError('会话已过期，请重新登录')
+      return
+    }
     
     util.showLoading('加载题目...')
 
     try {
-      const res = await api.startExam(app.globalData.sessionId)
+      const res = await api.startExam(sessionId)
       
       if (res.success) {
         // 处理题目数据
@@ -84,7 +90,9 @@ Page({
         })
 
         // 保存题目到全局
-        app.globalData.questions = questions
+        if (app && app.globalData) {
+          app.globalData.questions = questions
+        }
 
         // 开始计时
         this.startTimer()
@@ -183,6 +191,12 @@ Page({
 
     try {
       const app = getApp()
+      const sessionId = app && app.globalData ? app.globalData.sessionId : null
+      
+      if (!sessionId) {
+        util.showError('会话已过期，请重新登录')
+        return
+      }
       
       // 停止计时
       if (this.data.timer) {
@@ -190,13 +204,15 @@ Page({
       }
 
       // 提交答案
-      const res = await api.submitExam(app.globalData.sessionId, answers)
+      const res = await api.submitExam(sessionId, answers)
 
       if (res.success) {
         // 保存结果到全局
-        app.globalData.answers = answers
-        app.globalData.results = res.results
-        app.globalData.score = res.score
+        if (app && app.globalData) {
+          app.globalData.answers = answers
+          app.globalData.results = res.results
+          app.globalData.score = res.score
+        }
 
         util.hideLoading()
         util.showSuccess('提交成功！')

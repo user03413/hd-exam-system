@@ -33,7 +33,9 @@ Page({
       if (res.success && res.teacher && res.teacher.is_teacher) {
         // 保存教师信息
         const app = getApp()
-        app.globalData.userInfo = res.teacher
+        if (app && app.globalData) {
+          app.globalData.userInfo = res.teacher
+        }
 
         util.showSuccess('登录成功')
         

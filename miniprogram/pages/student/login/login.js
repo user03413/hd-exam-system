@@ -54,9 +54,11 @@ Page({
 
         // 保存用户信息到全局
         const app = getApp()
-        app.globalData.userInfo = res.student
-        app.globalData.sessionId = res.session_id
-        app.globalData.chapter = res.chapter || chapter
+        if (app && app.globalData) {
+          app.globalData.userInfo = res.student
+          app.globalData.sessionId = res.session_id
+          app.globalData.chapter = res.chapter || chapter
+        }
 
         // 保存sessionId到本地存储
         wx.setStorageSync('sessionId', res.session_id)

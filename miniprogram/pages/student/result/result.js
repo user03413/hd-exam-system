@@ -20,7 +20,7 @@ Page({
     const app = getApp()
     
     // 检查是否有结果数据
-    if (!app.globalData.results) {
+    if (!app || !app.globalData || !app.globalData.results) {
       util.showError('未找到考试结果')
       setTimeout(() => {
         wx.redirectTo({
@@ -53,10 +53,11 @@ Page({
     const stats = util.calculateScore(app.globalData.results)
 
     // 获取评价
-    const comment = util.getScoreComment(app.globalData.score)
+    const score = app.globalData.score || 0
+    const comment = util.getScoreComment(score)
 
     this.setData({
-      score: app.globalData.score,
+      score: score,
       comment: comment,
       stats: stats,
       duration: util.formatDuration(app.globalData.duration_seconds || 0),
@@ -74,7 +75,9 @@ Page({
   // 重新开始
   handleRestart() {
     const app = getApp()
-    app.clearUserData()
+    if (app && app.clearUserData) {
+      app.clearUserData()
+    }
     
     wx.redirectTo({
       url: '/pages/index/index'

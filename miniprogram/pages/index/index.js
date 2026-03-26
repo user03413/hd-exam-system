@@ -7,7 +7,9 @@ Page({
   onLoad() {
     // 清除之前的用户数据
     const app = getApp()
-    app.clearUserData()
+    if (app && app.clearUserData) {
+      app.clearUserData()
+    }
   },
 
   // 跳转到学生端

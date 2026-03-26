@@ -1,13 +1,24 @@
 // utils/request.js - API请求封装
 
-const app = getApp()
+/**
+ * 获取API基础地址
+ */
+function getBaseUrl() {
+  const app = getApp()
+  if (app && app.globalData) {
+    return app.globalData.baseUrl
+  }
+  // 默认值
+  return 'https://90c19216-7224-4e07-9c9b-2d1be18d1149.dev.coze.site'
+}
 
 /**
  * 发送请求
  */
 function request(url, method = 'GET', data = {}) {
   return new Promise((resolve, reject) => {
-    const fullUrl = app.globalData.baseUrl + url
+    const baseUrl = getBaseUrl()
+    const fullUrl = baseUrl + url
     
     wx.request({
       url: fullUrl,
