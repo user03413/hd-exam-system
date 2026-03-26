@@ -1,0 +1,51 @@
+<!--pages/teacher/stats/stats.wxml-->
+<view class="container">
+  <!-- 统计卡片 -->
+  <view class="stats-card">
+    <view class="stats-row">
+      <view class="stat-box">
+        <text class="stat-number">{{stats.total_students}}</text>
+        <text class="stat-label">学生总数</text>
+      </view>
+      <view class="stat-box">
+        <text class="stat-number">{{stats.total_exams}}</text>
+        <text class="stat-label">考试次数</text>
+      </view>
+    </view>
+    <view class="stats-row">
+      <view class="stat-box">
+        <text class="stat-number">{{stats.avg_score}}</text>
+        <text class="stat-label">平均分</text>
+      </view>
+      <view class="stat-box">
+        <text class="stat-number">{{stats.pass_rate}}%</text>
+        <text class="stat-label">及格率</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 功能按钮 -->
+  <view class="function-buttons">
+    <button class="function-btn" bindtap="goToChapter">
+      <text class="btn-icon">📚</text>
+      <text class="btn-text">章节出题</text>
+    </button>
+  </view>
+
+  <!-- 最近考试记录 -->
+  <view class="section">
+    <view class="section-title">最近考试记录</view>
+    <view class="record-list">
+      <view class="record-item" wx:for="{{records}}" wx:key="id">
+        <view class="record-info">
+          <view class="record-name">{{item.student_name}}</view>
+          <view class="record-time">{{item.time}}</view>
+        </view>
+        <view class="record-score">{{item.score}}分</view>
+      </view>
+    </view>
+    <view class="empty" wx:if="{{records.length === 0}}">
+      <text class="empty-text">暂无考试记录</text>
+    </view>
+  </view>
+</view>

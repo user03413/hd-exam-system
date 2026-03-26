@@ -1,0 +1,101 @@
+<!--pages/student/result/result.wxml-->
+<view class="container">
+  <!-- 成绩卡片 -->
+  <view class="score-card">
+    <view class="score-circle">
+      <text class="score-number">{{score}}</text>
+      <text class="score-unit">分</text>
+    </view>
+    <view class="score-comment">{{comment}}</view>
+    
+    <view class="stats-row">
+      <view class="stat-item">
+        <text class="stat-value correct">{{stats.correct}}</text>
+        <text class="stat-label">正确</text>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-item">
+        <text class="stat-value partial">{{stats.partial}}</text>
+        <text class="stat-label">部分</text>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-item">
+        <text class="stat-value wrong">{{stats.wrong}}</text>
+        <text class="stat-label">错误</text>
+      </view>
+    </view>
+
+    <view class="time-info">
+      <text class="time-icon">⏱️</text>
+      <text class="time-text">用时：{{duration}} | {{startTime}} ~ {{endTime}}</text>
+    </view>
+  </view>
+
+  <!-- 结果列表 -->
+  <view class="result-list">
+    <view class="result-card" wx:for="{{results}}" wx:key="seq">
+      <!-- 题目头部 -->
+      <view class="result-header">
+        <view class="result-tags">
+          <text class="type-tag {{item.typeClass}}">{{item.type}}</text>
+          <text class="result-icon {{item.is_correct ? 'correct' : (item.score > 0 ? 'partial' : 'wrong')}}">
+            {{item.is_correct ? '✓' : (item.score > 0 ? '△' : '✗')}}
+          </text>
+        </view>
+        <view class="result-score">{{item.score}}/10分</view>
+      </view>
+
+      <!-- 章节信息 -->
+      <view class="result-chapter">
+        <text>📖 {{item.chapter}}</text>
+      </view>
+
+      <!-- 题目内容 -->
+      <view class="result-question">
+        <text class="question-number-bold">{{item.seq}}、</text>
+        <text>{{item.question}}</text>
+      </view>
+
+      <!-- 选项（如果有） -->
+      <view class="result-options" wx:if="{{item.options}}">
+        <view 
+          class="result-option {{item.correct_answer.includes(key) ? 'correct' : (item.user_answer.includes(key) ? 'wrong' : '')}}"
+          wx:for="{{item.options}}" 
+          wx:for-item="value" 
+          wx:for-index="key" 
+          wx:key="key"
+        >
+          <text class="option-letter">{{key}}.</text>
+          <text class="option-text">{{value}}</text>
+          <text class="option-mark" wx:if="{{item.correct_answer.includes(key)}}">✓</text>
+          <text class="option-mark wrong" wx:if="{{item.user_answer.includes(key) && !item.correct_answer.includes(key)}}">✗</text>
+        </view>
+      </view>
+
+      <!-- 答案对比 -->
+      <view class="answer-compare">
+        <view class="answer-item">
+          <text class="answer-label">你的答案：</text>
+          <text class="answer-value">{{item.user_answer_display || '未作答'}}</text>
+        </view>
+        <view class="answer-item">
+          <text class="answer-label">正确答案：</text>
+          <text class="answer-value correct">{{item.correct_answer}}</text>
+        </view>
+      </view>
+
+      <!-- 解析 -->
+      <view class="analysis-box">
+        <view class="analysis-title">💡 解析</view>
+        <view class="analysis-content">{{item.analysis}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部操作栏 -->
+  <view class="bottom-bar">
+    <button class="btn-success restart-btn" bindtap="handleRestart">
+      <text>重新开始</text>
+    </button>
+  </view>
+</view>

@@ -1,0 +1,40 @@
+<!--pages/teacher/login/login.wxml-->
+<view class="container">
+  <!-- 顶部信息 -->
+  <view class="header">
+    <view class="avatar">
+      <text>👨‍🏫</text>
+    </view>
+    <view class="header-title">教师管理后台</view>
+    <view class="header-subtitle">请输入教师工号登录</view>
+  </view>
+
+  <!-- 登录表单 -->
+  <view class="login-form">
+    <input 
+      class="input" 
+      type="number" 
+      placeholder="请输入教师工号" 
+      value="{{teacherId}}"
+      bindinput="onInputTeacherId"
+      maxlength="15"
+    />
+    
+    <button 
+      class="btn-primary login-btn" 
+      bindtap="handleLogin"
+      disabled="{{!teacherId || loading}}"
+    >
+      <text wx:if="{{!loading}}">登录</text>
+      <text wx:else>登录中...</text>
+    </button>
+  </view>
+
+  <!-- 提示信息 -->
+  <view class="tips">
+    <view class="tip-title">💡 温馨提示</view>
+    <view class="tip-item">• 教师工号：654321</view>
+    <view class="tip-item">• 登录后可查看统计数据</view>
+    <view class="tip-item">• 可为特定章节生成考试链接</view>
+  </view>
+</view>
