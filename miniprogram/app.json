@@ -12,8 +12,15 @@
     "backgroundTextStyle": "light",
     "navigationBarBackgroundColor": "#1a73e8",
     "navigationBarTitleText": "火电机组考核系统",
-    "navigationBarTextStyle": "white"
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#f8f9fa"
   },
   "style": "v2",
-  "sitemapLocation": "sitemap.json"
+  "sitemapLocation": "sitemap.json",
+  "networkTimeout": {
+    "request": 30000,
+    "downloadFile": 30000,
+    "uploadFile": 30000
+  },
+  "debug": false
 }
