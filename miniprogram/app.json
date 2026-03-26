@@ -1,0 +1,45 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/student/login/login",
+    "pages/student/exam/exam",
+    "pages/student/result/result",
+    "pages/teacher/login/login",
+    "pages/teacher/stats/stats",
+    "pages/teacher/chapter/chapter"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#1a73e8",
+    "navigationBarTitleText": "火电机组考核系统",
+    "navigationBarTextStyle": "white"
+  },
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#1a73e8",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页",
+        "iconPath": "assets/icons/home.png",
+        "selectedIconPath": "assets/icons/home-active.png"
+      },
+      {
+        "pagePath": "pages/student/login/login",
+        "text": "学生",
+        "iconPath": "assets/icons/student.png",
+        "selectedIconPath": "assets/icons/student-active.png"
+      },
+      {
+        "pagePath": "pages/teacher/login/login",
+        "text": "教师",
+        "iconPath": "assets/icons/teacher.png",
+        "selectedIconPath": "assets/icons/teacher-active.png"
+      }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}
