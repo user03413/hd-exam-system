@@ -1,4 +1,7 @@
-// pages/student/login/login.js
+/**
+ * pages/student/login/login.js - 学生登录页
+ */
+
 const api = require('../../../utils/request')
 const util = require('../../../utils/util')
 
@@ -9,33 +12,47 @@ Page({
     loading: false
   },
 
+  /**
+   * 页面加载
+   */
   onLoad(options) {
+    console.log('[StudentLogin] 页面加载', options)
+    
     // 从URL参数中获取章节信息
-    if (options.chapter) {
-      this.setData({
-        chapter: decodeURIComponent(options.chapter)
-      })
+    if (options && options.chapter) {
+      const chapter = decodeURIComponent(options.chapter)
+      this.setData({ chapter })
       
       // 更新页面标题
       wx.setNavigationBarTitle({
-        title: decodeURIComponent(options.chapter) + ' - 考试'
+        title: chapter + ' - 考试'
       })
     }
   },
 
-  // 输入学号
+  /**
+   * 输入学号
+   */
   onInputStudentId(e) {
     this.setData({
-      studentId: e.detail.value
+      studentId: e.detail.value.trim()
     })
   },
 
-  // 登录验证
+  /**
+   * 登录验证
+   */
   async handleLogin() {
     const { studentId, chapter } = this.data
 
+    // 验证输入
     if (!studentId) {
       util.showError('请输入学号')
+      return
+    }
+
+    // 防止重复提交
+    if (this.data.loading) {
       return
     }
 
@@ -44,10 +61,11 @@ Page({
 
     try {
       const res = await api.verifyStudent(studentId, chapter)
+      console.log('[StudentLogin] 验证结果:', res)
       
-      if (res.success) {
+      if (res && res.success) {
         // 检查是否是教师账号
-        if (res.student.is_teacher) {
+        if (res.student && res.student.is_teacher) {
           util.showError('教师账号请使用教师端登录')
           return
         }
@@ -61,9 +79,13 @@ Page({
         }
 
         // 保存sessionId到本地存储
-        wx.setStorageSync('sessionId', res.session_id)
+        try {
+          wx.setStorageSync('sessionId', res.session_id)
+        } catch (e) {
+          console.error('[StudentLogin] 保存sessionId失败:', e)
+        }
 
-        util.showSuccess(res.message)
+        util.showSuccess(res.message || '验证成功')
         
         // 延迟跳转，让用户看到成功提示
         setTimeout(() => {
@@ -75,7 +97,7 @@ Page({
         util.showError(res.message || '验证失败')
       }
     } catch (err) {
-      console.error('登录失败:', err)
+      console.error('[StudentLogin] 登录失败:', err)
       util.showError('登录失败，请重试')
     } finally {
       this.setData({ loading: false })

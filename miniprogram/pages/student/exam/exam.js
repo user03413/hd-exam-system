@@ -1,4 +1,7 @@
-// pages/student/exam/exam.js
+/**
+ * pages/student/exam/exam.js - 考试答题页
+ */
+
 const api = require('../../../utils/request')
 const util = require('../../../utils/util')
 
@@ -15,34 +18,27 @@ Page({
     timer: null
   },
 
+  /**
+   * 页面加载
+   */
   onLoad() {
-    const app = getApp()
+    console.log('[Exam] 页面加载')
     
-    // 检查是否已登录
-    if (!app || !app.globalData || !app.globalData.sessionId) {
-      util.showError('请先登录')
-      setTimeout(() => {
-        wx.redirectTo({
-          url: '/pages/student/login/login'
-        })
-      }, 1500)
+    // 检查登录状态
+    if (!this.checkLogin()) {
       return
     }
-
+    
     // 显示章节信息
-    if (app.globalData.chapter) {
-      this.setData({
-        chapter: app.globalData.chapter
-      })
-      wx.setNavigationBarTitle({
-        title: app.globalData.chapter + ' - 答题中'
-      })
-    }
-
+    this.showChapterInfo()
+    
     // 开始考试
     this.startExam()
   },
 
+  /**
+   * 页面卸载
+   */
   onUnload() {
     // 清除计时器
     if (this.data.timer) {
@@ -50,13 +46,84 @@ Page({
     }
   },
 
-  // 开始考试
+  /**
+   * 检查登录状态
+   */
+  checkLogin() {
+    try {
+      const app = getApp()
+      if (!app || !app.globalData) {
+        util.showError('请先登录')
+        this.redirectToLogin()
+        return false
+      }
+      
+      if (!app.globalData.sessionId) {
+        util.showError('请先登录')
+        this.redirectToLogin()
+        return false
+      }
+      
+      return true
+    } catch (err) {
+      console.error('[Exam] 检查登录失败:', err)
+      util.showError('请先登录')
+      this.redirectToLogin()
+      return false
+    }
+  },
+
+  /**
+   * 跳转到登录页
+   */
+  redirectToLogin() {
+    setTimeout(() => {
+      wx.redirectTo({
+        url: '/pages/student/login/login'
+      })
+    }, 1500)
+  },
+
+  /**
+   * 显示章节信息
+   */
+  showChapterInfo() {
+    try {
+      const app = getApp()
+      if (app && app.globalData && app.globalData.chapter) {
+        const chapter = app.globalData.chapter
+        this.setData({ chapter })
+        wx.setNavigationBarTitle({
+          title: chapter + ' - 答题中'
+        })
+      }
+    } catch (err) {
+      console.error('[Exam] 显示章节失败:', err)
+    }
+  },
+
+  /**
+   * 获取会话ID
+   */
+  getSessionId() {
+    try {
+      const app = getApp()
+      return app && app.globalData ? app.globalData.sessionId : null
+    } catch (err) {
+      console.error('[Exam] 获取sessionId失败:', err)
+      return null
+    }
+  },
+
+  /**
+   * 开始考试
+   */
   async startExam() {
-    const app = getApp()
-    const sessionId = app && app.globalData ? app.globalData.sessionId : null
+    const sessionId = this.getSessionId()
     
     if (!sessionId) {
       util.showError('会话已过期，请重新登录')
+      this.redirectToLogin()
       return
     }
     
@@ -64,35 +131,19 @@ Page({
 
     try {
       const res = await api.startExam(sessionId)
+      console.log('[Exam] 开始考试结果:', res)
       
-      if (res.success) {
+      if (res && res.success) {
         // 处理题目数据
-        const questions = res.questions.map(q => {
-          // 转换选项为列表格式
-          const optionsList = {}
-          if (q.options) {
-            Object.entries(q.options).forEach(([key, value]) => {
-              optionsList[key] = value
-            })
-          }
-
-          return {
-            ...q,
-            optionsList: optionsList,
-            typeClass: util.getTypeClass(q.type),
-            diffClass: util.getDifficultyClass(q.difficulty)
-          }
-        })
-
+        const questions = this.processQuestions(res.questions)
+        
         this.setData({
           questions: questions,
-          total: res.total
+          total: res.total || questions.length
         })
 
         // 保存题目到全局
-        if (app && app.globalData) {
-          app.globalData.questions = questions
-        }
+        this.saveQuestions(questions)
 
         // 开始计时
         this.startTimer()
@@ -103,13 +154,46 @@ Page({
         util.hideLoading()
       }
     } catch (err) {
-      console.error('加载题目失败:', err)
+      console.error('[Exam] 加载题目失败:', err)
       util.showError('加载题目失败，请重试')
       util.hideLoading()
     }
   },
 
-  // 开始计时
+  /**
+   * 处理题目数据
+   */
+  processQuestions(questions) {
+    if (!questions || !Array.isArray(questions)) {
+      return []
+    }
+    
+    return questions.map(q => {
+      return {
+        ...q,
+        typeClass: util.getTypeClass(q.type),
+        diffClass: util.getDifficultyClass(q.difficulty)
+      }
+    })
+  },
+
+  /**
+   * 保存题目到全局
+   */
+  saveQuestions(questions) {
+    try {
+      const app = getApp()
+      if (app && app.globalData) {
+        app.globalData.questions = questions
+      }
+    } catch (err) {
+      console.error('[Exam] 保存题目失败:', err)
+    }
+  },
+
+  /**
+   * 开始计时
+   */
   startTimer() {
     const timer = setInterval(() => {
       const seconds = this.data.seconds + 1
@@ -122,26 +206,25 @@ Page({
     this.setData({ timer: timer })
   },
 
-  // 选择选项
+  /**
+   * 选择选项
+   */
   selectOption(e) {
     const { seq, key, type } = e.currentTarget.dataset
     const answers = { ...this.data.answers }
 
     if (type === '单选题') {
-      // 单选：直接赋值
       answers[seq] = key
     } else {
-      // 多选：数组处理
+      // 多选处理
       if (!answers[seq]) {
         answers[seq] = []
       }
       
       const index = answers[seq].indexOf(key)
       if (index > -1) {
-        // 已选中，取消选择
         answers[seq].splice(index, 1)
       } else {
-        // 未选中，添加
         answers[seq].push(key)
       }
     }
@@ -150,7 +233,9 @@ Page({
     this.updateProgress()
   },
 
-  // 输入简答题
+  /**
+   * 输入简答题
+   */
   inputShortAnswer(e) {
     const { seq } = e.currentTarget.dataset
     const value = e.detail.value.trim()
@@ -166,10 +251,14 @@ Page({
     this.updateProgress()
   },
 
-  // 更新进度
+  /**
+   * 更新进度
+   */
   updateProgress() {
     const answered = Object.keys(this.data.answers).length
-    const progress = (answered / this.data.total) * 100
+    const progress = this.data.total > 0 
+      ? Math.round((answered / this.data.total) * 100) 
+      : 0
     
     this.setData({
       answered: answered,
@@ -177,7 +266,9 @@ Page({
     })
   },
 
-  // 提交答卷
+  /**
+   * 提交答卷
+   */
   async handleSubmit() {
     const { questions, answers, total } = this.data
 
@@ -187,17 +278,17 @@ Page({
       if (!confirm) return
     }
 
+    const sessionId = this.getSessionId()
+    
+    if (!sessionId) {
+      util.showError('会话已过期，请重新登录')
+      this.redirectToLogin()
+      return
+    }
+
     util.showLoading('提交中...')
 
     try {
-      const app = getApp()
-      const sessionId = app && app.globalData ? app.globalData.sessionId : null
-      
-      if (!sessionId) {
-        util.showError('会话已过期，请重新登录')
-        return
-      }
-      
       // 停止计时
       if (this.data.timer) {
         clearInterval(this.data.timer)
@@ -205,14 +296,11 @@ Page({
 
       // 提交答案
       const res = await api.submitExam(sessionId, answers)
+      console.log('[Exam] 提交结果:', res)
 
-      if (res.success) {
+      if (res && res.success) {
         // 保存结果到全局
-        if (app && app.globalData) {
-          app.globalData.answers = answers
-          app.globalData.results = res.results
-          app.globalData.score = res.score
-        }
+        this.saveResults(answers, res)
 
         util.hideLoading()
         util.showSuccess('提交成功！')
@@ -228,9 +316,26 @@ Page({
         util.hideLoading()
       }
     } catch (err) {
-      console.error('提交失败:', err)
+      console.error('[Exam] 提交失败:', err)
       util.showError('提交失败，请重试')
       util.hideLoading()
+    }
+  },
+
+  /**
+   * 保存结果到全局
+   */
+  saveResults(answers, res) {
+    try {
+      const app = getApp()
+      if (app && app.globalData) {
+        app.globalData.answers = answers
+        app.globalData.results = res.results
+        app.globalData.score = res.score
+        app.globalData.duration_seconds = this.data.seconds
+      }
+    } catch (err) {
+      console.error('[Exam] 保存结果失败:', err)
     }
   }
 })

@@ -1,4 +1,7 @@
-// pages/student/result/result.js
+/**
+ * pages/student/result/result.js - 考试结果页
+ */
+
 const util = require('../../../utils/util')
 
 Page({
@@ -11,27 +14,120 @@ Page({
       wrong: 0
     },
     duration: '',
-    startTime: '',
-    endTime: '',
     results: []
   },
 
+  /**
+   * 页面加载
+   */
   onLoad() {
-    const app = getApp()
+    console.log('[Result] 页面加载')
     
     // 检查是否有结果数据
-    if (!app || !app.globalData || !app.globalData.results) {
-      util.showError('未找到考试结果')
-      setTimeout(() => {
-        wx.redirectTo({
-          url: '/pages/index/index'
-        })
-      }, 1500)
+    if (!this.checkResults()) {
       return
     }
+    
+    // 显示结果
+    this.showResults()
+    
+    // 设置页面标题
+    wx.setNavigationBarTitle({
+      title: '考试成绩'
+    })
+  },
 
+  /**
+   * 检查结果数据
+   */
+  checkResults() {
+    try {
+      const app = getApp()
+      if (!app || !app.globalData) {
+        util.showError('未找到考试结果')
+        this.redirectToIndex()
+        return false
+      }
+      
+      if (!app.globalData.results || !Array.isArray(app.globalData.results)) {
+        util.showError('未找到考试结果')
+        this.redirectToIndex()
+        return false
+      }
+      
+      return true
+    } catch (err) {
+      console.error('[Result] 检查结果失败:', err)
+      util.showError('未找到考试结果')
+      this.redirectToIndex()
+      return false
+    }
+  },
+
+  /**
+   * 跳转到首页
+   */
+  redirectToIndex() {
+    setTimeout(() => {
+      wx.redirectTo({
+        url: '/pages/index/index'
+      })
+    }, 1500)
+  },
+
+  /**
+   * 获取全局数据
+   */
+  getGlobalData() {
+    try {
+      const app = getApp()
+      return app && app.globalData ? app.globalData : null
+    } catch (err) {
+      console.error('[Result] 获取全局数据失败:', err)
+      return null
+    }
+  },
+
+  /**
+   * 显示结果
+   */
+  showResults() {
+    const globalData = this.getGlobalData()
+    if (!globalData) {
+      return
+    }
+    
     // 处理结果数据
-    const results = app.globalData.results.map(r => {
+    const results = this.processResults(globalData.results)
+    
+    // 计算统计数据
+    const stats = util.calculateScore(globalData.results)
+    
+    // 获取评价
+    const score = globalData.score || 0
+    const comment = util.getScoreComment(score)
+    
+    // 格式化时长
+    const duration = util.formatDuration(globalData.duration_seconds || 0)
+
+    this.setData({
+      score: score,
+      comment: comment,
+      stats: stats,
+      duration: duration,
+      results: results
+    })
+  },
+
+  /**
+   * 处理结果数据
+   */
+  processResults(results) {
+    if (!results || !Array.isArray(results)) {
+      return []
+    }
+    
+    return results.map(r => {
       // 处理用户答案显示
       let user_answer_display = ''
       if (r.type === '简答题') {
@@ -48,37 +144,23 @@ Page({
         typeClass: util.getTypeClass(r.type)
       }
     })
-
-    // 计算统计数据
-    const stats = util.calculateScore(app.globalData.results)
-
-    // 获取评价
-    const score = app.globalData.score || 0
-    const comment = util.getScoreComment(score)
-
-    this.setData({
-      score: score,
-      comment: comment,
-      stats: stats,
-      duration: util.formatDuration(app.globalData.duration_seconds || 0),
-      startTime: app.globalData.startTime || '--',
-      endTime: app.globalData.endTime || '--',
-      results: results
-    })
-
-    // 设置页面标题
-    wx.setNavigationBarTitle({
-      title: '考试成绩'
-    })
   },
 
-  // 重新开始
+  /**
+   * 重新开始
+   */
   handleRestart() {
-    const app = getApp()
-    if (app && app.clearUserData) {
-      app.clearUserData()
+    // 清除用户数据
+    try {
+      const app = getApp()
+      if (app && typeof app.clearUserData === 'function') {
+        app.clearUserData()
+      }
+    } catch (err) {
+      console.error('[Result] 清除数据失败:', err)
     }
     
+    // 跳转到首页
     wx.redirectTo({
       url: '/pages/index/index'
     })
