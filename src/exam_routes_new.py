@@ -14,9 +14,37 @@ from coze_coding_utils.runtime_ctx.context import new_context
 
 # 配置路径
 WORKSPACE_PATH = os.getenv("COZE_WORKSPACE_PATH", "/workspace/projects")
-STUDENT_FILE = os.path.join(WORKSPACE_PATH, 'assets', '火电机组考核学生名单.xlsx')
-QUESTION_FILE = os.path.join(WORKSPACE_PATH, 'assets', '244题_热工自动化试题集.xlsx')
+EXAM_CONFIG_FILE = os.path.join(WORKSPACE_PATH, 'assets', 'exam_config.json')
 EXAM_RECORDS_FILE = os.path.join(WORKSPACE_PATH, 'assets', 'exam_records.json')
+
+
+def load_exam_config() -> Dict:
+    """加载考试配置"""
+    default_config = {
+        "question_bank": {"file": "assets/244题_热工自动化试题集.xlsx", "sheet_name": "244 题"},
+        "student_list": {"file": "assets/火电机组考核学生名单.xlsx"},
+        "exam_settings": {
+            "question_count": 10,
+            "single_choice_count": 4,
+            "multiple_choice_count": 3,
+            "short_answer_count": 3
+        }
+    }
+    try:
+        if os.path.exists(EXAM_CONFIG_FILE):
+            with open(EXAM_CONFIG_FILE, 'r', encoding='utf-8') as f:
+                config = json.load(f)
+                return config
+    except Exception as e:
+        print(f"加载配置文件失败，使用默认配置: {e}")
+    return default_config
+
+
+# 加载配置
+_exam_config = load_exam_config()
+QUESTION_FILE = os.path.join(WORKSPACE_PATH, _exam_config['question_bank']['file'])
+STUDENT_FILE = os.path.join(WORKSPACE_PATH, _exam_config['student_list']['file'])
+QUESTION_SHEET_NAME = _exam_config['question_bank'].get('sheet_name', '244 题')
 
 # 会话存储
 exam_sessions: Dict[str, Dict] = {}
@@ -129,7 +157,7 @@ def parse_options(option_str: str) -> Dict[str, str]:
 def load_questions() -> Dict[str, List]:
     """加载题库"""
     try:
-        df = pd.read_excel(QUESTION_FILE, sheet_name='244 题')
+        df = pd.read_excel(QUESTION_FILE, sheet_name=QUESTION_SHEET_NAME)
         questions = {'单选题': [], '多选题': [], '简答题': []}
         
         for _, row in df.iterrows():
