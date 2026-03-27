@@ -52,6 +52,10 @@ exam_sessions: Dict[str, Dict] = {}
 # 考试记录存储
 exam_records: List[Dict] = []
 
+# ============ 预生成试卷存储（统一试卷模式）============
+# 结构: {link_id: {'questions': [...], 'chapter': 'xxx', 'mode': 'unified', 'created_at': datetime}}
+exam_papers: Dict[str, Dict] = {}
+
 # ============ 缓存机制（优化并发性能）============
 _questions_cache: Optional[Dict[str, List]] = None  # 题库缓存
 _students_cache: Optional[Dict[str, Dict]] = None   # 学生名单缓存
@@ -786,9 +790,12 @@ EXAM_HTML = '''
         const urlParams = new URLSearchParams(window.location.search);
         const chapterParam = urlParams.get('chapter');
         const linkIdParam = urlParams.get('linkId');
+        const modeParam = urlParams.get('mode') || 'random'; // 考试模式，默认随机
         
         let sessionId = null, questions = [], answers = {}, extensions = {}, timer = null, seconds = 0;
         let currentChapter = chapterParam || ''; // 当前考试章节
+        let currentMode = modeParam; // 当前考试模式
+        let currentLinkId = linkIdParam || ''; // 当前链接ID
         
         // 页面加载时立即显示章节信息（如果有）
         if (currentChapter) {
@@ -796,6 +803,14 @@ EXAM_HTML = '''
             // 在登录页显示章节信息
             document.getElementById('loginChapter').textContent = currentChapter;
             document.getElementById('loginChapterInfo').style.display = 'block';
+        }
+        
+        // 如果是统一试卷模式，在登录页显示提示
+        if (currentMode === 'unified') {
+            const modeInfo = document.createElement('div');
+            modeInfo.className = 'alert alert-warning small mt-2 mb-0';
+            modeInfo.innerHTML = '<i class="bi bi-info-circle me-1"></i>统一试卷模式：所有同学题目相同';
+            document.getElementById('loginChapterInfo').parentNode.appendChild(modeInfo);
         }
         
         function show(secId) {
@@ -955,7 +970,12 @@ EXAM_HTML = '''
             btn.innerHTML = '<span class="loading me-2"></span>验证中...';
             
             try {
-                const r = await api('/verify', {student_id: id, chapter: currentChapter});
+                const r = await api('/verify', {
+                    student_id: id, 
+                    chapter: currentChapter,
+                    linkId: currentLinkId,
+                    mode: currentMode
+                });
                 if (r.success) {
                     // 如果是教师账号，跳转到教师管理页面
                     if (r.student.is_teacher) {
@@ -973,6 +993,14 @@ EXAM_HTML = '''
                         document.getElementById('examTitle').textContent = r.chapter + ' - 热工自动化在线考试';
                         document.getElementById('readyChapter').textContent = r.chapter;
                         document.getElementById('readyChapterInfo').style.display = 'block';
+                    }
+                    
+                    // 如果是统一试卷模式，在准备页显示提示
+                    if (r.exam_mode === 'unified') {
+                        const modeAlert = document.createElement('div');
+                        modeAlert.className = 'alert alert-warning small';
+                        modeAlert.innerHTML = '<i class="bi bi-info-circle me-1"></i>' + (r.exam_mode_text || '统一试卷模式：所有同学题目相同');
+                        document.getElementById('readyChapterInfo').parentNode.insertBefore(modeAlert, document.getElementById('readyChapterInfo').nextSibling);
                     }
                     
                     show('readySec');
@@ -1074,11 +1102,20 @@ EXAM_HTML = '''
 # ============== API 处理函数 ==============
 
 async def exam_verify(request: Request) -> JSONResponse:
-    """验证学号"""
+    """验证学号
+    
+    参数：
+    - student_id: 学号
+    - chapter: 章节参数（可选）
+    - linkId: 链接ID（可选，用于统一试卷模式）
+    - mode: 考试模式（可选，unified/random）
+    """
     try:
         data = await request.json()
         student_id = str(data.get('student_id', '')).strip()
         chapter = data.get('chapter', '')  # 接收章节参数
+        link_id = data.get('linkId', '')   # 接收链接ID
+        mode = data.get('mode', 'random')  # 接收考试模式
         
         if not student_id:
             return JSONResponse({'success': False, 'message': '请输入学号'})
@@ -1093,7 +1130,9 @@ async def exam_verify(request: Request) -> JSONResponse:
         
         exam_sessions[session_id] = {
             'student': student,
-            'chapter': chapter,  # 保存章节参数到session
+            'chapter': chapter,      # 保存章节参数到session
+            'linkId': link_id,       # 保存链接ID到session
+            'mode': mode,            # 保存考试模式到session
             'questions': None,
             'answers': {},
             'start_time': datetime.now().isoformat()
@@ -1109,6 +1148,11 @@ async def exam_verify(request: Request) -> JSONResponse:
         # 如果有章节信息，返回给前端显示
         if chapter:
             response_data['chapter'] = chapter
+        
+        # 如果是统一试卷模式，提示用户
+        if mode == 'unified':
+            response_data['exam_mode'] = 'unified'
+            response_data['exam_mode_text'] = '统一试卷模式（所有同学题目相同）'
         
         return JSONResponse(response_data)
         
@@ -1144,7 +1188,12 @@ def filter_questions_by_chapter(all_questions: Dict, chapter: str) -> Dict:
 
 
 async def exam_start(request: Request) -> JSONResponse:
-    """开始考试"""
+    """开始考试
+    
+    支持两种模式：
+    - unified（统一试卷）：使用预生成的试卷，所有学生题目相同
+    - random（随机试卷）：每个学生独立随机抽题
+    """
     try:
         data = await request.json()
         session_id = data.get('session_id')
@@ -1154,22 +1203,33 @@ async def exam_start(request: Request) -> JSONResponse:
         
         session = exam_sessions[session_id]
         chapter = session.get('chapter', '')  # 从session中获取章节参数
+        mode = session.get('mode', 'random')  # 从session中获取考试模式
+        link_id = session.get('linkId', '')   # 从session中获取链接ID
         
-        all_questions = load_questions()
-        
-        # 如果有章节参数，筛选题目
-        if chapter:
-            all_questions = filter_questions_by_chapter(all_questions, chapter)
+        # 判断考试模式
+        if mode == 'unified' and link_id and link_id in exam_papers:
+            # 统一试卷模式：使用预生成的试卷
+            paper = exam_papers[link_id]
+            selected_questions = paper['questions']
+            print(f"[统一试卷] 学生 {session['student']['name']} 使用预生成试卷 linkId={link_id}")
+        else:
+            # 随机试卷模式：独立随机抽题
+            all_questions = load_questions()
             
-            # 检查筛选后的题目数量
-            total_questions = len(all_questions['单选题']) + len(all_questions['多选题']) + len(all_questions['简答题'])
-            if total_questions < 10:
-                return JSONResponse({
-                    'success': False, 
-                    'message': f'该章节题目数量不足（仅{total_questions}题），无法生成试卷'
-                })
-        
-        selected_questions = random_select_questions(all_questions, 10)
+            # 如果有章节参数，筛选题目
+            if chapter:
+                all_questions = filter_questions_by_chapter(all_questions, chapter)
+                
+                # 检查筛选后的题目数量
+                total_questions = len(all_questions['单选题']) + len(all_questions['多选题']) + len(all_questions['简答题'])
+                if total_questions < 10:
+                    return JSONResponse({
+                        'success': False, 
+                        'message': f'该章节题目数量不足（仅{total_questions}题），无法生成试卷'
+                    })
+            
+            selected_questions = random_select_questions(all_questions, 10)
+            print(f"[随机试卷] 学生 {session['student']['name']} 随机抽题 章节={chapter or '全题库'}")
         
         start_time = datetime.now()
         exam_sessions[session_id]['questions'] = selected_questions
@@ -1191,7 +1251,8 @@ async def exam_start(request: Request) -> JSONResponse:
             'success': True,
             'questions': questions_for_client,
             'total': len(questions_for_client),
-            'start_time': start_time.strftime('%Y-%m-%d %H:%M:%S')
+            'start_time': start_time.strftime('%Y-%m-%d %H:%M:%S'),
+            'exam_mode': mode  # 返回考试模式
         }
         
         # 如果有章节信息，返回给前端
@@ -1436,13 +1497,31 @@ TEACHER_HTML = '''
                         </select>
                     </div>
                     
+                    <div class="mb-3">
+                        <label class="form-label">考试模式</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="examMode" id="modeUnified" value="unified">
+                            <label class="form-check-label" for="modeUnified">
+                                <strong>统一试卷</strong> <span class="text-muted small">（推荐正式考试）</span>
+                            </label>
+                            <div class="text-muted small ms-4">所有学生题目相同，便于讲评和存档</div>
+                        </div>
+                        <div class="form-check mt-2">
+                            <input class="form-check-input" type="radio" name="examMode" id="modeRandom" value="random" checked>
+                            <label class="form-check-label" for="modeRandom">
+                                <strong>随机试卷</strong> <span class="text-muted small">（推荐平时练习）</span>
+                            </label>
+                            <div class="text-muted small ms-4">每位学生题目随机，增加练习覆盖面</div>
+                        </div>
+                    </div>
+                    
                     <button class="btn btn-primary" onclick="generateChapterLink()">
                         <i class="bi bi-link-45deg me-2"></i>生成考试链接
                     </button>
                     
                     <div id="linkDisplay" class="mt-3" style="display:none">
                         <div class="alert alert-info mb-0">
-                            <strong>考试链接：</strong><br>
+                            <div id="linkInfo"></div>
                             <input type="text" class="form-control mt-2" id="examLink" readonly>
                             <button class="btn btn-sm btn-outline-primary mt-2" onclick="copyLink()">
                                 <i class="bi bi-clipboard me-1"></i>复制链接
@@ -1560,14 +1639,29 @@ TEACHER_HTML = '''
         // 生成章节考试链接
         async function generateChapterLink(){
             const chapter=document.getElementById('chapterSelect').value;
+            const mode=document.querySelector('input[name="examMode"]:checked').value;
             
             try{
-                const url='/api/exam/chapter-link' + (chapter ? '?chapter=' + encodeURIComponent(chapter) : '');
+                let url='/api/exam/chapter-link?mode=' + mode;
+                if(chapter){
+                    url += '&chapter=' + encodeURIComponent(chapter);
+                }
+                
                 const res=await fetch(url);
                 const data=await res.json();
                 
                 if(data.success){
                     document.getElementById('examLink').value=data.link;
+                    
+                    // 显示链接信息
+                    let infoHtml = '<strong>考试链接已生成</strong><br>';
+                    infoHtml += '<span class="badge bg-' + (data.mode === 'unified' ? 'success' : 'primary') + '">' + (data.mode === 'unified' ? '统一试卷' : '随机试卷') + '</span> ';
+                    infoHtml += '<span class="badge bg-secondary">' + data.chapter + '</span>';
+                    if(data.question_count){
+                        infoHtml += ' <span class="text-muted small">共' + data.question_count + '题</span>';
+                    }
+                    document.getElementById('linkInfo').innerHTML=infoHtml;
+                    
                     document.getElementById('linkDisplay').style.display='block';
                 }else{
                     alert('生成链接失败：' + data.message);
@@ -1777,31 +1871,83 @@ async def refresh_cache(request: Request) -> JSONResponse:
 
 
 async def get_chapter_link(request: Request) -> JSONResponse:
-    """生成章节考试链接"""
+    """生成章节考试链接
+    
+    参数：
+    - chapter: 章节名称（可选，不传则全题库）
+    - mode: 考试模式（可选，unified=统一试卷，random=随机试卷，默认random）
+    
+    返回：
+    - link: 考试链接
+    - chapter: 章节名称
+    - mode: 考试模式
+    - linkId: 链接ID
+    - question_count: 题目数量（统一试卷模式）
+    """
     try:
-        # 获取章节参数
+        # 获取参数
         chapter = request.query_params.get('chapter', '')
+        mode = request.query_params.get('mode', 'random')  # 默认随机试卷
         
         # 生成链接ID
-        link_id = __import__('random').randrange(10000000, 99999999)
+        link_id = str(__import__('random').randrange(10000000, 99999999))
+        
+        # 如果是统一试卷模式，预生成试卷
+        if mode == 'unified':
+            all_questions = load_questions()
+            
+            # 如果有章节参数，筛选题目
+            if chapter:
+                all_questions = filter_questions_by_chapter(all_questions, chapter)
+            
+            # 检查题目数量
+            total_questions = len(all_questions['单选题']) + len(all_questions['多选题']) + len(all_questions['简答题'])
+            if total_questions < 10:
+                return JSONResponse({
+                    'success': False, 
+                    'message': f'题目数量不足（仅{total_questions}题），无法生成试卷'
+                })
+            
+            # 预生成试卷
+            selected_questions = random_select_questions(all_questions, 10)
+            
+            # 存储预生成试卷
+            exam_papers[link_id] = {
+                'questions': selected_questions,
+                'chapter': chapter if chapter else '全题库',
+                'mode': 'unified',
+                'created_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            }
+            
+            print(f"[统一试卷] 预生成试卷 linkId={link_id}, 章节={chapter or '全题库'}, 题目数={len(selected_questions)}")
         
         # 使用Coze平台地址（从环境变量或配置中获取）
-        import os
         base_url = os.getenv('COZE_BASE_URL', 'https://90c19216-7224-4e07-9c9b-2d1be18d1149.dev.coze.site')
         
+        # 构建链接
+        params = []
         if chapter:
-            exam_link = f"{base_url}/exam?chapter={__import__('urllib').parse.quote(chapter)}&linkId={link_id}"
-        else:
-            exam_link = f"{base_url}/exam?linkId={link_id}"
+            params.append(f"chapter={__import__('urllib').parse.quote(chapter)}")
+        params.append(f"linkId={link_id}")
+        params.append(f"mode={mode}")
         
-        print(f"生成考试链接: {exam_link}")
+        exam_link = f"{base_url}/exam?{'&'.join(params)}"
         
-        return JSONResponse({
+        print(f"生成考试链接: {exam_link} (模式: {mode})")
+        
+        response_data = {
             'success': True,
             'link': exam_link,
             'chapter': chapter if chapter else '全题库',
-            'linkId': str(link_id)
-        })
+            'mode': mode,
+            'linkId': link_id
+        }
+        
+        # 统一试卷模式返回题目数量
+        if mode == 'unified' and link_id in exam_papers:
+            response_data['question_count'] = len(exam_papers[link_id]['questions'])
+        
+        return JSONResponse(response_data)
         
     except Exception as e:
         print(f"生成链接失败: {e}")
