@@ -25,7 +25,7 @@ from coze_coding_utils.helper.stream_runner import AgentStreamRunner, WorkflowSt
 from exam_routes_new import (
     exam_verify, exam_start, exam_submit, exam_extension, exam_export, 
     get_exam_page, teacher_login, get_teacher_stats, get_teacher_page,
-    get_home_page, get_chapters, get_chapter_link
+    get_home_page, get_chapters, get_chapter_link, refresh_cache
 )
 
 setup_logging(
@@ -260,6 +260,9 @@ app.add_api_route("/teacher", get_teacher_page, methods=["GET"])
 # 章节出题路由
 app.add_api_route("/api/exam/chapters", get_chapters, methods=["GET"])
 app.add_api_route("/api/exam/chapter-link", get_chapter_link, methods=["GET"])
+
+# 缓存管理路由（教师更换题库后调用）
+app.add_api_route("/api/exam/refresh-cache", refresh_cache, methods=["GET", "POST"])
 
 # OpenAI 兼容接口处理器
 openai_handler = OpenAIChatHandler(service)

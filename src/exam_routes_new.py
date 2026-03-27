@@ -52,6 +52,11 @@ exam_sessions: Dict[str, Dict] = {}
 # 考试记录存储
 exam_records: List[Dict] = []
 
+# ============ 缓存机制（优化并发性能）============
+_questions_cache: Optional[Dict[str, List]] = None  # 题库缓存
+_students_cache: Optional[Dict[str, Dict]] = None   # 学生名单缓存
+_cache_lock = {}  # 简单的锁机制（防止缓存穿透）
+
 
 def load_exam_records() -> List[Dict]:
     """加载考试记录"""
@@ -80,9 +85,25 @@ def save_exam_records():
 load_exam_records()
 
 
-def load_students() -> Dict[str, Dict]:
-    """加载学生名单"""
+def load_students(use_cache: bool = True) -> Dict[str, Dict]:
+    """加载学生名单 - 带缓存机制
+    
+    Args:
+        use_cache: 是否使用缓存，默认True。设为False可强制刷新缓存。
+    
+    Returns:
+        Dict[str, Dict]: 以学号为key的学生字典
+    """
+    global _students_cache
+    
+    # 如果缓存存在且要求使用缓存，直接返回
+    if use_cache and _students_cache is not None:
+        print("[缓存] 命中学生名单缓存")
+        return _students_cache
+    
     try:
+        print(f"[缓存] {'刷新缓存' if _students_cache is not None else '首次加载'}学生名单...")
+        
         df = pd.read_excel(STUDENT_FILE)
         students = {}
         for _, row in df.iterrows():
@@ -110,6 +131,10 @@ def load_students() -> Dict[str, Dict]:
             'is_teacher': True
         }
         
+        # 存入缓存
+        _students_cache = students
+        
+        print(f"[缓存] 学生名单加载完成: {len(students)}人")
         return students
     except Exception as e:
         print(f"加载学生名单失败: {e}")
@@ -154,9 +179,25 @@ def parse_options(option_str: str) -> Dict[str, str]:
     return options
 
 
-def load_questions() -> Dict[str, List]:
-    """加载题库"""
+def load_questions(use_cache: bool = True) -> Dict[str, List]:
+    """加载题库 - 带缓存机制
+    
+    Args:
+        use_cache: 是否使用缓存，默认True。设为False可强制刷新缓存。
+    
+    Returns:
+        Dict[str, List]: 按题型分类的题目字典
+    """
+    global _questions_cache
+    
+    # 如果缓存存在且要求使用缓存，直接返回
+    if use_cache and _questions_cache is not None:
+        print("[缓存] 命中题库缓存")
+        return _questions_cache
+    
     try:
+        print(f"[缓存] {'刷新缓存' if _questions_cache is not None else '首次加载'}题库...")
+        
         df = pd.read_excel(QUESTION_FILE, sheet_name=QUESTION_SHEET_NAME)
         questions = {'单选题': [], '多选题': [], '简答题': []}
         
@@ -180,7 +221,10 @@ def load_questions() -> Dict[str, List]:
             }
             questions[q_type].append(question)
         
-        print(f"题库加载完成: 单选{len(questions['单选题'])}题, 多选{len(questions['多选题'])}题, 简答{len(questions['简答题'])}题")
+        # 存入缓存
+        _questions_cache = questions
+        
+        print(f"[缓存] 题库加载完成: 单选{len(questions['单选题'])}题, 多选{len(questions['多选题'])}题, 简答{len(questions['简答题'])}题")
         return questions
     except Exception as e:
         print(f"加载题库失败: {e}")
@@ -1685,6 +1729,51 @@ async def get_chapters(request: Request) -> JSONResponse:
         import traceback
         traceback.print_exc()
         return JSONResponse({'success': False, 'message': f'获取章节失败：{str(e)}'})
+
+
+async def refresh_cache(request: Request) -> JSONResponse:
+    """刷新缓存 - 教师更换题库或学生名单后调用
+    
+    使用方法：
+    POST /api/refresh_cache
+    或
+    GET /api/refresh_cache
+    """
+    global _questions_cache, _students_cache
+    
+    try:
+        # 清除缓存
+        old_questions_count = sum(len(v) for v in (_questions_cache or {}).values())
+        old_students_count = len(_students_cache or {})
+        
+        _questions_cache = None
+        _students_cache = None
+        
+        # 重新加载
+        new_questions = load_questions(use_cache=False)
+        new_students = load_students(use_cache=False)
+        
+        new_questions_count = sum(len(v) for v in new_questions.values())
+        new_students_count = len(new_students)
+        
+        return JSONResponse({
+            'success': True,
+            'message': '缓存刷新成功',
+            'data': {
+                'questions': {
+                    'before': old_questions_count,
+                    'after': new_questions_count
+                },
+                'students': {
+                    'before': old_students_count,
+                    'after': new_students_count
+                }
+            }
+        })
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JSONResponse({'success': False, 'message': f'刷新缓存失败：{str(e)}'})
 
 
 async def get_chapter_link(request: Request) -> JSONResponse:
