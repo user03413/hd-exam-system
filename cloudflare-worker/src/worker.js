@@ -1170,11 +1170,13 @@ function getTeacherHTML() {
         
         // 加载章节列表
         async function loadChapters() {
+            console.log('开始加载章节列表...');
             try {
                 const res = await fetch('/api/exam/chapters');
                 const data = await res.json();
+                console.log('章节API返回:', data);
                 
-                if (data.success && data.chapters) {
+                if (data.success && data.chapters && data.chapters.length > 0) {
                     const select = document.getElementById('chapterSelect');
                     data.chapters.forEach(ch => {
                         const option = document.createElement('option');
@@ -1182,6 +1184,9 @@ function getTeacherHTML() {
                         option.textContent = ch.chapter + ' (' + ch.count + '题)';
                         select.appendChild(option);
                     });
+                    console.log('已加载 ' + data.chapters.length + ' 个章节');
+                } else {
+                    console.log('章节数据为空或加载失败');
                 }
             } catch (e) {
                 console.error('加载章节失败', e);
