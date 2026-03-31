@@ -1,5 +1,4 @@
 node_modules
-dist
 .DS_Store
 *.swp
 .git/*
@@ -36,16 +35,11 @@ __pycache__/
 *.zip
 *.gz
 
-# 文档类也默认加入
-*.pdf
-*.docx
-*.doc
-*.xlsx
-*.xls
-*.ppt
-*.pptx
-*.xlsx
-*.csv
-
 # 配置文件（包含敏感信息）
 .config/
+
+# dist 目录中的大文件（Excel）- 保留 HTML 文件用于 Pages 部署
+dist/*.xlsx
+dist/*.xls
+dist/*.csv
+dist/*.pdf

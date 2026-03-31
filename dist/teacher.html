@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>教师管理 - 火电机组考核系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root{--primary:#1a73e8;--success:#34a853;--danger:#ea4335;--warning:#fbbc04;--bg:#f8f9fa}
+        *{box-sizing:border-box}
+        body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);margin:0;min-height:100vh}
+        .header{background:linear-gradient(135deg,#2c3e50 0%,#34495e 100%);color:white;padding:15px 0;position:sticky;top:0;z-index:100;box-shadow:0 2px 10px rgba(0,0,0,0.1)}
+        .header h1{font-size:1.25rem;margin:0}
+        .header a{color:white;text-decoration:none}
+        .container{max-width:1000px;margin:0 auto;padding:15px}
+        .card{background:white;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.08);margin-bottom:15px;border:none}
+        .card-header{background:linear-gradient(135deg,#f8f9fa 0%,#e9ecef 100%);border-bottom:1px solid #e0e0e0;padding:15px 20px;border-radius:12px 12px 0 0}
+        .card-body{padding:20px}
+        .btn-primary{background:var(--primary);border:none;border-radius:8px;padding:10px 20px;font-weight:500}
+        .btn-primary:hover{background:#1557b0}
+        .stat-card{background:linear-gradient(135deg,var(--primary) 0%,#1557b0 100%);color:white;border-radius:12px;padding:20px;text-align:center}
+        .stat-card.success{background:linear-gradient(135deg,var(--success) 0%,#2e7d32 100%)}
+        .stat-card.warning{background:linear-gradient(135deg,var(--warning) 0%,#f57c00 100%)}
+        .stat-card.danger{background:linear-gradient(135deg,var(--danger) 0%,#c62828 100%)}
+        .stat-num{font-size:32px;font-weight:700}
+        .stat-label{font-size:14px;opacity:0.9}
+        .table{margin-bottom:0}
+        .table th{background:#f8f9fa;font-weight:600;border-bottom:2px solid #e0e0e0}
+        .badge-score{font-size:12px;padding:4px 10px;border-radius:20px}
+        .loading{text-align:center;padding:40px;color:#666}
+        .loading i{font-size:32px;margin-bottom:10px}
+        .filter-bar{background:#f8f9fa;border-radius:8px;padding:15px;margin-bottom:15px}
+        .nav-tabs{border-bottom:2px solid #e0e0e0}
+        .nav-tabs .nav-link{border:none;color:#666;font-weight:500;padding:10px 20px}
+        .nav-tabs .nav-link.active{color:var(--primary);border-bottom:2px solid var(--primary);background:transparent}
+        .progress{height:8px;border-radius:4px}
+        .chart-container{height:300px;position:relative}
+        .record-row:hover{background:#f8f9fa}
+        @media(max-width:576px){.container{padding:10px}.card-body{padding:15px}.stat-num{font-size:24px}}
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container d-flex justify-content-between align-items-center">
+            <h1><a href="/"><i class="bi bi-mortarboard-fill"></i> 火电机组考核系统</a></h1>
+            <span class="badge bg-warning text-dark">教师端</span>
+        </div>
+    </div>
+    
+    <div class="container">
+        <!-- 统计概览 -->
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-md-3">
+                <div class="stat-card">
+                    <div class="stat-num" id="totalExams">--</div>
+                    <div class="stat-label">考试次数</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-card success">
+                    <div class="stat-num" id="avgScore">--</div>
+                    <div class="stat-label">平均分</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-card warning">
+                    <div class="stat-num" id="passRate">--</div>
+                    <div class="stat-label">及格率</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-card danger">
+                    <div class="stat-num" id="totalStudents">--</div>
+                    <div class="stat-label">参考学生</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 功能标签页 -->
+        <ul class="nav nav-tabs mb-3" id="mainTabs">
+            <li class="nav-item">
+                <a class="nav-link active" data-bs-toggle="tab" href="#records">
+                    <i class="bi bi-list-check me-1"></i>考试记录
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#analysis">
+                    <i class="bi bi-bar-chart me-1"></i>数据分析
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#students">
+                    <i class="bi bi-people me-1"></i>学生名单
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#questions">
+                    <i class="bi bi-question-circle me-1"></i>题库管理
+                </a>
+            </li>
+        </ul>
+        
+        <div class="tab-content">
+            <!-- 考试记录 -->
+            <div class="tab-pane fade show active" id="records">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="bi bi-list-check me-2"></i>考试记录列表</h5>
+                        <button class="btn btn-sm btn-outline-primary" onclick="exportRecords()">
+                            <i class="bi bi-download me-1"></i>导出Excel
+                        </button>
+                    </div>
+                    <div class="card-body p-0">
+                        <div id="recordsLoading" class="loading">
+                            <i class="bi bi-hourglass-split"></i><br>加载中...
+                        </div>
+                        <div id="recordsTable" style="display:none">
+                            <div class="filter-bar">
+                                <div class="row g-2">
+                                    <div class="col-md-4">
+                                        <input type="text" class="form-control" id="filterStudent" placeholder="搜索学生姓名/学号">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <select class="form-select" id="filterScore">
+                                            <option value="">全部成绩</option>
+                                            <option value="90">优秀(≥90)</option>
+                                            <option value="80">良好(≥80)</option>
+                                            <option value="60">及格(≥60)</option>
+                                            <option value="fail">不及格(<60)</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <select class="form-select" id="filterChapter">
+                                            <option value="">全部章节</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <button class="btn btn-primary w-100" onclick="applyFilter()">筛选</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>学号</th>
+                                            <th>姓名</th>
+                                            <th>成绩</th>
+                                            <th>用时</th>
+                                            <th>考试章节</th>
+                                            <th>考试时间</th>
+                                            <th>操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="recordsBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 数据分析 -->
+            <div class="tab-pane fade" id="analysis">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0"><i class="bi bi-pie-chart me-2"></i>成绩分布</h6>
+                            </div>
+                            <div class="card-body">
+                                <div id="scoreDistribution" class="chart-container">
+                                    <canvas id="scoreChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0"><i class="bi bi-bar-chart me-2"></i>章节掌握度</h6>
+                            </div>
+                            <div class="card-body">
+                                <div id="chapterStats" class="chart-container"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="bi bi-trophy me-2"></i>成绩排行榜</h6>
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th width="60">排名</th>
+                                    <th>学号</th>
+                                    <th>姓名</th>
+                                    <th>最高分</th>
+                                    <th>考试次数</th>
+                                    <th>平均分</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rankBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 学生名单 -->
+            <div class="tab-pane fade" id="students">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="bi bi-people me-2"></i>学生名单</h5>
+                        <span class="badge bg-primary" id="studentCount">--人</span>
+                    </div>
+                    <div class="card-body p-0">
+                        <div id="studentsLoading" class="loading">
+                            <i class="bi bi-hourglass-split"></i><br>加载中...
+                        </div>
+                        <div id="studentsContent" style="display:none">
+                            <div class="filter-bar">
+                                <input type="text" class="form-control" id="searchStudent" placeholder="搜索学号或姓名...">
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>序号</th>
+                                            <th>学号</th>
+                                            <th>姓名</th>
+                                            <th>专业</th>
+                                            <th>考试次数</th>
+                                            <th>最高分</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="studentsBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 题库管理 -->
+            <div class="tab-pane fade" id="questions">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="bi bi-question-circle me-2"></i>题库概览</h5>
+                        <span class="badge bg-primary" id="questionCount">--题</span>
+                    </div>
+                    <div class="card-body">
+                        <div id="questionStats" class="loading">
+                            <i class="bi bi-hourglass-split"></i><br>加载中...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 详情弹窗 -->
+    <div class="modal fade" id="detailModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">考试详情</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="detailContent"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const API_BASE = 'https://hd-exam-api.771794850.workers.dev/api';
+        let allRecords = [];
+        let allStudents = [];
+        let allChapters = [];
+        let scoreChart = null;
+        
+        // 加载考试记录
+        async function loadRecords() {
+            try {
+                const res = await fetch(`${API_BASE}/exam-records`);
+                const data = await res.json();
+                
+                if(data.success) {
+                    allRecords = data.records || [];
+                    updateStats();
+                    renderRecords(allRecords);
+                    
+                    // 加载章节筛选器
+                    const chapters = [...new Set(allRecords.flatMap(r => r.chapters || []))];
+                    const filterSelect = document.getElementById('filterChapter');
+                    chapters.forEach(ch => {
+                        filterSelect.innerHTML += `<option value="${ch}">${ch}</option>`;
+                    });
+                    
+                    document.getElementById('recordsLoading').style.display = 'none';
+                    document.getElementById('recordsTable').style.display = 'block';
+                }
+            } catch(e) {
+                console.error('加载记录失败:', e);
+                document.getElementById('recordsLoading').innerHTML = 
+                    '<div class="alert alert-danger">加载失败，请刷新重试</div>';
+            }
+        }
+        
+        // 更新统计数据
+        function updateStats() {
+            const totalExams = allRecords.length;
+            const totalStudents = new Set(allRecords.map(r => r.student_id)).size;
+            const avgScore = totalExams > 0 
+                ? (allRecords.reduce((sum, r) => sum + (r.score || 0), 0) / totalExams).toFixed(1)
+                : 0;
+            const passCount = allRecords.filter(r => (r.score || 0) >= 60).length;
+            const passRate = totalExams > 0 ? ((passCount / totalExams) * 100).toFixed(0) : 0;
+            
+            document.getElementById('totalExams').textContent = totalExams;
+            document.getElementById('totalStudents').textContent = totalStudents;
+            document.getElementById('avgScore').textContent = avgScore;
+            document.getElementById('passRate').textContent = passRate + '%';
+        }
+        
+        // 渲染记录表格
+        function renderRecords(records) {
+            const tbody = document.getElementById('recordsBody');
+            tbody.innerHTML = '';
+            
+            if(records.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">暂无考试记录</td></tr>';
+                return;
+            }
+            
+            records.slice(0, 100).forEach(r => {
+                const scoreClass = r.score >= 90 ? 'bg-success' : r.score >= 80 ? 'bg-primary' : 
+                                  r.score >= 60 ? 'bg-warning' : 'bg-danger';
+                const duration = r.duration ? `${Math.floor(r.duration/60)}分${r.duration%60}秒` : '--';
+                const time = r.timestamp ? new Date(r.timestamp).toLocaleString('zh-CN') : '--';
+                
+                tbody.innerHTML += `
+                    <tr class="record-row">
+                        <td>${r.student_id}</td>
+                        <td>${r.student_name}</td>
+                        <td><span class="badge ${scoreClass} badge-score">${r.score}分</span></td>
+                        <td>${duration}</td>
+                        <td><small>${(r.chapters || []).slice(0, 2).join(', ')}${r.chapters?.length > 2 ? '...' : ''}</small></td>
+                        <td><small>${time}</small></td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary" onclick="showDetail('${r.id || r.timestamp}')">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+        
+        // 筛选记录
+        function applyFilter() {
+            const student = document.getElementById('filterStudent').value.toLowerCase();
+            const scoreFilter = document.getElementById('filterScore').value;
+            const chapter = document.getElementById('filterChapter').value;
+            
+            let filtered = allRecords;
+            
+            if(student) {
+                filtered = filtered.filter(r => 
+                    r.student_name?.toLowerCase().includes(student) || 
+                    r.student_id?.includes(student)
+                );
+            }
+            
+            if(scoreFilter) {
+                if(scoreFilter === 'fail') {
+                    filtered = filtered.filter(r => (r.score || 0) < 60);
+                } else {
+                    filtered = filtered.filter(r => (r.score || 0) >= parseInt(scoreFilter));
+                }
+            }
+            
+            if(chapter) {
+                filtered = filtered.filter(r => r.chapters?.includes(chapter));
+            }
+            
+            renderRecords(filtered);
+        }
+        
+        // 显示详情
+        function showDetail(id) {
+            const record = allRecords.find(r => (r.id || r.timestamp) === id);
+            if(!record) return;
+            
+            let html = `
+                <div class="row mb-3">
+                    <div class="col-md-6"><strong>学号：</strong>${record.student_id}</div>
+                    <div class="col-md-6"><strong>姓名：</strong>${record.student_name}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6"><strong>成绩：</strong>${record.score}分</div>
+                    <div class="col-md-6"><strong>用时：</strong>${record.duration ? Math.floor(record.duration/60) + '分' + (record.duration%60) + '秒' : '--'}</div>
+                </div>
+                <div class="mb-3">
+                    <strong>考试章节：</strong>${(record.chapters || []).join('、')}
+                </div>
+                <hr>
+                <h6>答题详情</h6>
+            `;
+            
+            if(record.results && record.results.length > 0) {
+                record.results.forEach((q, i) => {
+                    const ua = Array.isArray(q.user_answer) ? q.user_answer.join('') : q.user_answer;
+                    html += `
+                        <div class="card mb-2">
+                            <div class="card-body py-2">
+                                <div class="d-flex justify-content-between">
+                                    <span><strong>第${i+1}题</strong> ${q.type}</span>
+                                    <span class="badge ${q.is_correct ? 'bg-success' : 'bg-danger'}">${q.score}分</span>
+                                </div>
+                                <p class="mb-1 mt-2">${q.question}</p>
+                                <small class="text-muted">你的答案：${ua || '未作答'} | 正确答案：${q.correct_answer}</small>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            
+            document.getElementById('detailContent').innerHTML = html;
+            new bootstrap.Modal(document.getElementById('detailModal')).show();
+        }
+        
+        // 加载学生名单
+        async function loadStudents() {
+            try {
+                const res = await fetch(`${API_BASE}/students`);
+                const data = await res.json();
+                
+                if(data.success) {
+                    allStudents = data.students || [];
+                    document.getElementById('studentCount').textContent = allStudents.length + '人';
+                    renderStudents(allStudents);
+                    
+                    document.getElementById('studentsLoading').style.display = 'none';
+                    document.getElementById('studentsContent').style.display = 'block';
+                }
+            } catch(e) {
+                console.error('加载学生名单失败:', e);
+            }
+        }
+        
+        // 渲染学生列表
+        function renderStudents(students) {
+            const tbody = document.getElementById('studentsBody');
+            tbody.innerHTML = '';
+            
+            students.forEach((s, i) => {
+                // 统计该学生的考试情况
+                const studentRecords = allRecords.filter(r => r.student_id === s.id);
+                const examCount = studentRecords.length;
+                const maxScore = studentRecords.length > 0 
+                    ? Math.max(...studentRecords.map(r => r.score || 0)) 
+                    : '--';
+                
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${i+1}</td>
+                        <td>${s.id}</td>
+                        <td>${s.name}</td>
+                        <td>${s.major || '控制工程'}</td>
+                        <td>${examCount}</td>
+                        <td>${typeof maxScore === 'number' ? maxScore + '分' : maxScore}</td>
+                    </tr>
+                `;
+            });
+        }
+        
+        // 搜索学生
+        document.getElementById('searchStudent')?.addEventListener('input', function() {
+            const keyword = this.value.toLowerCase();
+            const filtered = allStudents.filter(s => 
+                s.id?.includes(keyword) || s.name?.toLowerCase().includes(keyword)
+            );
+            renderStudents(filtered);
+        });
+        
+        // 加载题库统计
+        async function loadQuestionStats() {
+            try {
+                const res = await fetch(`${API_BASE}/chapters`);
+                const data = await res.json();
+                
+                if(data.success) {
+                    allChapters = data.chapters || [];
+                    
+                    let total = 0;
+                    const stats = { '单选题': 0, '多选题': 0, '简答题': 0 };
+                    
+                    // 统计各章节题目数量
+                    const chapterStats = await Promise.all(allChapters.map(async ch => {
+                        try {
+                            const qRes = await fetch(`${API_BASE}/questions?chapter=${encodeURIComponent(ch)}&limit=100`);
+                            const qData = await qRes.json();
+                            const questions = qData.questions || [];
+                            
+                            questions.forEach(q => {
+                                const type = q.type || '单选题';
+                                if(stats[type] !== undefined) stats[type]++;
+                                total++;
+                            });
+                            
+                            return { chapter: ch, count: questions.length };
+                        } catch(e) {
+                            return { chapter: ch, count: 0 };
+                        }
+                    }));
+                    
+                    document.getElementById('questionCount').textContent = total + '题';
+                    
+                    // 渲染统计
+                    let html = `
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4">
+                                <div class="card bg-light">
+                                    <div class="card-body text-center">
+                                        <h3 class="text-primary">${stats['单选题']}</h3>
+                                        <small>单选题</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card bg-light">
+                                    <div class="card-body text-center">
+                                        <h3 class="text-warning">${stats['多选题']}</h3>
+                                        <small>多选题</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card bg-light">
+                                    <div class="card-body text-center">
+                                        <h3 class="text-success">${stats['简答题']}</h3>
+                                        <small>简答题</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <h6>各章节题目数量</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead><tr><th>章节</th><th>题目数</th></tr></thead>
+                                <tbody>
+                    `;
+                    
+                    chapterStats.forEach(s => {
+                        html += `<tr><td>${s.chapter}</td><td>${s.count}</td></tr>`;
+                    });
+                    
+                    html += '</tbody></table></div>';
+                    
+                    document.getElementById('questionStats').innerHTML = html;
+                }
+            } catch(e) {
+                console.error('加载题库统计失败:', e);
+            }
+        }
+        
+        // 渲染成绩分布图表
+        function renderScoreChart() {
+            if(allRecords.length === 0) return;
+            
+            const ctx = document.getElementById('scoreChart').getContext('2d');
+            
+            const ranges = {
+                '优秀(90+)': allRecords.filter(r => (r.score || 0) >= 90).length,
+                '良好(80-89)': allRecords.filter(r => (r.score || 0) >= 80 && (r.score || 0) < 90).length,
+                '及格(60-79)': allRecords.filter(r => (r.score || 0) >= 60 && (r.score || 0) < 80).length,
+                '不及格(<60)': allRecords.filter(r => (r.score || 0) < 60).length
+            };
+            
+            if(scoreChart) scoreChart.destroy();
+            
+            scoreChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(ranges),
+                    datasets: [{
+                        data: Object.values(ranges),
+                        backgroundColor: ['#34a853', '#1a73e8', '#fbbc04', '#ea4335']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+            
+            // 渲染排行榜
+            const studentScores = {};
+            allRecords.forEach(r => {
+                if(!studentScores[r.student_id]) {
+                    studentScores[r.student_id] = {
+                        id: r.student_id,
+                        name: r.student_name,
+                        scores: [],
+                        count: 0
+                    };
+                }
+                studentScores[r.student_id].scores.push(r.score || 0);
+                studentScores[r.student_id].count++;
+            });
+            
+            const ranked = Object.values(studentScores)
+                .map(s => ({
+                    ...s,
+                    maxScore: Math.max(...s.scores),
+                    avgScore: (s.scores.reduce((a,b) => a+b, 0) / s.count).toFixed(1)
+                }))
+                .sort((a, b) => b.maxScore - a.maxScore);
+            
+            const rankBody = document.getElementById('rankBody');
+            rankBody.innerHTML = '';
+            
+            ranked.slice(0, 10).forEach((s, i) => {
+                const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i+1);
+                rankBody.innerHTML += `
+                    <tr>
+                        <td>${medal}</td>
+                        <td>${s.id}</td>
+                        <td>${s.name}</td>
+                        <td><strong class="text-success">${s.maxScore}</strong></td>
+                        <td>${s.count}</td>
+                        <td>${s.avgScore}</td>
+                    </tr>
+                `;
+            });
+        }
+        
+        // 导出记录
+        function exportRecords() {
+            if(allRecords.length === 0) {
+                alert('暂无数据可导出');
+                return;
+            }
+            
+            let csv = '\ufeff学号,姓名,成绩,用时(秒),考试章节,考试时间\n';
+            allRecords.forEach(r => {
+                const time = r.timestamp ? new Date(r.timestamp).toLocaleString('zh-CN') : '--';
+                csv += `${r.student_id},${r.student_name},${r.score},${r.duration || 0},"${(r.chapters || []).join(';')}",${time}\n`;
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `考试记录_${new Date().toLocaleDateString()}.csv`;
+            a.click();
+        }
+        
+        // 标签页切换时加载数据
+        document.querySelectorAll('button[data-bs-toggle="tab"]').forEach(tab => {
+            tab.addEventListener('shown.bs.tab', function(e) {
+                const target = e.target.getAttribute('href');
+                if(target === '#students' && allStudents.length === 0) {
+                    loadStudents();
+                }
+                if(target === '#questions') {
+                    loadQuestionStats();
+                }
+                if(target === '#analysis') {
+                    renderScoreChart();
+                }
+            });
+        });
+        
+        // 初始化
+        loadRecords();
+    </script>
+</body>
+</html>
