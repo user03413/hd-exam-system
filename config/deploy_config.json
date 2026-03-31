@@ -1,0 +1,62 @@
+{
+  "project": {
+    "name": "hd-exam-system",
+    "description": "火电机组考核系统",
+    "version": "1.0.0"
+  },
+  "cloudflare": {
+    "account_id": "57d6cde2e053b14fd28bd963ddb0975b",
+    "api_token": "cfut_oMO5zPweQ11zf3f8ll9FWhQvJRY7Fuv3I075e0bi951b99ee",
+    "pages": {
+      "project_name": "hd-exam-system",
+      "url": "https://hd-exam-system.pages.dev",
+      "preview_url": "https://1197b98f.hd-exam-system.pages.dev",
+      "status": "active"
+    },
+    "workers": {
+      "name": "hd-exam-api",
+      "url": "https://hd-exam-api.771794850.workers.dev",
+      "status": "active"
+    },
+    "d1_database": {
+      "name": "hd-exam-db",
+      "id": "0cc8b804-1e56-4563-9b8d-f45a76370192",
+      "tables": ["students", "questions", "exam_records"]
+    }
+  },
+  "github": {
+    "repo": "https://github.com/user03413/hd-exam-system",
+    "branch": "main"
+  },
+  "urls": {
+    "pages_home": "https://hd-exam-system.pages.dev",
+    "pages_exam": "https://hd-exam-system.pages.dev/exam",
+    "pages_teacher": "https://hd-exam-system.pages.dev/teacher",
+    "api_base": "https://hd-exam-api.771794850.workers.dev/api",
+    "api_chapters": "https://hd-exam-api.771794850.workers.dev/api/chapters",
+    "api_students": "https://hd-exam-api.771794850.workers.dev/api/students",
+    "api_questions": "https://hd-exam-api.771794850.workers.dev/api/questions",
+    "api_generate_exam": "https://hd-exam-api.771794850.workers.dev/api/generate-exam",
+    "api_submit_exam": "https://hd-exam-api.771794850.workers.dev/api/submit-exam",
+    "api_exam_records": "https://hd-exam-api.771794850.workers.dev/api/exam-records"
+  },
+  "test_accounts": {
+    "student": {
+      "id": "123456",
+      "name": "测试学生"
+    },
+    "teacher": {
+      "id": "654321",
+      "name": "教师管理员"
+    }
+  },
+  "database_stats": {
+    "students": 72,
+    "questions": 244,
+    "chapters": 17
+  },
+  "last_deploy": {
+    "pages": "2026-03-31T02:46:30Z",
+    "workers": "2026-03-31T03:22:00Z"
+  }
+}
