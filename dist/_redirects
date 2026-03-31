@@ -1,4 +1,2 @@
+# API 代理到 Worker
 /api/*  https://hd-exam-api.771794850.workers.dev/api/:splat  200
-/exam   /exam.html   200
-/teacher /teacher.html 200
-/*      /index.html  200
