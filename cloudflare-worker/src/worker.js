@@ -1517,6 +1517,48 @@ function getTeacherHTML() {
 // 处理 OPTIONS 请求
 router.options('*', () => new Response(null, { headers: corsHeaders }));
 
+// 调试 API
+router.get('/api/debug', async (request) => {
+  try {
+    const tables = await request.env.DB.prepare(
+      "SELECT name FROM sqlite_master WHERE type='table'"
+    ).all();
+    
+    const studentsCount = await request.env.DB.prepare(
+      'SELECT COUNT(*) as count FROM students'
+    ).first();
+    
+    const questionsCount = await request.env.DB.prepare(
+      'SELECT COUNT(*) as count FROM questions'
+    ).first();
+    
+    const chaptersCount = await request.env.DB.prepare(
+      'SELECT chapter, COUNT(*) as count FROM questions GROUP BY chapter ORDER BY chapter'
+    ).all();
+    
+    return new Response(JSON.stringify({
+      success: true,
+      time: new Date().toISOString(),
+      tables: tables.results,
+      counts: {
+        students: studentsCount?.count || 0,
+        questions: questionsCount?.count || 0,
+        chapters: chaptersCount.results?.length || 0
+      },
+      chapters: chaptersCount.results
+    }), {
+      headers: { 'Content-Type': 'application/json', ...corsHeaders }
+    });
+  } catch (error) {
+    return new Response(JSON.stringify({
+      success: false,
+      error: error.message
+    }), {
+      headers: { 'Content-Type': 'application/json', ...corsHeaders }
+    });
+  }
+});
+
 // 404 处理
 router.all('*', () => new Response('Not Found', { status: 404 }));
 
