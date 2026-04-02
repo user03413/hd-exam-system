@@ -1565,6 +1565,8 @@ router.all('*', () => new Response('Not Found', { status: 404 }));
 // 导出
 export default {
   async fetch(request, env, ctx) {
-    return router.handle(request, env, ctx);
+    // 关键：将 env 附加到 request 对象，让路由处理器可以访问 DB
+    request.env = env;
+    return router.handle(request);
   }
 };
