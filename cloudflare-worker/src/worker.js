@@ -14,6 +14,43 @@ const corsHeaders = {
 // 会话存储（内存中，生产环境应使用 KV）
 const sessions = {};
 
+// 章节智能排序函数
+function chapterSort(a, b) {
+  // 提取章节数字的辅助函数
+  function getChapterNum(chapter) {
+    if (!chapter) return Infinity;
+    
+    // 处理 "第一章" → 1, "第十章" → 10, "第十一章" → 11
+    let num = 0;
+    
+    // 特殊处理 "第八至十章" 这种范围章节
+    if (chapter.includes('至')) {
+      const match = chapter.match(/第(\d+)/);
+      return match ? parseInt(match[1]) : Infinity;
+    }
+    
+    // 处理 "第十六/七章"
+    if (chapter.includes('/')) {
+      const match = chapter.match(/第(\d+)/);
+      return match ? parseInt(match[1]) : Infinity;
+    }
+    
+    // 标准章节 "第一章"、"第二章"
+    const numMatch = chapter.match(/第(\d+)/);
+    if (numMatch) {
+      return parseInt(numMatch[1]);
+    }
+    
+    // 无法匹配的放最后
+    return Infinity;
+  }
+  
+  const numA = getChapterNum(a.chapter || a);
+  const numB = getChapterNum(b.chapter || b);
+  
+  return numA - numB;
+}
+
 // 统一入口首页
 const HOME_HTML = `
 <!DOCTYPE html>
@@ -584,12 +621,15 @@ router.get('/api/exam/teacher/stats', async (request) => {
 router.get('/api/exam/chapters', async (request) => {
   try {
     const result = await request.env.DB.prepare(
-      'SELECT chapter, COUNT(*) as count FROM questions GROUP BY chapter ORDER BY chapter'
+      'SELECT chapter, COUNT(*) as count FROM questions GROUP BY chapter'
     ).all();
+    
+    // 应用智能排序
+    const chapters = (result.results || []).sort(chapterSort);
     
     return new Response(JSON.stringify({
       success: true,
-      chapters: result.results || []
+      chapters: chapters
     }), {
       headers: { 'Content-Type': 'application/json', ...corsHeaders }
     });
@@ -609,12 +649,15 @@ router.get('/api/exam/chapters', async (request) => {
 router.get('/api/chapters', async (request) => {
   try {
     const result = await request.env.DB.prepare(
-      'SELECT chapter, COUNT(*) as count FROM questions GROUP BY chapter ORDER BY chapter'
+      'SELECT chapter, COUNT(*) as count FROM questions GROUP BY chapter'
     ).all();
+    
+    // 应用智能排序
+    const chapters = (result.results || []).sort(chapterSort);
     
     return new Response(JSON.stringify({
       success: true,
-      chapters: (result.results || []).map(r => r.chapter)
+      chapters: chapters.map(r => r.chapter)
     }), {
       headers: { 'Content-Type': 'application/json', ...corsHeaders }
     });
@@ -1533,8 +1576,11 @@ router.get('/api/debug', async (request) => {
     ).first();
     
     const chaptersCount = await request.env.DB.prepare(
-      'SELECT chapter, COUNT(*) as count FROM questions GROUP BY chapter ORDER BY chapter'
+      'SELECT chapter, COUNT(*) as count FROM questions GROUP BY chapter'
     ).all();
+    
+    // 应用智能排序
+    const chapters = (chaptersCount.results || []).sort(chapterSort);
     
     return new Response(JSON.stringify({
       success: true,
@@ -1543,9 +1589,9 @@ router.get('/api/debug', async (request) => {
       counts: {
         students: studentsCount?.count || 0,
         questions: questionsCount?.count || 0,
-        chapters: chaptersCount.results?.length || 0
+        chapters: chapters.length
       },
-      chapters: chaptersCount.results
+      chapters: chapters
     }), {
       headers: { 'Content-Type': 'application/json', ...corsHeaders }
     });
