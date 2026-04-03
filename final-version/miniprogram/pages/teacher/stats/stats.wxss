@@ -1,0 +1,132 @@
+/* pages/teacher/stats/stats.wxss */
+
+.container {
+  min-height: 100vh;
+  background-color: #f8f9fa;
+  padding: 20rpx;
+}
+
+/* 统计卡片 */
+.stats-card {
+  background: linear-gradient(135deg, #34a853 0%, #2d8a47 100%);
+  border-radius: 20rpx;
+  padding: 40rpx;
+  margin-bottom: 20rpx;
+}
+
+.stats-row {
+  display: flex;
+  margin-bottom: 30rpx;
+}
+
+.stats-row:last-child {
+  margin-bottom: 0;
+}
+
+.stat-box {
+  flex: 1;
+  text-align: center;
+  color: #ffffff;
+}
+
+.stat-number {
+  display: block;
+  font-size: 48rpx;
+  font-weight: 700;
+  margin-bottom: 10rpx;
+}
+
+.stat-label {
+  display: block;
+  font-size: 26rpx;
+  opacity: 0.9;
+}
+
+/* 功能按钮 */
+.function-buttons {
+  margin-bottom: 20rpx;
+}
+
+.function-btn {
+  background: #ffffff;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  display: flex;
+  align-items: center;
+  margin-bottom: 16rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+}
+
+.btn-icon {
+  font-size: 40rpx;
+  margin-right: 20rpx;
+}
+
+.btn-text {
+  font-size: 32rpx;
+  font-weight: 500;
+  color: #333333;
+}
+
+/* 区块 */
+.section {
+  background: #ffffff;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333333;
+  margin-bottom: 20rpx;
+}
+
+/* 记录列表 */
+.record-list {
+  margin-top: 20rpx;
+}
+
+.record-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.record-item:last-child {
+  border-bottom: none;
+}
+
+.record-info {
+  flex: 1;
+}
+
+.record-name {
+  font-size: 30rpx;
+  color: #333333;
+  margin-bottom: 8rpx;
+}
+
+.record-time {
+  font-size: 24rpx;
+  color: #999999;
+}
+
+.record-score {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #1a73e8;
+}
+
+.empty {
+  text-align: center;
+  padding: 40rpx;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: #999999;
+}

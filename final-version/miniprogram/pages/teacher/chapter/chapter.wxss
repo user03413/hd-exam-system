@@ -1,0 +1,125 @@
+/* pages/teacher/chapter/chapter.wxss */
+
+.container {
+  min-height: 100vh;
+  background-color: #f8f9fa;
+  padding: 20rpx;
+}
+
+/* 标题 */
+.header {
+  margin-bottom: 30rpx;
+}
+
+.title {
+  font-size: 40rpx;
+  font-weight: 600;
+  color: #333333;
+  margin-bottom: 10rpx;
+}
+
+.subtitle {
+  font-size: 28rpx;
+  color: #999999;
+}
+
+/* 章节列表 */
+.chapter-list {
+  background: #ffffff;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+}
+
+.picker {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx;
+  background: #f8f9fa;
+  border-radius: 12rpx;
+}
+
+.picker-label {
+  font-size: 30rpx;
+  color: #666666;
+}
+
+.picker-value {
+  flex: 1;
+  font-size: 30rpx;
+  color: #333333;
+  text-align: right;
+  margin-right: 10rpx;
+}
+
+.picker-arrow {
+  font-size: 40rpx;
+  color: #999999;
+}
+
+.chapter-count {
+  text-align: center;
+  margin-top: 20rpx;
+  font-size: 28rpx;
+  color: #666666;
+}
+
+.count-number {
+  color: #1a73e8;
+  font-weight: 600;
+}
+
+/* 生成按钮 */
+.generate-btn {
+  width: 100%;
+  background: #1a73e8;
+  color: #ffffff;
+  border-radius: 12rpx;
+  padding: 28rpx;
+  font-size: 32rpx;
+  font-weight: 500;
+  margin-bottom: 20rpx;
+}
+
+.generate-btn[disabled] {
+  background: #cccccc;
+}
+
+/* 链接区域 */
+.link-section {
+  background: #ffffff;
+  border-radius: 16rpx;
+  padding: 30rpx;
+}
+
+.link-label {
+  font-size: 28rpx;
+  color: #666666;
+  margin-bottom: 20rpx;
+}
+
+.link-box {
+  background: #f8f9fa;
+  border: 2rpx solid #e0e0e0;
+  border-radius: 12rpx;
+  padding: 20rpx;
+  margin-bottom: 20rpx;
+}
+
+.link-text {
+  font-size: 26rpx;
+  color: #1a73e8;
+  word-break: break-all;
+  line-height: 40rpx;
+}
+
+.copy-btn {
+  width: 100%;
+  background: #34a853;
+  color: #ffffff;
+  border-radius: 12rpx;
+  padding: 28rpx;
+  font-size: 32rpx;
+  font-weight: 500;
+}

@@ -1,0 +1,33 @@
+{
+  "question_bank": {
+    "file": "assets/244题_热工自动化试题集.xlsx",
+    "description": "题库文件路径（相对于项目根目录）",
+    "sheet_name": "244 题",
+    "note": "更换题库时，修改 file 字段即可，确保新文件放在 assets 目录下"
+  },
+  "student_list": {
+    "file": "assets/火电机组考核学生名单.xlsx",
+    "description": "学生名单文件路径（相对于项目根目录）",
+    "note": "更换学生名单时，修改 file 字段即可"
+  },
+  "exam_settings": {
+    "question_count": 10,
+    "time_limit_minutes": 30,
+    "passing_score": 60,
+    "single_choice_count": 4,
+    "multiple_choice_count": 3,
+    "short_answer_count": 3
+  },
+  "exam_modes": {
+    "unified": {
+      "name": "统一试卷",
+      "description": "所有学生题目相同，便于讲评和存档",
+      "recommended_for": "正式考试、期中/期末考试、补考、竞赛选拔"
+    },
+    "random": {
+      "name": "随机试卷",
+      "description": "每位学生题目随机，增加练习覆盖面",
+      "recommended_for": "平时练习、随堂测验、自主学习"
+    }
+  }
+}

@@ -1,0 +1,45 @@
+<!--pages/teacher/chapter/chapter.wxml-->
+<view class="container">
+  <!-- 标题 -->
+  <view class="header">
+    <view class="title">章节出题</view>
+    <view class="subtitle">选择章节生成专属考试链接</view>
+  </view>
+
+  <!-- 章节列表 -->
+  <view class="chapter-list">
+    <picker 
+      mode="selector" 
+      range="{{chapters}}" 
+      range-key="chapter"
+      bindchange="onChapterChange"
+    >
+      <view class="picker">
+        <text class="picker-label">选择章节：</text>
+        <text class="picker-value">{{selectedChapter || '请选择'}}</text>
+        <text class="picker-arrow">›</text>
+      </view>
+    </picker>
+
+    <view class="chapter-count" wx:if="{{selectedChapter}}">
+      该章节共 <text class="count-number">{{selectedCount}}</text> 题
+    </view>
+  </view>
+
+  <!-- 生成按钮 -->
+  <button class="btn-primary generate-btn" bindtap="generateLink" disabled="{{loading}}">
+    <text wx:if="{{!loading}}">生成考试链接</text>
+    <text wx:else>生成中...</text>
+  </button>
+
+  <!-- 生成的链接 -->
+  <view class="link-section" wx:if="{{examLink}}">
+    <view class="link-label">考试链接：</view>
+    <view class="link-box">
+      <text class="link-text">{{examLink}}</text>
+    </view>
+    <button class="btn-success copy-btn" bindtap="copyLink">
+      <text>复制链接</text>
+    </button>
+  </view>
+</view>

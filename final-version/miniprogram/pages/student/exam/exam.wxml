@@ -1,0 +1,83 @@
+<!--pages/student/exam/exam.wxml-->
+<view class="container">
+  <!-- 顶部信息栏 -->
+  <view class="header-bar">
+    <view class="info-row">
+      <view class="chapter-info" wx:if="{{chapter}}">
+        <text class="chapter-icon">📚</text>
+        <text class="chapter-text">{{chapter}}</text>
+      </view>
+      <view class="timer">
+        <text class="timer-icon">⏱️</text>
+        <text class="timer-text">{{timerText}}</text>
+      </view>
+    </view>
+    <view class="progress-bar">
+      <view class="progress-fill" style="width: {{progress}}%"></view>
+    </view>
+    <view class="progress-text">已完成 {{answered}} / {{total}}</view>
+  </view>
+
+  <!-- 题目列表 -->
+  <view class="question-list">
+    <view class="question-card" wx:for="{{questions}}" wx:key="seq" id="q-{{item.seq}}">
+      <!-- 题目头部 -->
+      <view class="question-header">
+        <view class="question-tags">
+          <text class="type-tag {{item.typeClass}}">{{item.type}}</text>
+          <text class="diff-tag {{item.diffClass}}">{{item.difficulty}}</text>
+        </view>
+        <view class="question-number">第{{item.seq}}题</view>
+      </view>
+
+      <!-- 章节信息 -->
+      <view class="question-chapter">
+        <text class="chapter-icon">📖</text>
+        <text>{{item.chapter}} {{item.page ? '(' + item.page + ')' : ''}}</text>
+      </view>
+
+      <!-- 题目内容 -->
+      <view class="question-text">
+        <text class="question-number-bold">{{item.seq}}、</text>
+        <text>{{item.question}}</text>
+      </view>
+
+      <!-- 单选/多选选项 -->
+      <view class="options" wx:if="{{item.type === '单选题' || item.type === '多选题'}}">
+        <view 
+          class="option {{answers[item.seq] && (item.type === '单选题' ? answers[item.seq] === key : answers[item.seq].includes(key)) ? 'selected' : ''}}"
+          wx:for="{{item.optionsList}}" 
+          wx:for-item="value" 
+          wx:for-index="key" 
+          wx:key="key"
+          bindtap="selectOption"
+          data-seq="{{item.seq}}"
+          data-key="{{key}}"
+          data-type="{{item.type}}"
+        >
+          <text class="option-letter">{{key}}.</text>
+          <text class="option-text">{{value}}</text>
+        </view>
+      </view>
+
+      <!-- 简答题输入框 -->
+      <view class="short-answer" wx:if="{{item.type === '简答题'}}">
+        <textarea 
+          class="short-textarea"
+          placeholder="请输入答案..."
+          value="{{answers[item.seq]}}"
+          bindinput="inputShortAnswer"
+          data-seq="{{item.seq}}"
+          maxlength="500"
+        />
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部操作栏 -->
+  <view class="bottom-bar">
+    <button class="btn-primary submit-btn" bindtap="handleSubmit">
+      <text>提交答卷</text>
+    </button>
+  </view>
+</view>

@@ -1,0 +1,244 @@
+/* pages/student/exam/exam.wxss */
+
+.container {
+  min-height: 100vh;
+  background-color: #f8f9fa;
+  padding-bottom: 120rpx;
+}
+
+/* 顶部信息栏 */
+.header-bar {
+  background: linear-gradient(135deg, #1a73e8 0%, #1557b0 100%);
+  padding: 30rpx 40rpx;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.chapter-info {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 10rpx 20rpx;
+  border-radius: 8rpx;
+}
+
+.chapter-icon {
+  font-size: 28rpx;
+  margin-right: 8rpx;
+}
+
+.chapter-text {
+  color: #ffffff;
+  font-size: 26rpx;
+}
+
+.timer {
+  display: flex;
+  align-items: center;
+}
+
+.timer-icon {
+  font-size: 28rpx;
+  margin-right: 8rpx;
+}
+
+.timer-text {
+  color: #ffffff;
+  font-size: 32rpx;
+  font-weight: 600;
+}
+
+.progress-bar {
+  height: 8rpx;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 4rpx;
+  overflow: hidden;
+  margin-bottom: 10rpx;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #ffffff;
+  border-radius: 4rpx;
+  transition: width 0.3s;
+}
+
+.progress-text {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 24rpx;
+  text-align: right;
+}
+
+/* 题目列表 */
+.question-list {
+  padding: 20rpx;
+}
+
+.question-card {
+  background: #ffffff;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+  border-left: 6rpx solid #1a73e8;
+}
+
+.question-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.question-tags {
+  display: flex;
+  align-items: center;
+}
+
+.type-tag {
+  font-size: 24rpx;
+  padding: 6rpx 16rpx;
+  border-radius: 8rpx;
+  margin-right: 16rpx;
+}
+
+.type-single {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
+.type-multiple {
+  background: #fff3e0;
+  color: #e65100;
+}
+
+.type-short {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.diff-tag {
+  font-size: 24rpx;
+}
+
+.diff-easy {
+  color: #34a853;
+}
+
+.diff-medium {
+  color: #fbbc04;
+}
+
+.diff-hard {
+  color: #ea4335;
+}
+
+.question-number {
+  font-size: 24rpx;
+  color: #999999;
+}
+
+.question-chapter {
+  display: flex;
+  align-items: center;
+  font-size: 24rpx;
+  color: #666666;
+  margin-bottom: 20rpx;
+}
+
+.question-chapter .chapter-icon {
+  font-size: 24rpx;
+  margin-right: 8rpx;
+}
+
+.question-text {
+  font-size: 32rpx;
+  line-height: 50rpx;
+  color: #333333;
+  margin-bottom: 30rpx;
+}
+
+.question-number-bold {
+  font-weight: 600;
+}
+
+/* 选项 */
+.options {
+  margin-top: 20rpx;
+}
+
+.option {
+  background: #f8f9fa;
+  border: 2rpx solid #e0e0e0;
+  border-radius: 12rpx;
+  padding: 24rpx;
+  margin-bottom: 16rpx;
+  display: flex;
+  align-items: flex-start;
+}
+
+.option.selected {
+  background: #e3f2fd;
+  border-color: #1a73e8;
+}
+
+.option-letter {
+  font-weight: 600;
+  color: #1a73e8;
+  margin-right: 16rpx;
+  font-size: 30rpx;
+}
+
+.option-text {
+  flex: 1;
+  font-size: 30rpx;
+  line-height: 44rpx;
+  color: #333333;
+}
+
+/* 简答题 */
+.short-textarea {
+  width: 100%;
+  min-height: 200rpx;
+  background: #f8f9fa;
+  border: 2rpx solid #e0e0e0;
+  border-radius: 12rpx;
+  padding: 24rpx;
+  font-size: 30rpx;
+  line-height: 44rpx;
+}
+
+/* 底部操作栏 */
+.bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  padding: 20rpx 40rpx;
+  box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.05);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.submit-btn {
+  width: 100%;
+  background: #1a73e8;
+  color: #ffffff;
+  border-radius: 12rpx;
+  padding: 28rpx;
+  font-size: 32rpx;
+  font-weight: 500;
+}
+
+.submit-btn:active {
+  background: #1557b0;
+}

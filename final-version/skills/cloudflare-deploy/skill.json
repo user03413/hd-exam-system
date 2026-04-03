@@ -1,0 +1,45 @@
+{
+  "name": "cloudflare-deploy",
+  "display_name": "Cloudflare 部署技能",
+  "version": "1.0.0",
+  "description": "封装 Cloudflare Workers 和 D1 数据库的部署操作",
+  "author": "Coze AI",
+  "category": "devops",
+  "tags": ["Cloudflare", "Workers", "D1", "部署"],
+  
+  "commands": {
+    "info": {
+      "description": "获取 Worker 配置信息",
+      "usage": "python cloudflare_skill.py info"
+    },
+    "deploy": {
+      "description": "部署 Worker",
+      "usage": "python cloudflare_skill.py deploy"
+    },
+    "query": {
+      "description": "查询 D1 数据库",
+      "usage": "python cloudflare_skill.py query <sql>"
+    },
+    "import": {
+      "description": "导入数据到 D1",
+      "usage": "python cloudflare_skill.py import <sql_file>"
+    },
+    "status": {
+      "description": "获取 D1 数据库状态",
+      "usage": "python cloudflare_skill.py status"
+    },
+    "deploy_full": {
+      "description": "完整部署（Worker + 数据库检查）",
+      "usage": "python cloudflare_skill.py deploy_full"
+    }
+  },
+  
+  "config": {
+    "worker_name": "hd-exam-api",
+    "worker_url": "https://hd-exam-api.771794850.workers.dev",
+    "d1_database": {
+      "name": "hd-exam-db",
+      "id": "0cc8b804-1e56-4563-9b8d-f45a76370192"
+    }
+  }
+}

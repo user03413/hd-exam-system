@@ -1,52 +1,64 @@
-// 火电机组考核系统 - Cloudflare Workers 后端
+var __defProp = Object.defineProperty;
+var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
 
-import { Router } from 'itty-router';
-
-const router = Router();
-
-// CORS 头
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
-};
-
-// 会话存储（内存中，生产环境应使用 KV）
-const sessions = {};
-
-// 章节智能排序函数 - 按第一章、第二章...正确排序
-function chapterSort(a, b) {
-  // 提取章节数字
-  function getChapterNumber(chapterStr) {
-    if (!chapterStr) return 999;
-    
-    // 匹配 "第X章" 模式，提取数字X
-    const match = chapterStr.match(/第(\d+)/);
-    if (match && match[1]) {
-      return parseInt(match[1], 10);
+// .wrangler/tmp/bundle-wgObnX/checked-fetch.js
+var urls = /* @__PURE__ */ new Set();
+function checkURL(request, init) {
+  const url = request instanceof URL ? request : new URL(
+    (typeof request === "string" ? new Request(request, init) : request).url
+  );
+  if (url.port && url.port !== "443" && url.protocol === "https:") {
+    if (!urls.has(url.toString())) {
+      urls.add(url.toString());
+      console.warn(
+        `WARNING: known issue with \`fetch()\` requests to custom HTTPS ports in published Workers:
+ - ${url.toString()} - the custom port will be ignored when the Worker is published using the \`wrangler deploy\` command.
+`
+      );
     }
-    
-    // 无法识别的放最后
-    return 999;
   }
-  
-  const chapterA = typeof a === 'string' ? a : (a.chapter || '');
-  const chapterB = typeof b === 'string' ? b : (b.chapter || '');
-  
-  const numA = getChapterNumber(chapterA);
-  const numB = getChapterNumber(chapterB);
-  
-  return numA - numB;
 }
+__name(checkURL, "checkURL");
+globalThis.fetch = new Proxy(globalThis.fetch, {
+  apply(target, thisArg, argArray) {
+    const [request, init] = argArray;
+    checkURL(request, init);
+    return Reflect.apply(target, thisArg, argArray);
+  }
+});
 
-// 统一入口首页
-const HOME_HTML = `
+// node_modules/itty-router/index.mjs
+var e = /* @__PURE__ */ __name(({ base: e2 = "", routes: t = [], ...o2 } = {}) => ({ __proto__: new Proxy({}, { get: /* @__PURE__ */ __name((o3, s2, r, n) => "handle" == s2 ? r.fetch : (o4, ...a) => t.push([s2.toUpperCase?.(), RegExp(`^${(n = (e2 + o4).replace(/\/+(\/|$)/g, "$1")).replace(/(\/?\.?):(\w+)\+/g, "($1(?<$2>*))").replace(/(\/?\.?):(\w+)/g, "($1(?<$2>[^$1/]+?))").replace(/\./g, "\\.").replace(/(\/?)\*/g, "($1.*)?")}/*$`), a, n]) && r, "get") }), routes: t, ...o2, async fetch(e3, ...o3) {
+  let s2, r, n = new URL(e3.url), a = e3.query = { __proto__: null };
+  for (let [e4, t2] of n.searchParams) a[e4] = a[e4] ? [].concat(a[e4], t2) : t2;
+  for (let [a2, c2, i2, l2] of t) if ((a2 == e3.method || "ALL" == a2) && (r = n.pathname.match(c2))) {
+    e3.params = r.groups || {}, e3.route = l2;
+    for (let t2 of i2) if (null != (s2 = await t2(e3.proxy ?? e3, ...o3))) return s2;
+  }
+} }), "e");
+var o = /* @__PURE__ */ __name((e2 = "text/plain; charset=utf-8", t) => (o2, { headers: s2 = {}, ...r } = {}) => void 0 === o2 || "Response" === o2?.constructor.name ? o2 : new Response(t ? t(o2) : o2, { headers: { "content-type": e2, ...s2.entries ? Object.fromEntries(s2) : s2 }, ...r }), "o");
+var s = o("application/json; charset=utf-8", JSON.stringify);
+var c = o("text/plain; charset=utf-8", String);
+var i = o("text/html");
+var l = o("image/jpeg");
+var p = o("image/png");
+var d = o("image/webp");
+
+// src/worker.js
+var router = e();
+var corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type"
+};
+var sessions = {};
+var HOME_HTML = `
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>火电机组考核系统</title>
+    <title>\u706B\u7535\u673A\u7EC4\u8003\u6838\u7CFB\u7EDF</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
@@ -151,179 +163,146 @@ const HOME_HTML = `
 <body>
     <div class="container-box">
         <div class="logo"><i class="bi bi-lightning-charge-fill"></i></div>
-        <h1>火电机组考核系统</h1>
-        <p class="subtitle">基于《火电厂热工自动控制技术及应用》教材</p>
+        <h1>\u706B\u7535\u673A\u7EC4\u8003\u6838\u7CFB\u7EDF</h1>
+        <p class="subtitle">\u57FA\u4E8E\u300A\u706B\u7535\u5382\u70ED\u5DE5\u81EA\u52A8\u63A7\u5236\u6280\u672F\u53CA\u5E94\u7528\u300B\u6559\u6750</p>
         <div class="entry-cards">
             <a href="exam" class="entry-card student-card">
                 <div class="card-icon"><i class="bi bi-mortarboard-fill"></i></div>
-                <div class="card-title">学生考试入口</div>
-                <div class="card-desc">学号验证 → 随机抽题 → 在线答题 → 自动判分</div>
+                <div class="card-title">\u5B66\u751F\u8003\u8BD5\u5165\u53E3</div>
+                <div class="card-desc">\u5B66\u53F7\u9A8C\u8BC1 \u2192 \u968F\u673A\u62BD\u9898 \u2192 \u5728\u7EBF\u7B54\u9898 \u2192 \u81EA\u52A8\u5224\u5206</div>
                 <i class="bi bi-arrow-right card-arrow"></i>
             </a>
             <a href="teacher" class="entry-card teacher-card">
                 <div class="card-icon"><i class="bi bi-person-badge-fill"></i></div>
-                <div class="card-title">教师管理入口</div>
-                <div class="card-desc">查看统计 · 考试记录 · 数据分析 · 成绩管理</div>
+                <div class="card-title">\u6559\u5E08\u7BA1\u7406\u5165\u53E3</div>
+                <div class="card-desc">\u67E5\u770B\u7EDF\u8BA1 \xB7 \u8003\u8BD5\u8BB0\u5F55 \xB7 \u6570\u636E\u5206\u6790 \xB7 \u6210\u7EE9\u7BA1\u7406</div>
                 <i class="bi bi-arrow-right card-arrow"></i>
             </a>
         </div>
         <div class="info-box">
-            <div class="info-item"><i class="bi bi-people-fill"></i><span>题库：244题 · 学生：70人</span></div>
-            <div class="info-item"><i class="bi bi-book-fill"></i><span>题型：单选 + 多选 + 简答（共10题）</span></div>
+            <div class="info-item"><i class="bi bi-people-fill"></i><span>\u9898\u5E93\uFF1A244\u9898 \xB7 \u5B66\u751F\uFF1A70\u4EBA</span></div>
+            <div class="info-item"><i class="bi bi-book-fill"></i><span>\u9898\u578B\uFF1A\u5355\u9009 + \u591A\u9009 + \u7B80\u7B54\uFF08\u517110\u9898\uFF09</span></div>
         </div>
     </div>
 </body>
 </html>
 `;
-
-// 根路径 - 统一入口首页
-router.get('/', () => {
+router.get("/", () => {
   return new Response(HOME_HTML, {
-    headers: { 'Content-Type': 'text/html; charset=utf-8', ...corsHeaders }
+    headers: { "Content-Type": "text/html; charset=utf-8", ...corsHeaders }
   });
 });
-
-// 学生考试页
-router.get('/exam', () => {
+router.get("/exam", () => {
   return new Response(getExamHTML(), {
-    headers: { 'Content-Type': 'text/html; charset=utf-8', ...corsHeaders }
+    headers: { "Content-Type": "text/html; charset=utf-8", ...corsHeaders }
   });
 });
-
-// 教师管理页
-router.get('/teacher', () => {
+router.get("/teacher", () => {
   return new Response(getTeacherHTML(), {
-    headers: { 'Content-Type': 'text/html; charset=utf-8', ...corsHeaders }
+    headers: { "Content-Type": "text/html; charset=utf-8", ...corsHeaders }
   });
 });
-
-// 测试API页面
-router.get('/test-api', () => {
+router.get("/test-api", () => {
   return new Response(getTestAPIHTML(), {
-    headers: { 'Content-Type': 'text/html; charset=utf-8', ...corsHeaders }
+    headers: { "Content-Type": "text/html; charset=utf-8", ...corsHeaders }
   });
 });
-
-// 学号验证
-router.post('/api/exam/verify', async (request) => {
+router.post("/api/exam/verify", async (request) => {
   try {
     const data = await request.json();
     const studentId = data.student_id;
-    const chapter = data.chapter; // 接收章节参数
-    
+    const chapter = data.chapter;
     if (!studentId) {
       return new Response(JSON.stringify({
         success: false,
-        message: '请输入学号'
+        message: "\u8BF7\u8F93\u5165\u5B66\u53F7"
       }), {
-        headers: { 'Content-Type': 'application/json', ...corsHeaders }
+        headers: { "Content-Type": "application/json", ...corsHeaders }
       });
     }
-    
-    // 查询学生
     let result = null;
     try {
       result = await request.env.DB.prepare(
-        'SELECT * FROM students WHERE id = ?'
+        "SELECT * FROM students WHERE id = ?"
       ).bind(studentId).first();
-    } catch (e) {
-      console.log('查询学生失败:', e.message);
+    } catch (e2) {
+      console.log("\u67E5\u8BE2\u5B66\u751F\u5931\u8D25:", e2.message);
     }
-    
-    // 如果没有结果，使用默认账号
-    if (!result && studentId === '123456') {
-      result = { id: '123456', name: '测试学生', major: '控制工程（测试）' };
+    if (!result && studentId === "123456") {
+      result = { id: "123456", name: "\u6D4B\u8BD5\u5B66\u751F", major: "\u63A7\u5236\u5DE5\u7A0B\uFF08\u6D4B\u8BD5\uFF09" };
     }
-    
     if (result) {
       const sessionId = generateSessionId();
       sessions[sessionId] = {
         student: { id: result.id, name: result.name, major: result.major },
         questions: null,
         startTime: Date.now(),
-        chapter: chapter // 保存章节信息
+        chapter
+        // 保存章节信息
       };
-      
       return new Response(JSON.stringify({
         success: true,
-        message: `验证成功，欢迎 ${result.name} 同学！${chapter ? '（' + chapter + '专题考试）' : ''}`,
+        message: `\u9A8C\u8BC1\u6210\u529F\uFF0C\u6B22\u8FCE ${result.name} \u540C\u5B66\uFF01${chapter ? "\uFF08" + chapter + "\u4E13\u9898\u8003\u8BD5\uFF09" : ""}`,
         student: { id: result.id, name: result.name, major: result.major },
         session_id: sessionId,
-        chapter: chapter
+        chapter
       }), {
-        headers: { 'Content-Type': 'application/json', ...corsHeaders }
+        headers: { "Content-Type": "application/json", ...corsHeaders }
       });
     }
-    
     return new Response(JSON.stringify({
       success: false,
-      message: '学号不存在'
+      message: "\u5B66\u53F7\u4E0D\u5B58\u5728"
     }), {
-      headers: { 'Content-Type': 'application/json', ...corsHeaders }
+      headers: { "Content-Type": "application/json", ...corsHeaders }
     });
   } catch (error) {
     return new Response(JSON.stringify({
       success: false,
-      message: '服务器错误: ' + error.message
+      message: "\u670D\u52A1\u5668\u9519\u8BEF: " + error.message
     }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json', ...corsHeaders }
+      headers: { "Content-Type": "application/json", ...corsHeaders }
     });
   }
 });
-
-// 开始考试 - 随机抽题
-router.post('/api/exam/start', async (request) => {
+router.post("/api/exam/start", async (request) => {
   try {
     const data = await request.json();
     const sessionId = data.session_id;
-    
     if (!sessionId || !sessions[sessionId]) {
       return new Response(JSON.stringify({
         success: false,
-        message: '会话无效'
+        message: "\u4F1A\u8BDD\u65E0\u6548"
       }), {
-        headers: { 'Content-Type': 'application/json', ...corsHeaders }
+        headers: { "Content-Type": "application/json", ...corsHeaders }
       });
     }
-    
-    // 获取章节参数（如果有）
     const chapter = sessions[sessionId].chapter;
-    
     let singleQuestions, multipleQuestions, shortQuestions;
-    
     if (chapter) {
-      // 按章节抽题
       singleQuestions = await request.env.DB.prepare(
-        'SELECT * FROM questions WHERE type = ? AND chapter = ? ORDER BY RANDOM() LIMIT 4'
-      ).bind('单选题', chapter).all();
-      
+        "SELECT * FROM questions WHERE type = ? AND chapter = ? ORDER BY RANDOM() LIMIT 4"
+      ).bind("\u5355\u9009\u9898", chapter).all();
       multipleQuestions = await request.env.DB.prepare(
-        'SELECT * FROM questions WHERE type = ? AND chapter = ? ORDER BY RANDOM() LIMIT 3'
-      ).bind('多选题', chapter).all();
-      
+        "SELECT * FROM questions WHERE type = ? AND chapter = ? ORDER BY RANDOM() LIMIT 3"
+      ).bind("\u591A\u9009\u9898", chapter).all();
       shortQuestions = await request.env.DB.prepare(
-        'SELECT * FROM questions WHERE type = ? AND chapter = ? ORDER BY RANDOM() LIMIT 3'
-      ).bind('简答题', chapter).all();
+        "SELECT * FROM questions WHERE type = ? AND chapter = ? ORDER BY RANDOM() LIMIT 3"
+      ).bind("\u7B80\u7B54\u9898", chapter).all();
     } else {
-      // 从数据库随机抽题（全题库）
       singleQuestions = await request.env.DB.prepare(
-        'SELECT * FROM questions WHERE type = ? ORDER BY RANDOM() LIMIT 4'
-      ).bind('单选题').all();
-      
+        "SELECT * FROM questions WHERE type = ? ORDER BY RANDOM() LIMIT 4"
+      ).bind("\u5355\u9009\u9898").all();
       multipleQuestions = await request.env.DB.prepare(
-        'SELECT * FROM questions WHERE type = ? ORDER BY RANDOM() LIMIT 3'
-      ).bind('多选题').all();
-      
+        "SELECT * FROM questions WHERE type = ? ORDER BY RANDOM() LIMIT 3"
+      ).bind("\u591A\u9009\u9898").all();
       shortQuestions = await request.env.DB.prepare(
-        'SELECT * FROM questions WHERE type = ? ORDER BY RANDOM() LIMIT 3'
-      ).bind('简答题').all();
+        "SELECT * FROM questions WHERE type = ? ORDER BY RANDOM() LIMIT 3"
+      ).bind("\u7B80\u7B54\u9898").all();
     }
-    
-    // 合并题目并编号
     const allQuestions = [];
     let seq = 1;
-    
     for (const q of singleQuestions.results || []) {
       allQuestions.push({ ...q, seq: seq++ });
     }
@@ -333,13 +312,9 @@ router.post('/api/exam/start', async (request) => {
     for (const q of shortQuestions.results || []) {
       allQuestions.push({ ...q, seq: seq++ });
     }
-    
-    // 保存到会话
     sessions[sessionId].questions = allQuestions;
     sessions[sessionId].startTime = Date.now();
-    
-    // 返回题目（不包含答案）
-    const questionsForClient = allQuestions.map(q => ({
+    const questionsForClient = allQuestions.map((q) => ({
       id: q.id,
       seq: q.seq,
       type: q.type,
@@ -347,83 +322,70 @@ router.post('/api/exam/start', async (request) => {
       options: q.options,
       difficulty: q.difficulty
     }));
-    
     return new Response(JSON.stringify({
       success: true,
       questions: questionsForClient,
       total: questionsForClient.length
     }), {
-      headers: { 'Content-Type': 'application/json', ...corsHeaders }
+      headers: { "Content-Type": "application/json", ...corsHeaders }
     });
   } catch (error) {
     return new Response(JSON.stringify({
       success: false,
-      message: '服务器错误: ' + error.message
+      message: "\u670D\u52A1\u5668\u9519\u8BEF: " + error.message
     }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json', ...corsHeaders }
+      headers: { "Content-Type": "application/json", ...corsHeaders }
     });
   }
 });
-
-// 提交答案
-router.post('/api/exam/submit', async (request) => {
+router.post("/api/exam/submit", async (request) => {
   try {
     const data = await request.json();
     const sessionId = data.session_id;
     const answers = data.answers || {};
-    
     if (!sessionId || !sessions[sessionId]) {
       return new Response(JSON.stringify({
         success: false,
-        message: '会话无效'
+        message: "\u4F1A\u8BDD\u65E0\u6548"
       }), {
-        headers: { 'Content-Type': 'application/json', ...corsHeaders }
+        headers: { "Content-Type": "application/json", ...corsHeaders }
       });
     }
-    
     const session = sessions[sessionId];
     const questions = session.questions;
-    
     if (!questions || questions.length === 0) {
       return new Response(JSON.stringify({
         success: false,
-        message: '未开始考试'
+        message: "\u672A\u5F00\u59CB\u8003\u8BD5"
       }), {
-        headers: { 'Content-Type': 'application/json', ...corsHeaders }
+        headers: { "Content-Type": "application/json", ...corsHeaders }
       });
     }
-    
-    // 判分
     let totalScore = 0;
     const results = [];
-    
     for (const q of questions) {
-      const userAnswer = answers[q.seq] || '';
+      const userAnswer = answers[q.seq] || "";
       const correctAnswer = q.answer;
       let isCorrect = false;
       let score = 0;
-      
-      if (q.type === '单选题') {
+      if (q.type === "\u5355\u9009\u9898") {
         if (userAnswer === correctAnswer) {
           isCorrect = true;
           score = 10;
         }
-      } else if (q.type === '多选题') {
-        // 多选题：答案可能是 ABC 或 ABCD
-        const userSet = new Set(String(userAnswer).split('').filter(c => /[A-F]/.test(c)));
-        const correctSet = new Set(String(correctAnswer).split('').filter(c => /[A-F]/.test(c)));
-        if (userSet.size === correctSet.size && [...userSet].every(x => correctSet.has(x))) {
+      } else if (q.type === "\u591A\u9009\u9898") {
+        const userSet = new Set(String(userAnswer).split("").filter((c2) => /[A-F]/.test(c2)));
+        const correctSet = new Set(String(correctAnswer).split("").filter((c2) => /[A-F]/.test(c2)));
+        if (userSet.size === correctSet.size && [...userSet].every((x) => correctSet.has(x))) {
           isCorrect = true;
           score = 10;
         }
-      } else if (q.type === '简答题') {
-        // 简答题：关键词匹配
+      } else if (q.type === "\u7B80\u7B54\u9898") {
         const userText = String(userAnswer).toLowerCase();
-        const keywords = String(correctAnswer).toLowerCase().split(/[,，。、\s]+/).filter(k => k.length > 2);
-        const matched = keywords.filter(k => userText.includes(k)).length;
+        const keywords = String(correctAnswer).toLowerCase().split(/[,，。、\s]+/).filter((k) => k.length > 2);
+        const matched = keywords.filter((k) => userText.includes(k)).length;
         const ratio = keywords.length > 0 ? matched / keywords.length : 0;
-        
         if (ratio >= 0.6) {
           isCorrect = true;
           score = 10;
@@ -431,9 +393,7 @@ router.post('/api/exam/submit', async (request) => {
           score = 5;
         }
       }
-      
       totalScore += score;
-      
       results.push({
         seq: q.seq,
         id: q.id,
@@ -443,17 +403,14 @@ router.post('/api/exam/submit', async (request) => {
         user_answer: userAnswer,
         correct_answer: correctAnswer,
         is_correct: isCorrect,
-        score: score,
+        score,
         analysis: q.analysis
       });
     }
-    
-    // 保存考试记录
-    const duration = Math.floor((Date.now() - session.startTime) / 1000);
-    
+    const duration = Math.floor((Date.now() - session.startTime) / 1e3);
     try {
       await request.env.DB.prepare(
-        'INSERT INTO exam_records (student_id, student_name, major, score, duration_seconds, start_time, end_time, results) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+        "INSERT INTO exam_records (student_id, student_name, major, score, duration_seconds, start_time, end_time, results) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
       ).bind(
         session.student.id,
         session.student.name,
@@ -461,63 +418,56 @@ router.post('/api/exam/submit', async (request) => {
         totalScore,
         duration,
         new Date(session.startTime).toISOString(),
-        new Date().toISOString(),
+        (/* @__PURE__ */ new Date()).toISOString(),
         JSON.stringify(results)
       ).run();
-    } catch (e) {
-      console.log('保存记录失败:', e.message);
+    } catch (e2) {
+      console.log("\u4FDD\u5B58\u8BB0\u5F55\u5931\u8D25:", e2.message);
     }
-    
     return new Response(JSON.stringify({
       success: true,
       score: totalScore,
-      results: results
+      results
     }), {
-      headers: { 'Content-Type': 'application/json', ...corsHeaders }
+      headers: { "Content-Type": "application/json", ...corsHeaders }
     });
   } catch (error) {
     return new Response(JSON.stringify({
       success: false,
-      message: '服务器错误: ' + error.message
+      message: "\u670D\u52A1\u5668\u9519\u8BEF: " + error.message
     }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json', ...corsHeaders }
+      headers: { "Content-Type": "application/json", ...corsHeaders }
     });
   }
 });
-
-// 教师登录
-router.post('/api/exam/teacher/login', async (request) => {
+router.post("/api/exam/teacher/login", async (request) => {
   try {
     const data = await request.json();
     const teacherId = data.teacher_id;
-    
     if (!teacherId) {
       return new Response(JSON.stringify({
         success: false,
-        message: '请输入教师工号'
+        message: "\u8BF7\u8F93\u5165\u6559\u5E08\u5DE5\u53F7"
       }), {
-        headers: { 'Content-Type': 'application/json', ...corsHeaders }
+        headers: { "Content-Type": "application/json", ...corsHeaders }
       });
     }
-    
     let result = null;
     try {
       result = await request.env.DB.prepare(
-        'SELECT * FROM students WHERE id = ? AND is_teacher = 1'
+        "SELECT * FROM students WHERE id = ? AND is_teacher = 1"
       ).bind(teacherId).first();
-    } catch (e) {
-      console.log('查询教师失败:', e.message);
+    } catch (e2) {
+      console.log("\u67E5\u8BE2\u6559\u5E08\u5931\u8D25:", e2.message);
     }
-    
-    if (!result && teacherId === '654321') {
-      result = { id: '654321', name: '教师管理员', major: '教师', is_teacher: 1 };
+    if (!result && teacherId === "654321") {
+      result = { id: "654321", name: "\u6559\u5E08\u7BA1\u7406\u5458", major: "\u6559\u5E08", is_teacher: 1 };
     }
-    
     if (result) {
       return new Response(JSON.stringify({
         success: true,
-        message: '登录成功',
+        message: "\u767B\u5F55\u6210\u529F",
         teacher: {
           id: result.id,
           name: result.name,
@@ -525,63 +475,59 @@ router.post('/api/exam/teacher/login', async (request) => {
           is_teacher: true
         }
       }), {
-        headers: { 'Content-Type': 'application/json', ...corsHeaders }
+        headers: { "Content-Type": "application/json", ...corsHeaders }
       });
     }
-    
     return new Response(JSON.stringify({
       success: false,
-      message: '教师工号不存在'
+      message: "\u6559\u5E08\u5DE5\u53F7\u4E0D\u5B58\u5728"
     }), {
-      headers: { 'Content-Type': 'application/json', ...corsHeaders }
+      headers: { "Content-Type": "application/json", ...corsHeaders }
     });
   } catch (error) {
     return new Response(JSON.stringify({
       success: false,
-      message: '服务器错误: ' + error.message
+      message: "\u670D\u52A1\u5668\u9519\u8BEF: " + error.message
     }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json', ...corsHeaders }
+      headers: { "Content-Type": "application/json", ...corsHeaders }
     });
   }
 });
-
-// 获取教师统计数据
-router.get('/api/exam/teacher/stats', async (request) => {
+router.get("/api/exam/teacher/stats", async (request) => {
   try {
     let totalStudents = 70;
     let examinedCount = 0;
     let avgScore = 0;
     let records = [];
-    
     try {
       const totalResult = await request.env.DB.prepare(
-        'SELECT COUNT(*) as count FROM students WHERE is_teacher = 0 AND id != ?'
-      ).bind('123456').first();
+        "SELECT COUNT(*) as count FROM students WHERE is_teacher = 0 AND id != ?"
+      ).bind("123456").first();
       if (totalResult && totalResult.count) totalStudents = totalResult.count;
-    } catch (e) {}
-    
+    } catch (e2) {
+    }
     try {
       const examinedResult = await request.env.DB.prepare(
-        'SELECT COUNT(DISTINCT student_id) as count FROM exam_records WHERE student_id != ?'
-      ).bind('123456').first();
+        "SELECT COUNT(DISTINCT student_id) as count FROM exam_records WHERE student_id != ?"
+      ).bind("123456").first();
       if (examinedResult && examinedResult.count) examinedCount = examinedResult.count;
-    } catch (e) {}
-    
+    } catch (e2) {
+    }
     try {
       const avgResult = await request.env.DB.prepare(
-        'SELECT AVG(score) as avg_score FROM exam_records WHERE student_id != ?'
-      ).bind('123456').first();
+        "SELECT AVG(score) as avg_score FROM exam_records WHERE student_id != ?"
+      ).bind("123456").first();
       if (avgResult && avgResult.avg_score) avgScore = avgResult.avg_score;
-    } catch (e) {}
-    
+    } catch (e2) {
+    }
     try {
       const recordsResult = await request.env.DB.prepare(
-        'SELECT * FROM exam_records ORDER BY end_time DESC LIMIT 50'
+        "SELECT * FROM exam_records ORDER BY end_time DESC LIMIT 50"
       ).all();
       if (recordsResult && recordsResult.results) records = recordsResult.results;
-    } catch (e) {}
-    
+    } catch (e2) {
+    }
     return new Response(JSON.stringify({
       success: true,
       stats: {
@@ -590,9 +536,9 @@ router.get('/api/exam/teacher/stats', async (request) => {
         avg_score: avgScore,
         pass_rate: 0
       },
-      records: records
+      records
     }), {
-      headers: { 'Content-Type': 'application/json', ...corsHeaders }
+      headers: { "Content-Type": "application/json", ...corsHeaders }
     });
   } catch (error) {
     return new Response(JSON.stringify({
@@ -600,368 +546,65 @@ router.get('/api/exam/teacher/stats', async (request) => {
       stats: { total_students: 70, examined_count: 0, avg_score: 0, pass_rate: 0 },
       records: []
     }), {
-      headers: { 'Content-Type': 'application/json', ...corsHeaders }
+      headers: { "Content-Type": "application/json", ...corsHeaders }
     });
   }
 });
-
-// 获取章节列表
-router.get('/api/exam/chapters', async (request) => {
+router.get("/api/exam/chapters", async (request) => {
   try {
     const result = await request.env.DB.prepare(
-      'SELECT chapter, COUNT(*) as count FROM questions GROUP BY chapter'
+      "SELECT chapter, COUNT(*) as count FROM questions GROUP BY chapter ORDER BY chapter"
     ).all();
-    
-    // 应用智能排序
-    const chapters = (result.results || []).sort(chapterSort);
-    
     return new Response(JSON.stringify({
       success: true,
-      chapters: chapters
+      chapters: result.results || []
     }), {
-      headers: { 'Content-Type': 'application/json', ...corsHeaders }
+      headers: { "Content-Type": "application/json", ...corsHeaders }
     });
   } catch (error) {
     return new Response(JSON.stringify({
       success: false,
-      message: '获取章节失败'
+      message: "\u83B7\u53D6\u7AE0\u8282\u5931\u8D25"
     }), {
-      headers: { 'Content-Type': 'application/json', ...corsHeaders }
+      headers: { "Content-Type": "application/json", ...corsHeaders }
     });
   }
 });
-
-// ========== 兼容 dist 前端的 API 路由 ==========
-
-// 兼容：获取章节列表
-router.get('/api/chapters', async (request) => {
-  try {
-    const result = await request.env.DB.prepare(
-      'SELECT chapter, COUNT(*) as count FROM questions GROUP BY chapter'
-    ).all();
-    
-    // 应用智能排序
-    const chapters = (result.results || []).sort(chapterSort);
-    
-    return new Response(JSON.stringify({
-      success: true,
-      chapters: chapters.map(r => r.chapter)
-    }), {
-      headers: { 'Content-Type': 'application/json', ...corsHeaders }
-    });
-  } catch (error) {
-    return new Response(JSON.stringify({
-      success: false,
-      message: '获取章节失败'
-    }), {
-      headers: { 'Content-Type': 'application/json', ...corsHeaders }
-    });
-  }
-});
-
-// 兼容：获取学生列表
-router.get('/api/students', async (request) => {
-  try {
-    const result = await request.env.DB.prepare(
-      'SELECT id, name, major FROM students WHERE is_teacher = 0 OR is_teacher IS NULL ORDER BY id LIMIT 100'
-    ).all();
-    
-    return new Response(JSON.stringify({
-      success: true,
-      students: result.results || []
-    }), {
-      headers: { 'Content-Type': 'application/json', ...corsHeaders }
-    });
-  } catch (error) {
-    return new Response(JSON.stringify({
-      success: false,
-      message: '获取学生列表失败'
-    }), {
-      headers: { 'Content-Type': 'application/json', ...corsHeaders }
-    });
-  }
-});
-
-// 兼容：获取题目列表
-router.get('/api/questions', async (request) => {
+router.get("/api/exam/chapter-link", async (request) => {
   try {
     const url = new URL(request.url);
-    const chapter = url.searchParams.get('chapter');
-    const limit = parseInt(url.searchParams.get('limit') || '100');
-    
-    let query = 'SELECT id, type, question, options, answer, chapter, difficulty, analysis FROM questions';
-    let params = [];
-    
-    if (chapter) {
-      query += ' WHERE chapter = ?';
-      params.push(chapter);
-    }
-    query += ' ORDER BY RANDOM() LIMIT ?';
-    params.push(limit);
-    
-    const result = await request.env.DB.prepare(query).bind(...params).all();
-    
-    return new Response(JSON.stringify({
-      success: true,
-      questions: result.results || []
-    }), {
-      headers: { 'Content-Type': 'application/json', ...corsHeaders }
-    });
-  } catch (error) {
-    return new Response(JSON.stringify({
-      success: false,
-      message: '获取题目失败: ' + error.message
-    }), {
-      headers: { 'Content-Type': 'application/json', ...corsHeaders }
-    });
-  }
-});
-
-// 兼容：生成试卷
-router.post('/api/generate-exam', async (request) => {
-  try {
-    const data = await request.json();
-    const chapters = data.chapters || [];
-    const studentId = data.student_id;
-    
-    // 查询学生信息
-    let student = null;
-    try {
-      student = await request.env.DB.prepare(
-        'SELECT id, name, major FROM students WHERE id = ?'
-      ).bind(studentId).first();
-    } catch (e) {}
-    
-    if (!student && studentId === '123456') {
-      student = { id: '123456', name: '测试学生', major: '控制工程（测试）' };
-    }
-    
-    if (!student) {
-      return new Response(JSON.stringify({
-        success: false,
-        message: '学生不存在'
-      }), {
-        headers: { 'Content-Type': 'application/json', ...corsHeaders }
-      });
-    }
-    
-    // 随机抽题
-    let query = 'SELECT * FROM questions';
-    let params = [];
-    
-    if (chapters.length > 0) {
-      query += ' WHERE chapter IN (' + chapters.map(() => '?').join(',') + ')';
-      params = chapters;
-    }
-    
-    // 获取所有符合条件的题目
-    const allQuestions = await request.env.DB.prepare(query).bind(...params).all();
-    const questions = allQuestions.results || [];
-    
-    // 按类型分组并随机抽取
-    const single = questions.filter(q => q.type === '单选题');
-    const multiple = questions.filter(q => q.type === '多选题');
-    const short = questions.filter(q => q.type === '简答题');
-    
-    const shuffle = arr => arr.sort(() => Math.random() - 0.5);
-    const selected = [
-      ...shuffle(single).slice(0, 4),
-      ...shuffle(multiple).slice(0, 3),
-      ...shuffle(short).slice(0, 3)
-    ];
-    
-    // 编号
-    selected.forEach((q, i) => q.seq = i + 1);
-    
-    return new Response(JSON.stringify({
-      success: true,
-      student: student,
-      questions: selected.map(q => ({
-        id: q.id,
-        seq: q.seq,
-        type: q.type,
-        question: q.question,
-        options: q.options,
-        chapter: q.chapter,
-        difficulty: q.difficulty
-      }))
-    }), {
-      headers: { 'Content-Type': 'application/json', ...corsHeaders }
-    });
-  } catch (error) {
-    return new Response(JSON.stringify({
-      success: false,
-      message: '生成试卷失败: ' + error.message
-    }), {
-      headers: { 'Content-Type': 'application/json', ...corsHeaders }
-    });
-  }
-});
-
-// 兼容：提交考试
-router.post('/api/submit-exam', async (request) => {
-  try {
-    const data = await request.json();
-    const studentId = data.student_id;
-    const studentName = data.student_name;
-    const answers = data.answers || {};
-    const questions = data.questions || [];
-    
-    // 判分
-    let totalScore = 0;
-    const results = [];
-    
-    for (const q of questions) {
-      const userAnswer = answers[q.seq] || '';
-      const correctAnswer = q.answer || '';
-      let isCorrect = false;
-      let score = 0;
-      
-      if (q.type === '单选题') {
-        if (userAnswer === correctAnswer) {
-          isCorrect = true;
-          score = 10;
-        }
-      } else if (q.type === '多选题') {
-        const userSet = new Set(String(userAnswer).split('').filter(c => /[A-F]/.test(c)));
-        const correctSet = new Set(String(correctAnswer).split('').filter(c => /[A-F]/.test(c)));
-        if (userSet.size === correctSet.size && [...userSet].every(x => correctSet.has(x))) {
-          isCorrect = true;
-          score = 10;
-        }
-      } else if (q.type === '简答题') {
-        const userText = String(userAnswer).toLowerCase();
-        const keywords = String(correctAnswer).toLowerCase().split(/[,，。、\s]+/).filter(k => k.length > 2);
-        const matched = keywords.filter(k => userText.includes(k)).length;
-        const ratio = keywords.length > 0 ? matched / keywords.length : 0;
-        
-        if (ratio >= 0.6) {
-          isCorrect = true;
-          score = 10;
-        } else if (ratio >= 0.3) {
-          score = 5;
-        }
-      }
-      
-      totalScore += score;
-      
-      results.push({
-        seq: q.seq,
-        id: q.id,
-        type: q.type,
-        question: q.question,
-        options: q.options,
-        user_answer: userAnswer,
-        correct_answer: correctAnswer,
-        is_correct: isCorrect,
-        score: score,
-        analysis: q.analysis
-      });
-    }
-    
-    // 保存考试记录
-    try {
-      await request.env.DB.prepare(
-        'INSERT INTO exam_records (student_id, student_name, major, score, duration_seconds, start_time, end_time, results) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
-      ).bind(
-        studentId,
-        studentName,
-        data.major || '未知专业',
-        totalScore,
-        data.duration || 0,
-        new Date().toISOString(),
-        new Date().toISOString(),
-        JSON.stringify(results)
-      ).run();
-    } catch (e) {
-      console.log('保存记录失败:', e.message);
-    }
-    
-    return new Response(JSON.stringify({
-      success: true,
-      score: totalScore,
-      results: results
-    }), {
-      headers: { 'Content-Type': 'application/json', ...corsHeaders }
-    });
-  } catch (error) {
-    return new Response(JSON.stringify({
-      success: false,
-      message: '提交失败: ' + error.message
-    }), {
-      headers: { 'Content-Type': 'application/json', ...corsHeaders }
-    });
-  }
-});
-
-// 兼容：获取考试记录
-router.get('/api/exam-records', async (request) => {
-  try {
-    const result = await request.env.DB.prepare(
-      'SELECT * FROM exam_records ORDER BY end_time DESC LIMIT 100'
-    ).all();
-    
-    return new Response(JSON.stringify({
-      success: true,
-      records: result.results || []
-    }), {
-      headers: { 'Content-Type': 'application/json', ...corsHeaders }
-    });
-  } catch (error) {
-    return new Response(JSON.stringify({
-      success: false,
-      message: '获取记录失败'
-    }), {
-      headers: { 'Content-Type': 'application/json', ...corsHeaders }
-    });
-  }
-});
-
-// 生成章节考试链接
-router.get('/api/exam/chapter-link', async (request) => {
-  try {
-    const url = new URL(request.url);
-    const chapter = url.searchParams.get('chapter');
-    
+    const chapter = url.searchParams.get("chapter");
     if (!chapter) {
       return new Response(JSON.stringify({
         success: false,
-        message: '请指定章节'
+        message: "\u8BF7\u6307\u5B9A\u7AE0\u8282"
       }), {
-        headers: { 'Content-Type': 'application/json', ...corsHeaders }
+        headers: { "Content-Type": "application/json", ...corsHeaders }
       });
     }
-    
-    // 生成唯一链接ID
     const linkId = Math.random().toString(36).substring(2, 10);
-    
-    // 存储章节考试信息（实际应存入KV，这里简化处理）
     const examLink = `${url.origin}/exam?chapter=${encodeURIComponent(chapter)}&linkId=${linkId}`;
-    
     return new Response(JSON.stringify({
       success: true,
       link: examLink,
-      chapter: chapter,
-      linkId: linkId
+      chapter,
+      linkId
     }), {
-      headers: { 'Content-Type': 'application/json', ...corsHeaders }
+      headers: { "Content-Type": "application/json", ...corsHeaders }
     });
   } catch (error) {
     return new Response(JSON.stringify({
       success: false,
-      message: '生成链接失败'
+      message: "\u751F\u6210\u94FE\u63A5\u5931\u8D25"
     }), {
-      headers: { 'Content-Type': 'application/json', ...corsHeaders }
+      headers: { "Content-Type": "application/json", ...corsHeaders }
     });
   }
 });
-
-// 生成 session ID
 function generateSessionId() {
   return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 }
-
-// 考试页面HTML
+__name(generateSessionId, "generateSessionId");
 function getExamHTML() {
   return `
 <!DOCTYPE html>
@@ -969,7 +612,7 @@ function getExamHTML() {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>学生考试 - 火电机组考核系统</title>
+    <title>\u5B66\u751F\u8003\u8BD5 - \u706B\u7535\u673A\u7EC4\u8003\u6838\u7CFB\u7EDF</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
@@ -1004,57 +647,57 @@ function getExamHTML() {
 <body>
     <div class="header">
         <div class="container">
-            <h1><i class="bi bi-lightning-charge-fill"></i> 学生考试</h1>
+            <h1><i class="bi bi-lightning-charge-fill"></i> \u5B66\u751F\u8003\u8BD5</h1>
         </div>
     </div>
     
     <div class="container">
-        <!-- 登录页 -->
+        <!-- \u767B\u5F55\u9875 -->
         <div id="loginSection" class="section active">
             <div class="card">
                 <div class="card-body text-center">
                     <i class="bi bi-person-circle" style="font-size:80px;color:var(--primary)"></i>
-                    <h4 class="mt-3">请输入学号验证身份</h4>
+                    <h4 class="mt-3">\u8BF7\u8F93\u5165\u5B66\u53F7\u9A8C\u8BC1\u8EAB\u4EFD</h4>
                     <div class="mt-4">
-                        <input type="text" class="form-control form-control-lg" id="studentId" placeholder="请输入学号">
+                        <input type="text" class="form-control form-control-lg" id="studentId" placeholder="\u8BF7\u8F93\u5165\u5B66\u53F7">
                         <button class="btn btn-primary btn-lg w-100 mt-3" onclick="verifyStudent()">
-                            <i class="bi bi-box-arrow-in-right me-2"></i>验证登录
+                            <i class="bi bi-box-arrow-in-right me-2"></i>\u9A8C\u8BC1\u767B\u5F55
                         </button>
                     </div>
                 </div>
             </div>
-            <a href="/" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> 返回首页</a>
+            <a href="/" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> \u8FD4\u56DE\u9996\u9875</a>
         </div>
         
-        <!-- 准备页 -->
+        <!-- \u51C6\u5907\u9875 -->
         <div id="readySection" class="section">
             <div class="card">
                 <div class="card-body text-center">
                     <div class="alert alert-success">
-                        <h5>欢迎，<span id="studentName"></span> 同学！</h5>
-                        <p class="mb-0">学号：<span id="studentIdDisplay"></span></p>
+                        <h5>\u6B22\u8FCE\uFF0C<span id="studentName"></span> \u540C\u5B66\uFF01</h5>
+                        <p class="mb-0">\u5B66\u53F7\uFF1A<span id="studentIdDisplay"></span></p>
                     </div>
                     <div class="alert alert-info text-start">
-                        <h6><i class="bi bi-info-circle me-2"></i>考试说明</h6>
+                        <h6><i class="bi bi-info-circle me-2"></i>\u8003\u8BD5\u8BF4\u660E</h6>
                         <ul class="mb-0">
-                            <li>共 <strong>10</strong> 题（4单选 + 3多选 + 3简答）</li>
-                            <li>每题 10 分，满分 100 分</li>
-                            <li>提交后可查看答案解析</li>
+                            <li>\u5171 <strong>10</strong> \u9898\uFF084\u5355\u9009 + 3\u591A\u9009 + 3\u7B80\u7B54\uFF09</li>
+                            <li>\u6BCF\u9898 10 \u5206\uFF0C\u6EE1\u5206 100 \u5206</li>
+                            <li>\u63D0\u4EA4\u540E\u53EF\u67E5\u770B\u7B54\u6848\u89E3\u6790</li>
                         </ul>
                     </div>
                     <button class="btn btn-primary btn-lg w-100" onclick="startExam()">
-                        <i class="bi bi-play-circle me-2"></i>开始答题
+                        <i class="bi bi-play-circle me-2"></i>\u5F00\u59CB\u7B54\u9898
                     </button>
                 </div>
             </div>
         </div>
         
-        <!-- 答题页 -->
+        <!-- \u7B54\u9898\u9875 -->
         <div id="examSection" class="section">
             <div class="card mb-3">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
-                        <span>答题进度</span>
+                        <span>\u7B54\u9898\u8FDB\u5EA6</span>
                         <span id="progressText">0 / 10</span>
                     </div>
                     <div class="progress mt-2">
@@ -1066,23 +709,23 @@ function getExamHTML() {
             <div id="questionsContainer"></div>
             
             <button class="btn btn-success btn-lg w-100" onclick="submitExam()">
-                <i class="bi bi-check-circle me-2"></i>提交答卷
+                <i class="bi bi-check-circle me-2"></i>\u63D0\u4EA4\u7B54\u5377
             </button>
         </div>
         
-        <!-- 结果页 -->
+        <!-- \u7ED3\u679C\u9875 -->
         <div id="resultSection" class="section">
             <div class="card">
                 <div class="card-body result-card">
                     <div class="score-circle" id="scoreDisplay">0</div>
-                    <h4>考试完成</h4>
-                    <p class="text-muted">得分：<span id="totalScore">0</span> / 100 分</p>
+                    <h4>\u8003\u8BD5\u5B8C\u6210</h4>
+                    <p class="text-muted">\u5F97\u5206\uFF1A<span id="totalScore">0</span> / 100 \u5206</p>
                 </div>
             </div>
             <div id="resultsContainer"></div>
             <div class="mt-3">
-                <button class="btn btn-primary" onclick="location.reload()"><i class="bi bi-arrow-repeat"></i> 重新考试</button>
-                <a href="/" class="btn btn-outline-secondary ms-2"><i class="bi bi-arrow-left"></i> 返回首页</a>
+                <button class="btn btn-primary" onclick="location.reload()"><i class="bi bi-arrow-repeat"></i> \u91CD\u65B0\u8003\u8BD5</button>
+                <a href="/" class="btn btn-outline-secondary ms-2"><i class="bi bi-arrow-left"></i> \u8FD4\u56DE\u9996\u9875</a>
             </div>
         </div>
     </div>
@@ -1091,25 +734,25 @@ function getExamHTML() {
         let sessionId = '';
         let questions = [];
         let answers = {};
-        let chapter = null; // 章节参数
+        let chapter = null; // \u7AE0\u8282\u53C2\u6570
         
-        // 从URL获取章节参数
+        // \u4ECEURL\u83B7\u53D6\u7AE0\u8282\u53C2\u6570
         window.onload = function() {
             const urlParams = new URLSearchParams(window.location.search);
             chapter = urlParams.get('chapter');
             
-            // 如果有章节参数，显示提示
+            // \u5982\u679C\u6709\u7AE0\u8282\u53C2\u6570\uFF0C\u663E\u793A\u63D0\u793A
             if (chapter) {
                 const hint = document.createElement('div');
                 hint.className = 'alert alert-warning text-center mb-3';
-                hint.innerHTML = '<i class="bi bi-book-half me-2"></i>专题考试：<strong>' + chapter + '</strong>';
+                hint.innerHTML = '<i class="bi bi-book-half me-2"></i>\u4E13\u9898\u8003\u8BD5\uFF1A<strong>' + chapter + '</strong>';
                 document.querySelector('.container').insertBefore(hint, document.querySelector('.container').firstChild);
             }
         };
         
         async function verifyStudent() {
             const studentId = document.getElementById('studentId').value.trim();
-            if (!studentId) { alert('请输入学号'); return; }
+            if (!studentId) { alert('\u8BF7\u8F93\u5165\u5B66\u53F7'); return; }
             
             try {
                 const res = await fetch('/api/exam/verify', {
@@ -1117,7 +760,7 @@ function getExamHTML() {
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
                         student_id: studentId,
-                        chapter: chapter // 传递章节参数
+                        chapter: chapter // \u4F20\u9012\u7AE0\u8282\u53C2\u6570
                     })
                 });
                 const data = await res.json();
@@ -1127,12 +770,12 @@ function getExamHTML() {
                     document.getElementById('studentName').textContent = data.student.name;
                     document.getElementById('studentIdDisplay').textContent = data.student.id;
                     
-                    // 显示章节信息
+                    // \u663E\u793A\u7AE0\u8282\u4FE1\u606F
                     if (data.chapter) {
                         const readySection = document.getElementById('readySection');
                         const chapterAlert = document.createElement('div');
                         chapterAlert.className = 'alert alert-warning text-center';
-                        chapterAlert.innerHTML = '<i class="bi bi-book-half me-2"></i>专题考试：<strong>' + data.chapter + '</strong>';
+                        chapterAlert.innerHTML = '<i class="bi bi-book-half me-2"></i>\u4E13\u9898\u8003\u8BD5\uFF1A<strong>' + data.chapter + '</strong>';
                         readySection.querySelector('.card-body').insertBefore(chapterAlert, readySection.querySelector('.alert-success'));
                     }
                     
@@ -1141,7 +784,7 @@ function getExamHTML() {
                     alert(data.message);
                 }
             } catch (e) {
-                alert('验证失败：' + e.message);
+                alert('\u9A8C\u8BC1\u5931\u8D25\uFF1A' + e.message);
             }
         }
         
@@ -1162,7 +805,7 @@ function getExamHTML() {
                     alert(data.message);
                 }
             } catch (e) {
-                alert('开始考试失败：' + e.message);
+                alert('\u5F00\u59CB\u8003\u8BD5\u5931\u8D25\uFF1A' + e.message);
             }
         }
         
@@ -1173,18 +816,18 @@ function getExamHTML() {
             questions.forEach((q, idx) => {
                 const options = q.options ? JSON.parse(q.options) : {};
                 let html = '<div class="question-card">';
-                html += '<div class="question-num">' + q.seq + '. ' + q.type + '（' + (q.difficulty || '中等') + '）</div>';
+                html += '<div class="question-num">' + q.seq + '. ' + q.type + '\uFF08' + (q.difficulty || '\u4E2D\u7B49') + '\uFF09</div>';
                 html += '<p>' + q.question + '</p>';
                 
-                if (q.type === '单选题' || q.type === '多选题') {
-                    const isMultiple = q.type === '多选题';
+                if (q.type === '\u5355\u9009\u9898' || q.type === '\u591A\u9009\u9898') {
+                    const isMultiple = q.type === '\u591A\u9009\u9898';
                     for (const [key, val] of Object.entries(options)) {
                         html += '<div class="option-item" onclick="selectOption(' + q.seq + ', \\'' + key + '\\', ' + isMultiple + ')" id="opt-' + q.seq + '-' + key + '">';
                         html += '<strong>' + key + '.</strong> ' + val;
                         html += '</div>';
                     }
                 } else {
-                    html += '<textarea class="form-control short-input" id="answer-' + q.seq + '" placeholder="请输入答案..." onchange="setAnswer(' + q.seq + ', this.value)"></textarea>';
+                    html += '<textarea class="form-control short-input" id="answer-' + q.seq + '" placeholder="\u8BF7\u8F93\u5165\u7B54\u6848..." onchange="setAnswer(' + q.seq + ', this.value)"></textarea>';
                 }
                 
                 html += '</div>';
@@ -1205,7 +848,7 @@ function getExamHTML() {
                 answers[seq] = option;
             }
             
-            // 更新UI
+            // \u66F4\u65B0UI
             const opts = document.querySelectorAll('[id^="opt-' + seq + '-"]');
             opts.forEach(el => {
                 const key = el.id.split('-')[2];
@@ -1233,7 +876,7 @@ function getExamHTML() {
         async function submitExam() {
             const answered = Object.keys(answers).filter(k => answers[k]).length;
             if (answered < questions.length) {
-                if (!confirm('还有 ' + (questions.length - answered) + ' 题未作答，确定提交吗？')) {
+                if (!confirm('\u8FD8\u6709 ' + (questions.length - answered) + ' \u9898\u672A\u4F5C\u7B54\uFF0C\u786E\u5B9A\u63D0\u4EA4\u5417\uFF1F')) {
                     return;
                 }
             }
@@ -1252,7 +895,7 @@ function getExamHTML() {
                     alert(data.message);
                 }
             } catch (e) {
-                alert('提交失败：' + e.message);
+                alert('\u63D0\u4EA4\u5931\u8D25\uFF1A' + e.message);
             }
         }
         
@@ -1269,10 +912,10 @@ function getExamHTML() {
                 
                 let html = '<div class="card mt-3">';
                 html += '<div class="card-body">';
-                html += '<h6>' + r.seq + '. ' + r.type + ' ' + (r.is_correct ? '✅' : '❌') + '</h6>';
+                html += '<h6>' + r.seq + '. ' + r.type + ' ' + (r.is_correct ? '\u2705' : '\u274C') + '</h6>';
                 html += '<p>' + r.question + '</p>';
                 
-                if (r.type === '单选题' || r.type === '多选题') {
+                if (r.type === '\u5355\u9009\u9898' || r.type === '\u591A\u9009\u9898') {
                     for (const [key, val] of Object.entries(options)) {
                         let className = 'option-item';
                         if (r.correct_answer.includes(key)) className += ' correct';
@@ -1280,16 +923,16 @@ function getExamHTML() {
                         
                         html += '<div class="' + className + '" style="cursor:default">';
                         html += '<strong>' + key + '.</strong> ' + val;
-                        if (r.correct_answer.includes(key)) html += ' ✓';
+                        if (r.correct_answer.includes(key)) html += ' \u2713';
                         html += '</div>';
                     }
                 }
                 
-                html += '<p class="mt-2"><strong>你的答案：</strong>' + (r.user_answer || '未作答') + '</p>';
-                html += '<p><strong>正确答案：</strong>' + r.correct_answer + '</p>';
+                html += '<p class="mt-2"><strong>\u4F60\u7684\u7B54\u6848\uFF1A</strong>' + (r.user_answer || '\u672A\u4F5C\u7B54') + '</p>';
+                html += '<p><strong>\u6B63\u786E\u7B54\u6848\uFF1A</strong>' + r.correct_answer + '</p>';
                 
                 if (r.analysis) {
-                    html += '<div class="analysis-box"><strong>解析：</strong>' + r.analysis + '</div>';
+                    html += '<div class="analysis-box"><strong>\u89E3\u6790\uFF1A</strong>' + r.analysis + '</div>';
                 }
                 
                 html += '</div></div>';
@@ -1303,13 +946,12 @@ function getExamHTML() {
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
         }
-    </script>
+    <\/script>
 </body>
 </html>
 `;
 }
-
-// 教师页面HTML
+__name(getExamHTML, "getExamHTML");
 function getTeacherHTML() {
   return `
 <!DOCTYPE html>
@@ -1317,7 +959,7 @@ function getTeacherHTML() {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>教师管理 - 火电机组考核系统</title>
+    <title>\u6559\u5E08\u7BA1\u7406 - \u706B\u7535\u673A\u7EC4\u8003\u6838\u7CFB\u7EDF</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
@@ -1343,74 +985,74 @@ function getTeacherHTML() {
 <body>
     <div class="header">
         <div class="container">
-            <h1><i class="bi bi-person-badge-fill"></i> 教师管理后台</h1>
+            <h1><i class="bi bi-person-badge-fill"></i> \u6559\u5E08\u7BA1\u7406\u540E\u53F0</h1>
         </div>
     </div>
     
     <div class="container">
-        <!-- 登录页 -->
+        <!-- \u767B\u5F55\u9875 -->
         <div id="loginSection" class="section active">
             <div class="card">
                 <div class="card-body text-center">
                     <i class="bi bi-shield-lock" style="font-size:80px;color:var(--success)"></i>
-                    <h4 class="mt-3">教师登录</h4>
+                    <h4 class="mt-3">\u6559\u5E08\u767B\u5F55</h4>
                     <div class="mt-4">
-                        <input type="text" class="form-control form-control-lg" id="teacherId" placeholder="请输入教师工号">
+                        <input type="text" class="form-control form-control-lg" id="teacherId" placeholder="\u8BF7\u8F93\u5165\u6559\u5E08\u5DE5\u53F7">
                         <button class="btn btn-success btn-lg w-100 mt-3" onclick="teacherLogin()">
-                            <i class="bi bi-box-arrow-in-right me-2"></i>登录
+                            <i class="bi bi-box-arrow-in-right me-2"></i>\u767B\u5F55
                         </button>
                     </div>
                 </div>
             </div>
-            <a href="/" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> 返回首页</a>
+            <a href="/" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> \u8FD4\u56DE\u9996\u9875</a>
         </div>
         
-        <!-- 统计页 -->
+        <!-- \u7EDF\u8BA1\u9875 -->
         <div id="statsSection" class="section">
             <div class="row mb-4">
                 <div class="col-md-4">
                     <div class="stat-card">
                         <div class="stat-num" id="totalStudents">70</div>
-                        <div class="stat-label">学生总数</div>
+                        <div class="stat-label">\u5B66\u751F\u603B\u6570</div>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="stat-card" style="background:linear-gradient(135deg,var(--success),#2d8a47)">
                         <div class="stat-num" id="examinedCount">0</div>
-                        <div class="stat-label">已考试人数</div>
+                        <div class="stat-label">\u5DF2\u8003\u8BD5\u4EBA\u6570</div>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="stat-card" style="background:linear-gradient(135deg,var(--warning),#d97706)">
                         <div class="stat-num" id="avgScore">0</div>
-                        <div class="stat-label">平均分</div>
+                        <div class="stat-label">\u5E73\u5747\u5206</div>
                     </div>
                 </div>
             </div>
             
-            <!-- 章节出题功能 -->
+            <!-- \u7AE0\u8282\u51FA\u9898\u529F\u80FD -->
             <div class="card mb-4">
                 <div class="card-body">
-                    <h5><i class="bi bi-book-half me-2"></i>章节出题</h5>
-                    <p class="text-muted small mb-3">选择章节生成专属考试链接，学生通过该链接只能考所选章节的题目</p>
+                    <h5><i class="bi bi-book-half me-2"></i>\u7AE0\u8282\u51FA\u9898</h5>
+                    <p class="text-muted small mb-3">\u9009\u62E9\u7AE0\u8282\u751F\u6210\u4E13\u5C5E\u8003\u8BD5\u94FE\u63A5\uFF0C\u5B66\u751F\u901A\u8FC7\u8BE5\u94FE\u63A5\u53EA\u80FD\u8003\u6240\u9009\u7AE0\u8282\u7684\u9898\u76EE</p>
                     
                     <div class="mb-3">
-                        <label class="form-label">选择章节</label>
+                        <label class="form-label">\u9009\u62E9\u7AE0\u8282</label>
                         <select class="form-select" id="chapterSelect">
-                            <option value="">-- 全题库（不限制章节）--</option>
+                            <option value="">-- \u5168\u9898\u5E93\uFF08\u4E0D\u9650\u5236\u7AE0\u8282\uFF09--</option>
                         </select>
                     </div>
                     
                     <button class="btn btn-primary" onclick="generateChapterLink()">
-                        <i class="bi bi-link-45deg me-2"></i>生成考试链接
+                        <i class="bi bi-link-45deg me-2"></i>\u751F\u6210\u8003\u8BD5\u94FE\u63A5
                     </button>
                     
                     <div id="linkDisplay" class="mt-3" style="display:none">
                         <div class="alert alert-info mb-0">
-                            <strong>考试链接：</strong><br>
+                            <strong>\u8003\u8BD5\u94FE\u63A5\uFF1A</strong><br>
                             <input type="text" class="form-control mt-2" id="examLink" readonly>
                             <button class="btn btn-sm btn-outline-primary mt-2" onclick="copyLink()">
-                                <i class="bi bi-clipboard me-1"></i>复制链接
+                                <i class="bi bi-clipboard me-1"></i>\u590D\u5236\u94FE\u63A5
                             </button>
                         </div>
                     </div>
@@ -1419,20 +1061,20 @@ function getTeacherHTML() {
             
             <div class="card">
                 <div class="card-body">
-                    <h5><i class="bi bi-list-ul me-2"></i>考试记录</h5>
+                    <h5><i class="bi bi-list-ul me-2"></i>\u8003\u8BD5\u8BB0\u5F55</h5>
                     <div id="recordsList" class="mt-3 table-responsive">
-                        <p class="text-muted text-center">暂无考试记录</p>
+                        <p class="text-muted text-center">\u6682\u65E0\u8003\u8BD5\u8BB0\u5F55</p>
                     </div>
                 </div>
             </div>
-            <a href="/" class="btn btn-outline-secondary mt-3"><i class="bi bi-arrow-left"></i> 返回首页</a>
+            <a href="/" class="btn btn-outline-secondary mt-3"><i class="bi bi-arrow-left"></i> \u8FD4\u56DE\u9996\u9875</a>
         </div>
     </div>
     
     <script>
         async function teacherLogin() {
             const teacherId = document.getElementById('teacherId').value.trim();
-            if (!teacherId) { alert('请输入教师工号'); return; }
+            if (!teacherId) { alert('\u8BF7\u8F93\u5165\u6559\u5E08\u5DE5\u53F7'); return; }
             
             try {
                 const res = await fetch('/api/exam/teacher/login', {
@@ -1449,7 +1091,7 @@ function getTeacherHTML() {
                     alert(data.message);
                 }
             } catch (e) {
-                alert('登录失败：' + e.message);
+                alert('\u767B\u5F55\u5931\u8D25\uFF1A' + e.message);
             }
         }
         
@@ -1464,9 +1106,9 @@ function getTeacherHTML() {
                     document.getElementById('avgScore').textContent = Math.round(data.stats.avg_score || 0);
                     
                     if (data.records && data.records.length > 0) {
-                        let html = '<table class="table"><thead><tr><th>学号</th><th>姓名</th><th>分数</th><th>用时</th><th>时间</th></tr></thead><tbody>';
+                        let html = '<table class="table"><thead><tr><th>\u5B66\u53F7</th><th>\u59D3\u540D</th><th>\u5206\u6570</th><th>\u7528\u65F6</th><th>\u65F6\u95F4</th></tr></thead><tbody>';
                         data.records.forEach(r => {
-                            const duration = r.duration_seconds ? Math.floor(r.duration_seconds / 60) + '分' : '-';
+                            const duration = r.duration_seconds ? Math.floor(r.duration_seconds / 60) + '\u5206' : '-';
                             const time = r.end_time ? r.end_time.substring(0, 16).replace('T', ' ') : '-';
                             html += '<tr><td>' + r.student_id + '</td><td>' + (r.student_name || '-') + '</td><td>' + r.score + '</td><td>' + duration + '</td><td>' + time + '</td></tr>';
                         });
@@ -1475,39 +1117,34 @@ function getTeacherHTML() {
                     }
                 }
             } catch (e) {
-                console.error('加载统计失败', e);
+                console.error('\u52A0\u8F7D\u7EDF\u8BA1\u5931\u8D25', e);
             }
             
-            // 加载章节列表
+            // \u52A0\u8F7D\u7AE0\u8282\u5217\u8868
             loadChapters();
         }
         
-        // 加载章节列表
+        // \u52A0\u8F7D\u7AE0\u8282\u5217\u8868
         async function loadChapters() {
-            console.log('开始加载章节列表...');
             try {
                 const res = await fetch('/api/exam/chapters');
                 const data = await res.json();
-                console.log('章节API返回:', data);
                 
-                if (data.success && data.chapters && data.chapters.length > 0) {
+                if (data.success && data.chapters) {
                     const select = document.getElementById('chapterSelect');
                     data.chapters.forEach(ch => {
                         const option = document.createElement('option');
                         option.value = ch.chapter;
-                        option.textContent = ch.chapter + ' (' + ch.count + '题)';
+                        option.textContent = ch.chapter + ' (' + ch.count + '\u9898)';
                         select.appendChild(option);
                     });
-                    console.log('已加载 ' + data.chapters.length + ' 个章节');
-                } else {
-                    console.log('章节数据为空或加载失败');
                 }
             } catch (e) {
-                console.error('加载章节失败', e);
+                console.error('\u52A0\u8F7D\u7AE0\u8282\u5931\u8D25', e);
             }
         }
         
-        // 生成章节考试链接
+        // \u751F\u6210\u7AE0\u8282\u8003\u8BD5\u94FE\u63A5
         async function generateChapterLink() {
             const chapter = document.getElementById('chapterSelect').value;
             
@@ -1520,87 +1157,210 @@ function getTeacherHTML() {
                     document.getElementById('examLink').value = data.link;
                     document.getElementById('linkDisplay').style.display = 'block';
                 } else {
-                    alert('生成链接失败：' + data.message);
+                    alert('\u751F\u6210\u94FE\u63A5\u5931\u8D25\uFF1A' + data.message);
                 }
             } catch (e) {
-                alert('生成链接失败：' + e.message);
+                alert('\u751F\u6210\u94FE\u63A5\u5931\u8D25\uFF1A' + e.message);
             }
         }
         
-        // 复制链接
+        // \u590D\u5236\u94FE\u63A5
         function copyLink() {
             const linkInput = document.getElementById('examLink');
             linkInput.select();
             document.execCommand('copy');
-            alert('链接已复制到剪贴板！');
+            alert('\u94FE\u63A5\u5DF2\u590D\u5236\u5230\u526A\u8D34\u677F\uFF01');
         }
         
         function showSection(id) {
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
         }
-    </script>
+    <\/script>
 </body>
 </html>
 `;
 }
-
-// 处理 OPTIONS 请求
-router.options('*', () => new Response(null, { headers: corsHeaders }));
-
-// 调试 API
-router.get('/api/debug', async (request) => {
-  try {
-    const tables = await request.env.DB.prepare(
-      "SELECT name FROM sqlite_master WHERE type='table'"
-    ).all();
-    
-    const studentsCount = await request.env.DB.prepare(
-      'SELECT COUNT(*) as count FROM students'
-    ).first();
-    
-    const questionsCount = await request.env.DB.prepare(
-      'SELECT COUNT(*) as count FROM questions'
-    ).first();
-    
-    const chaptersCount = await request.env.DB.prepare(
-      'SELECT chapter, COUNT(*) as count FROM questions GROUP BY chapter'
-    ).all();
-    
-    // 应用智能排序
-    const chapters = (chaptersCount.results || []).sort(chapterSort);
-    
-    return new Response(JSON.stringify({
-      success: true,
-      time: new Date().toISOString(),
-      tables: tables.results,
-      counts: {
-        students: studentsCount?.count || 0,
-        questions: questionsCount?.count || 0,
-        chapters: chapters.length
-      },
-      chapters: chapters
-    }), {
-      headers: { 'Content-Type': 'application/json', ...corsHeaders }
-    });
-  } catch (error) {
-    return new Response(JSON.stringify({
-      success: false,
-      error: error.message
-    }), {
-      headers: { 'Content-Type': 'application/json', ...corsHeaders }
-    });
-  }
-});
-
-// 404 处理
-router.all('*', () => new Response('Not Found', { status: 404 }));
-
-// 导出
-export default {
+__name(getTeacherHTML, "getTeacherHTML");
+router.options("*", () => new Response(null, { headers: corsHeaders }));
+router.all("*", () => new Response("Not Found", { status: 404 }));
+var worker_default = {
   async fetch(request, env, ctx) {
-    // 关键：将 env 附加到 request 对象，让路由处理器可以访问 DB
-    request.env = env;
-    return router.handle(request);
+    return router.handle(request, env, ctx);
   }
 };
+
+// ../../../root/.npm/_npx/32026684e21afda6/node_modules/wrangler/templates/middleware/middleware-ensure-req-body-drained.ts
+var drainBody = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx) => {
+  try {
+    return await middlewareCtx.next(request, env);
+  } finally {
+    try {
+      if (request.body !== null && !request.bodyUsed) {
+        const reader = request.body.getReader();
+        while (!(await reader.read()).done) {
+        }
+      }
+    } catch (e2) {
+      console.error("Failed to drain the unused request body.", e2);
+    }
+  }
+}, "drainBody");
+var middleware_ensure_req_body_drained_default = drainBody;
+
+// ../../../root/.npm/_npx/32026684e21afda6/node_modules/wrangler/templates/middleware/middleware-miniflare3-json-error.ts
+function reduceError(e2) {
+  return {
+    name: e2?.name,
+    message: e2?.message ?? String(e2),
+    stack: e2?.stack,
+    cause: e2?.cause === void 0 ? void 0 : reduceError(e2.cause)
+  };
+}
+__name(reduceError, "reduceError");
+var jsonError = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx) => {
+  try {
+    return await middlewareCtx.next(request, env);
+  } catch (e2) {
+    const error = reduceError(e2);
+    return Response.json(error, {
+      status: 500,
+      headers: { "MF-Experimental-Error-Stack": "true" }
+    });
+  }
+}, "jsonError");
+var middleware_miniflare3_json_error_default = jsonError;
+
+// .wrangler/tmp/bundle-wgObnX/middleware-insertion-facade.js
+var __INTERNAL_WRANGLER_MIDDLEWARE__ = [
+  middleware_ensure_req_body_drained_default,
+  middleware_miniflare3_json_error_default
+];
+var middleware_insertion_facade_default = worker_default;
+
+// ../../../root/.npm/_npx/32026684e21afda6/node_modules/wrangler/templates/middleware/common.ts
+var __facade_middleware__ = [];
+function __facade_register__(...args) {
+  __facade_middleware__.push(...args.flat());
+}
+__name(__facade_register__, "__facade_register__");
+function __facade_invokeChain__(request, env, ctx, dispatch, middlewareChain) {
+  const [head, ...tail] = middlewareChain;
+  const middlewareCtx = {
+    dispatch,
+    next(newRequest, newEnv) {
+      return __facade_invokeChain__(newRequest, newEnv, ctx, dispatch, tail);
+    }
+  };
+  return head(request, env, ctx, middlewareCtx);
+}
+__name(__facade_invokeChain__, "__facade_invokeChain__");
+function __facade_invoke__(request, env, ctx, dispatch, finalMiddleware) {
+  return __facade_invokeChain__(request, env, ctx, dispatch, [
+    ...__facade_middleware__,
+    finalMiddleware
+  ]);
+}
+__name(__facade_invoke__, "__facade_invoke__");
+
+// .wrangler/tmp/bundle-wgObnX/middleware-loader.entry.ts
+var __Facade_ScheduledController__ = class ___Facade_ScheduledController__ {
+  constructor(scheduledTime, cron, noRetry) {
+    this.scheduledTime = scheduledTime;
+    this.cron = cron;
+    this.#noRetry = noRetry;
+  }
+  static {
+    __name(this, "__Facade_ScheduledController__");
+  }
+  #noRetry;
+  noRetry() {
+    if (!(this instanceof ___Facade_ScheduledController__)) {
+      throw new TypeError("Illegal invocation");
+    }
+    this.#noRetry();
+  }
+};
+function wrapExportedHandler(worker) {
+  if (__INTERNAL_WRANGLER_MIDDLEWARE__ === void 0 || __INTERNAL_WRANGLER_MIDDLEWARE__.length === 0) {
+    return worker;
+  }
+  for (const middleware of __INTERNAL_WRANGLER_MIDDLEWARE__) {
+    __facade_register__(middleware);
+  }
+  const fetchDispatcher = /* @__PURE__ */ __name(function(request, env, ctx) {
+    if (worker.fetch === void 0) {
+      throw new Error("Handler does not export a fetch() function.");
+    }
+    return worker.fetch(request, env, ctx);
+  }, "fetchDispatcher");
+  return {
+    ...worker,
+    fetch(request, env, ctx) {
+      const dispatcher = /* @__PURE__ */ __name(function(type, init) {
+        if (type === "scheduled" && worker.scheduled !== void 0) {
+          const controller = new __Facade_ScheduledController__(
+            Date.now(),
+            init.cron ?? "",
+            () => {
+            }
+          );
+          return worker.scheduled(controller, env, ctx);
+        }
+      }, "dispatcher");
+      return __facade_invoke__(request, env, ctx, dispatcher, fetchDispatcher);
+    }
+  };
+}
+__name(wrapExportedHandler, "wrapExportedHandler");
+function wrapWorkerEntrypoint(klass) {
+  if (__INTERNAL_WRANGLER_MIDDLEWARE__ === void 0 || __INTERNAL_WRANGLER_MIDDLEWARE__.length === 0) {
+    return klass;
+  }
+  for (const middleware of __INTERNAL_WRANGLER_MIDDLEWARE__) {
+    __facade_register__(middleware);
+  }
+  return class extends klass {
+    #fetchDispatcher = /* @__PURE__ */ __name((request, env, ctx) => {
+      this.env = env;
+      this.ctx = ctx;
+      if (super.fetch === void 0) {
+        throw new Error("Entrypoint class does not define a fetch() function.");
+      }
+      return super.fetch(request);
+    }, "#fetchDispatcher");
+    #dispatcher = /* @__PURE__ */ __name((type, init) => {
+      if (type === "scheduled" && super.scheduled !== void 0) {
+        const controller = new __Facade_ScheduledController__(
+          Date.now(),
+          init.cron ?? "",
+          () => {
+          }
+        );
+        return super.scheduled(controller);
+      }
+    }, "#dispatcher");
+    fetch(request) {
+      return __facade_invoke__(
+        request,
+        this.env,
+        this.ctx,
+        this.#dispatcher,
+        this.#fetchDispatcher
+      );
+    }
+  };
+}
+__name(wrapWorkerEntrypoint, "wrapWorkerEntrypoint");
+var WRAPPED_ENTRY;
+if (typeof middleware_insertion_facade_default === "object") {
+  WRAPPED_ENTRY = wrapExportedHandler(middleware_insertion_facade_default);
+} else if (typeof middleware_insertion_facade_default === "function") {
+  WRAPPED_ENTRY = wrapWorkerEntrypoint(middleware_insertion_facade_default);
+}
+var middleware_loader_entry_default = WRAPPED_ENTRY;
+export {
+  __INTERNAL_WRANGLER_MIDDLEWARE__,
+  middleware_loader_entry_default as default
+};
+//# sourceMappingURL=worker.js.map

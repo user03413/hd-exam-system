@@ -1,0 +1,37 @@
+{
+  "name": "git-sync",
+  "display_name": "Git 同步技能",
+  "version": "1.0.0",
+  "description": "封装 Git 提交和推送操作，支持快速同步到 GitHub",
+  "author": "Coze AI",
+  "category": "devops",
+  "tags": ["Git", "GitHub", "版本控制"],
+  
+  "commands": {
+    "status": {
+      "description": "获取 Git 状态",
+      "usage": "python git_skill.py status"
+    },
+    "commit": {
+      "description": "Git 提交",
+      "usage": "python git_skill.py commit <message>"
+    },
+    "push": {
+      "description": "Git 推送",
+      "usage": "python git_skill.py push"
+    },
+    "pull": {
+      "description": "Git 拉取",
+      "usage": "python git_skill.py pull"
+    },
+    "sync": {
+      "description": "完整同步（提交+推送）",
+      "usage": "python git_skill.py sync <message>"
+    },
+    "quick_sync": {
+      "description": "快速同步（预设消息模板）",
+      "usage": "python git_skill.py quick_sync <type>",
+      "types": ["sync", "feat", "fix", "docs", "chore"]
+    }
+  }
+}

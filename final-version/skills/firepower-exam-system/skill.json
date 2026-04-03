@@ -1,0 +1,40 @@
+{
+  "name": "firepower-exam-system",
+  "display_name": "火电厂热工自动控制考核系统",
+  "version": "1.1.0",
+  "description": "基于热工教材的在线考核系统，支持学号验证、随机抽题、在线答题、自动判分、前沿拓展及学习报告导出",
+  "author": "Coze AI",
+  "category": "education",
+  "tags": ["考试系统", "热工控制", "在线答题"],
+  
+  "dependencies": {
+    "skills": [
+      {"name": "/skills/public/prod/llm", "required": true},
+      {"name": "/skills/public/prod/web-search", "required": true},
+      {"name": "/skills/public/prod/document-generation", "required": true}
+    ],
+    "python_packages": [
+      "fastapi>=0.100.0",
+      "pandas>=2.0.0",
+      "openpyxl>=3.1.0",
+      "coze-coding-dev-sdk>=1.0.0",
+      "langchain>=0.1.0",
+      "langgraph>=1.0.0"
+    ]
+  },
+  
+  "entry_points": {
+    "web": "/exam/real",
+    "api": "/api/exam"
+  },
+  
+  "required_env_vars": [
+    "COZE_WORKLOAD_IDENTITY_API_KEY",
+    "COZE_INTEGRATION_MODEL_BASE_URL"
+  ],
+  
+  "required_files": [
+    "assets/火电机组考核学生名单.xlsx",
+    "assets/《火电厂热工自动控制技术及应用》_100题.xlsx"
+  ]
+}

@@ -1,0 +1,46 @@
+<!--pages/student/login/login.wxml-->
+<view class="container">
+  <!-- 顶部信息 -->
+  <view class="header">
+    <view class="avatar">
+      <text>👨‍🎓</text>
+    </view>
+    <view class="header-title">考生身份验证</view>
+    <view class="header-subtitle">请输入学号进入考试</view>
+  </view>
+
+  <!-- 章节信息（如果有） -->
+  <view class="chapter-info" wx:if="{{chapter}}">
+    <text class="chapter-icon">📚</text>
+    <text class="chapter-text">本次考试章节：{{chapter}}</text>
+  </view>
+
+  <!-- 登录表单 -->
+  <view class="login-form">
+    <input 
+      class="input" 
+      type="number" 
+      placeholder="请输入学号" 
+      value="{{studentId}}"
+      bindinput="onInputStudentId"
+      maxlength="15"
+    />
+    
+    <button 
+      class="btn-primary login-btn" 
+      bindtap="handleLogin"
+      disabled="{{!studentId || loading}}"
+    >
+      <text wx:if="{{!loading}}">验证并进入</text>
+      <text wx:else>验证中...</text>
+    </button>
+  </view>
+
+  <!-- 提示信息 -->
+  <view class="tips">
+    <view class="tip-title">💡 温馨提示</view>
+    <view class="tip-item">• 请使用真实学号登录</view>
+    <view class="tip-item">• 测试账号：123456</view>
+    <view class="tip-item">• 如有疑问请联系教师</view>
+  </view>
+</view>

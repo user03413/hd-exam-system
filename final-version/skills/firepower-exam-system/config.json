@@ -1,0 +1,62 @@
+{
+  "exam": {
+    "title": "火电厂热工自动控制考核系统",
+    "subtitle": "《火电厂热工自动控制技术及应用》",
+    "total_questions": 10,
+    "score_per_question": 10,
+    "total_score": 100,
+    "question_distribution": {
+      "single_choice": 4,
+      "multiple_choice": 3,
+      "short_answer": 3
+    },
+    "time_limit": null
+  },
+  
+  "files": {
+    "student_list": "assets/火电机组考核学生名单.xlsx",
+    "question_bank": "assets/《火电厂热工自动控制技术及应用》_100题.xlsx"
+  },
+  
+  "llm": {
+    "model": "doubao-seed-1-6-251015",
+    "temperature": 0.7,
+    "max_tokens": 4000,
+    "timeout": 60
+  },
+  
+  "web_search": {
+    "count": 3,
+    "need_summary": true
+  },
+  
+  "document_generation": {
+    "format": "pdf",
+    "title_template": "exam_report_{student_id}_{timestamp}"
+  },
+  
+  "scoring": {
+    "single_choice": {
+      "correct": 10,
+      "wrong": 0
+    },
+    "multiple_choice": {
+      "correct": 10,
+      "partial": 0,
+      "wrong": 0
+    },
+    "short_answer": {
+      "full_match": 10,
+      "partial_match": 5,
+      "no_match": 0,
+      "keyword_threshold": 0.6
+    }
+  },
+  
+  "grades": [
+    {"min": 90, "max": 100, "level": "优秀", "comment": "优秀！继续保持！"},
+    {"min": 80, "max": 89, "level": "良好", "comment": "良好，再接再厉！"},
+    {"min": 60, "max": 79, "level": "及格", "comment": "及格，需要加强学习。"},
+    {"min": 0, "max": 59, "level": "不及格", "comment": "不及格，请认真复习。"}
+  ]
+}

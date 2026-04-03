@@ -1,0 +1,47 @@
+{
+  "name": "hd-exam-deploy",
+  "display_name": "火电机组考核系统部署工具",
+  "version": "1.0.0",
+  "description": "封装 GitHub 和 Cloudflare 部署操作，支持一键同步部署",
+  "author": "Coze AI",
+  "category": "devops",
+  "tags": ["部署", "GitHub", "Cloudflare", "自动化"],
+  
+  "commands": {
+    "同步部署": {
+      "description": "同步到 GitHub 并部署到 Cloudflare",
+      "actions": ["git_push", "cloudflare_deploy"]
+    },
+    "同步": {
+      "description": "仅同步到 GitHub",
+      "actions": ["git_push"]
+    },
+    "部署": {
+      "description": "仅部署到 Cloudflare",
+      "actions": ["cloudflare_deploy"]
+    }
+  },
+  
+  "credentials": {
+    "github": {
+      "username": "user03413",
+      "token_env": "GITHUB_TOKEN",
+      "repo": "https://github.com/user03413/hd-exam-system.git"
+    },
+    "cloudflare": {
+      "account_id": "57d6cde2e053b14fd28bd963ddb0975b",
+      "api_token_env": "CLOUDFLARE_API_TOKEN",
+      "worker_name": "hd-exam-api",
+      "d1_database": {
+        "name": "hd-exam-db",
+        "id": "0cc8b804-1e56-4563-9b8d-f45a76370192"
+      }
+    }
+  },
+  
+  "workspace": {
+    "root": "/workspace/projects",
+    "cloudflare_worker": "cloudflare-worker",
+    "credentials_file": ".config/credentials.json"
+  }
+}

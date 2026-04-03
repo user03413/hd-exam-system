@@ -1,0 +1,29 @@
+{
+  "name": "data-sync",
+  "display_name": "数据同步技能",
+  "version": "1.0.0",
+  "description": "从 Excel 文件同步学生名单和题库数据到 Cloudflare D1 数据库",
+  "author": "Coze AI",
+  "category": "data",
+  "tags": ["数据同步", "Excel", "D1数据库"],
+  
+  "skills": {
+    "student_sync": {
+      "description": "同步学生名单到 D1 数据库",
+      "file": "student_sync.py",
+      "usage": "python student_sync.py [excel_path]",
+      "default_source": "assets/火电机组考核学生名单.xlsx"
+    },
+    "question_sync": {
+      "description": "同步题库到 D1 数据库",
+      "file": "question_sync.py",
+      "usage": "python question_sync.py [excel_path] [sheet_name]",
+      "default_source": "assets/244题_热工自动化试题集.xlsx"
+    }
+  },
+  
+  "dependencies": {
+    "python_packages": ["pandas", "openpyxl"],
+    "external_tools": ["wrangler"]
+  }
+}

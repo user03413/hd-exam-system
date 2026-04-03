@@ -1,0 +1,21 @@
+# 火电厂热工自动控制考核系统依赖
+
+# Web框架
+fastapi>=0.100.0
+uvicorn>=0.23.0
+
+# 数据处理
+pandas>=2.0.0
+openpyxl>=3.1.0
+
+# Coze SDK
+coze-coding-dev-sdk>=1.0.0
+coze-coding-utils>=1.0.0
+
+# LangChain & LangGraph
+langchain>=0.1.0
+langchain-openai>=0.1.0
+langgraph>=1.0.0
+
+# 其他工具
+python-multipart>=0.0.6

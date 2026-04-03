@@ -14,31 +14,6 @@ const corsHeaders = {
 // 会话存储（内存中，生产环境应使用 KV）
 const sessions = {};
 
-// 章节智能排序函数 - 按第一章、第二章...正确排序
-function chapterSort(a, b) {
-  // 提取章节数字
-  function getChapterNumber(chapterStr) {
-    if (!chapterStr) return 999;
-    
-    // 匹配 "第X章" 模式，提取数字X
-    const match = chapterStr.match(/第(\d+)/);
-    if (match && match[1]) {
-      return parseInt(match[1], 10);
-    }
-    
-    // 无法识别的放最后
-    return 999;
-  }
-  
-  const chapterA = typeof a === 'string' ? a : (a.chapter || '');
-  const chapterB = typeof b === 'string' ? b : (b.chapter || '');
-  
-  const numA = getChapterNumber(chapterA);
-  const numB = getChapterNumber(chapterB);
-  
-  return numA - numB;
-}
-
 // 统一入口首页
 const HOME_HTML = `
 <!DOCTYPE html>
@@ -609,15 +584,12 @@ router.get('/api/exam/teacher/stats', async (request) => {
 router.get('/api/exam/chapters', async (request) => {
   try {
     const result = await request.env.DB.prepare(
-      'SELECT chapter, COUNT(*) as count FROM questions GROUP BY chapter'
+      'SELECT chapter, COUNT(*) as count FROM questions GROUP BY chapter ORDER BY chapter'
     ).all();
-    
-    // 应用智能排序
-    const chapters = (result.results || []).sort(chapterSort);
     
     return new Response(JSON.stringify({
       success: true,
-      chapters: chapters
+      chapters: result.results || []
     }), {
       headers: { 'Content-Type': 'application/json', ...corsHeaders }
     });
@@ -625,292 +597,6 @@ router.get('/api/exam/chapters', async (request) => {
     return new Response(JSON.stringify({
       success: false,
       message: '获取章节失败'
-    }), {
-      headers: { 'Content-Type': 'application/json', ...corsHeaders }
-    });
-  }
-});
-
-// ========== 兼容 dist 前端的 API 路由 ==========
-
-// 兼容：获取章节列表
-router.get('/api/chapters', async (request) => {
-  try {
-    const result = await request.env.DB.prepare(
-      'SELECT chapter, COUNT(*) as count FROM questions GROUP BY chapter'
-    ).all();
-    
-    // 应用智能排序
-    const chapters = (result.results || []).sort(chapterSort);
-    
-    return new Response(JSON.stringify({
-      success: true,
-      chapters: chapters.map(r => r.chapter)
-    }), {
-      headers: { 'Content-Type': 'application/json', ...corsHeaders }
-    });
-  } catch (error) {
-    return new Response(JSON.stringify({
-      success: false,
-      message: '获取章节失败'
-    }), {
-      headers: { 'Content-Type': 'application/json', ...corsHeaders }
-    });
-  }
-});
-
-// 兼容：获取学生列表
-router.get('/api/students', async (request) => {
-  try {
-    const result = await request.env.DB.prepare(
-      'SELECT id, name, major FROM students WHERE is_teacher = 0 OR is_teacher IS NULL ORDER BY id LIMIT 100'
-    ).all();
-    
-    return new Response(JSON.stringify({
-      success: true,
-      students: result.results || []
-    }), {
-      headers: { 'Content-Type': 'application/json', ...corsHeaders }
-    });
-  } catch (error) {
-    return new Response(JSON.stringify({
-      success: false,
-      message: '获取学生列表失败'
-    }), {
-      headers: { 'Content-Type': 'application/json', ...corsHeaders }
-    });
-  }
-});
-
-// 兼容：获取题目列表
-router.get('/api/questions', async (request) => {
-  try {
-    const url = new URL(request.url);
-    const chapter = url.searchParams.get('chapter');
-    const limit = parseInt(url.searchParams.get('limit') || '100');
-    
-    let query = 'SELECT id, type, question, options, answer, chapter, difficulty, analysis FROM questions';
-    let params = [];
-    
-    if (chapter) {
-      query += ' WHERE chapter = ?';
-      params.push(chapter);
-    }
-    query += ' ORDER BY RANDOM() LIMIT ?';
-    params.push(limit);
-    
-    const result = await request.env.DB.prepare(query).bind(...params).all();
-    
-    return new Response(JSON.stringify({
-      success: true,
-      questions: result.results || []
-    }), {
-      headers: { 'Content-Type': 'application/json', ...corsHeaders }
-    });
-  } catch (error) {
-    return new Response(JSON.stringify({
-      success: false,
-      message: '获取题目失败: ' + error.message
-    }), {
-      headers: { 'Content-Type': 'application/json', ...corsHeaders }
-    });
-  }
-});
-
-// 兼容：生成试卷
-router.post('/api/generate-exam', async (request) => {
-  try {
-    const data = await request.json();
-    const chapters = data.chapters || [];
-    const studentId = data.student_id;
-    
-    // 查询学生信息
-    let student = null;
-    try {
-      student = await request.env.DB.prepare(
-        'SELECT id, name, major FROM students WHERE id = ?'
-      ).bind(studentId).first();
-    } catch (e) {}
-    
-    if (!student && studentId === '123456') {
-      student = { id: '123456', name: '测试学生', major: '控制工程（测试）' };
-    }
-    
-    if (!student) {
-      return new Response(JSON.stringify({
-        success: false,
-        message: '学生不存在'
-      }), {
-        headers: { 'Content-Type': 'application/json', ...corsHeaders }
-      });
-    }
-    
-    // 随机抽题
-    let query = 'SELECT * FROM questions';
-    let params = [];
-    
-    if (chapters.length > 0) {
-      query += ' WHERE chapter IN (' + chapters.map(() => '?').join(',') + ')';
-      params = chapters;
-    }
-    
-    // 获取所有符合条件的题目
-    const allQuestions = await request.env.DB.prepare(query).bind(...params).all();
-    const questions = allQuestions.results || [];
-    
-    // 按类型分组并随机抽取
-    const single = questions.filter(q => q.type === '单选题');
-    const multiple = questions.filter(q => q.type === '多选题');
-    const short = questions.filter(q => q.type === '简答题');
-    
-    const shuffle = arr => arr.sort(() => Math.random() - 0.5);
-    const selected = [
-      ...shuffle(single).slice(0, 4),
-      ...shuffle(multiple).slice(0, 3),
-      ...shuffle(short).slice(0, 3)
-    ];
-    
-    // 编号
-    selected.forEach((q, i) => q.seq = i + 1);
-    
-    return new Response(JSON.stringify({
-      success: true,
-      student: student,
-      questions: selected.map(q => ({
-        id: q.id,
-        seq: q.seq,
-        type: q.type,
-        question: q.question,
-        options: q.options,
-        chapter: q.chapter,
-        difficulty: q.difficulty
-      }))
-    }), {
-      headers: { 'Content-Type': 'application/json', ...corsHeaders }
-    });
-  } catch (error) {
-    return new Response(JSON.stringify({
-      success: false,
-      message: '生成试卷失败: ' + error.message
-    }), {
-      headers: { 'Content-Type': 'application/json', ...corsHeaders }
-    });
-  }
-});
-
-// 兼容：提交考试
-router.post('/api/submit-exam', async (request) => {
-  try {
-    const data = await request.json();
-    const studentId = data.student_id;
-    const studentName = data.student_name;
-    const answers = data.answers || {};
-    const questions = data.questions || [];
-    
-    // 判分
-    let totalScore = 0;
-    const results = [];
-    
-    for (const q of questions) {
-      const userAnswer = answers[q.seq] || '';
-      const correctAnswer = q.answer || '';
-      let isCorrect = false;
-      let score = 0;
-      
-      if (q.type === '单选题') {
-        if (userAnswer === correctAnswer) {
-          isCorrect = true;
-          score = 10;
-        }
-      } else if (q.type === '多选题') {
-        const userSet = new Set(String(userAnswer).split('').filter(c => /[A-F]/.test(c)));
-        const correctSet = new Set(String(correctAnswer).split('').filter(c => /[A-F]/.test(c)));
-        if (userSet.size === correctSet.size && [...userSet].every(x => correctSet.has(x))) {
-          isCorrect = true;
-          score = 10;
-        }
-      } else if (q.type === '简答题') {
-        const userText = String(userAnswer).toLowerCase();
-        const keywords = String(correctAnswer).toLowerCase().split(/[,，。、\s]+/).filter(k => k.length > 2);
-        const matched = keywords.filter(k => userText.includes(k)).length;
-        const ratio = keywords.length > 0 ? matched / keywords.length : 0;
-        
-        if (ratio >= 0.6) {
-          isCorrect = true;
-          score = 10;
-        } else if (ratio >= 0.3) {
-          score = 5;
-        }
-      }
-      
-      totalScore += score;
-      
-      results.push({
-        seq: q.seq,
-        id: q.id,
-        type: q.type,
-        question: q.question,
-        options: q.options,
-        user_answer: userAnswer,
-        correct_answer: correctAnswer,
-        is_correct: isCorrect,
-        score: score,
-        analysis: q.analysis
-      });
-    }
-    
-    // 保存考试记录
-    try {
-      await request.env.DB.prepare(
-        'INSERT INTO exam_records (student_id, student_name, major, score, duration_seconds, start_time, end_time, results) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
-      ).bind(
-        studentId,
-        studentName,
-        data.major || '未知专业',
-        totalScore,
-        data.duration || 0,
-        new Date().toISOString(),
-        new Date().toISOString(),
-        JSON.stringify(results)
-      ).run();
-    } catch (e) {
-      console.log('保存记录失败:', e.message);
-    }
-    
-    return new Response(JSON.stringify({
-      success: true,
-      score: totalScore,
-      results: results
-    }), {
-      headers: { 'Content-Type': 'application/json', ...corsHeaders }
-    });
-  } catch (error) {
-    return new Response(JSON.stringify({
-      success: false,
-      message: '提交失败: ' + error.message
-    }), {
-      headers: { 'Content-Type': 'application/json', ...corsHeaders }
-    });
-  }
-});
-
-// 兼容：获取考试记录
-router.get('/api/exam-records', async (request) => {
-  try {
-    const result = await request.env.DB.prepare(
-      'SELECT * FROM exam_records ORDER BY end_time DESC LIMIT 100'
-    ).all();
-    
-    return new Response(JSON.stringify({
-      success: true,
-      records: result.results || []
-    }), {
-      headers: { 'Content-Type': 'application/json', ...corsHeaders }
-    });
-  } catch (error) {
-    return new Response(JSON.stringify({
-      success: false,
-      message: '获取记录失败'
     }), {
       headers: { 'Content-Type': 'application/json', ...corsHeaders }
     });
@@ -1484,13 +1170,11 @@ function getTeacherHTML() {
         
         // 加载章节列表
         async function loadChapters() {
-            console.log('开始加载章节列表...');
             try {
                 const res = await fetch('/api/exam/chapters');
                 const data = await res.json();
-                console.log('章节API返回:', data);
                 
-                if (data.success && data.chapters && data.chapters.length > 0) {
+                if (data.success && data.chapters) {
                     const select = document.getElementById('chapterSelect');
                     data.chapters.forEach(ch => {
                         const option = document.createElement('option');
@@ -1498,9 +1182,6 @@ function getTeacherHTML() {
                         option.textContent = ch.chapter + ' (' + ch.count + '题)';
                         select.appendChild(option);
                     });
-                    console.log('已加载 ' + data.chapters.length + ' 个章节');
-                } else {
-                    console.log('章节数据为空或加载失败');
                 }
             } catch (e) {
                 console.error('加载章节失败', e);
@@ -1548,59 +1229,12 @@ function getTeacherHTML() {
 // 处理 OPTIONS 请求
 router.options('*', () => new Response(null, { headers: corsHeaders }));
 
-// 调试 API
-router.get('/api/debug', async (request) => {
-  try {
-    const tables = await request.env.DB.prepare(
-      "SELECT name FROM sqlite_master WHERE type='table'"
-    ).all();
-    
-    const studentsCount = await request.env.DB.prepare(
-      'SELECT COUNT(*) as count FROM students'
-    ).first();
-    
-    const questionsCount = await request.env.DB.prepare(
-      'SELECT COUNT(*) as count FROM questions'
-    ).first();
-    
-    const chaptersCount = await request.env.DB.prepare(
-      'SELECT chapter, COUNT(*) as count FROM questions GROUP BY chapter'
-    ).all();
-    
-    // 应用智能排序
-    const chapters = (chaptersCount.results || []).sort(chapterSort);
-    
-    return new Response(JSON.stringify({
-      success: true,
-      time: new Date().toISOString(),
-      tables: tables.results,
-      counts: {
-        students: studentsCount?.count || 0,
-        questions: questionsCount?.count || 0,
-        chapters: chapters.length
-      },
-      chapters: chapters
-    }), {
-      headers: { 'Content-Type': 'application/json', ...corsHeaders }
-    });
-  } catch (error) {
-    return new Response(JSON.stringify({
-      success: false,
-      error: error.message
-    }), {
-      headers: { 'Content-Type': 'application/json', ...corsHeaders }
-    });
-  }
-});
-
 // 404 处理
 router.all('*', () => new Response('Not Found', { status: 404 }));
 
 // 导出
 export default {
   async fetch(request, env, ctx) {
-    // 关键：将 env 附加到 request 对象，让路由处理器可以访问 DB
-    request.env = env;
-    return router.handle(request);
+    return router.handle(request, env, ctx);
   }
 };
