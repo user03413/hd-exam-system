@@ -14,19 +14,46 @@ const corsHeaders = {
 // 会话存储（内存中，生产环境应使用 KV）
 const sessions = {};
 
-// 章节智能排序函数 - 按第一章、第二章...正确排序
+// 章节智能排序函数 - 绝对可靠版本
 function chapterSort(a, b) {
+  // 中文数字映射表
+  const numMap = {
+    '一': 1, '二': 2, '三': 3, '四': 4, '五': 5,
+    '六': 6, '七': 7, '八': 8, '九': 9, '十': 10,
+    '十一': 11, '十二': 12, '十三': 13, '十四': 14,
+    '十五': 15, '十六': 16, '十七': 17, '十八': 18,
+    '十九': 19, '二十': 20
+  };
+  
   // 提取章节数字
   function getChapterNumber(chapterStr) {
     if (!chapterStr) return 999;
     
-    // 匹配 "第X章" 模式，提取数字X
-    const match = chapterStr.match(/第(\d+)/);
+    // 匹配 "第X章" 中的中文数字
+    const match = chapterStr.match(/第([一二三四五六七八九十]+)/);
     if (match && match[1]) {
-      return parseInt(match[1], 10);
+      const chineseNum = match[1];
+      
+      // 直接映射
+      if (numMap[chineseNum]) {
+        return numMap[chineseNum];
+      }
+      
+      // 处理 "第十X" 模式
+      if (chineseNum.startsWith('十')) {
+        const rest = chineseNum.substring(1);
+        const base = 10;
+        const add = rest ? (numMap[rest] || 0) : 0;
+        return base + add;
+      }
     }
     
-    // 无法识别的放最后
+    // 备用：阿拉伯数字
+    const numMatch = chapterStr.match(/第(\d+)/);
+    if (numMatch && numMatch[1]) {
+      return parseInt(numMatch[1]);
+    }
+    
     return 999;
   }
   
