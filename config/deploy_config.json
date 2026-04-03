@@ -2,7 +2,7 @@
   "project": {
     "name": "hd-exam-system",
     "description": "火电机组考核系统",
-    "version": "1.0.0"
+    "version": "2.0.0"
   },
   "cloudflare": {
     "account_id": "57d6cde2e053b14fd28bd963ddb0975b",
@@ -10,13 +10,14 @@
     "pages": {
       "project_name": "hd-exam-system",
       "url": "https://hd-exam-system.pages.dev",
-      "preview_url": "https://1197b98f.hd-exam-system.pages.dev",
+      "preview_url": "https://19d7e953.hd-exam-system.pages.dev",
       "status": "active"
     },
     "workers": {
       "name": "hd-exam-api",
       "url": "https://hd-exam-api.771794850.workers.dev",
-      "status": "active"
+      "status": "active",
+      "version": "9ebfd7d3"
     },
     "d1_database": {
       "name": "hd-exam-db",
@@ -30,15 +31,19 @@
   },
   "urls": {
     "pages_home": "https://hd-exam-system.pages.dev",
-    "pages_exam": "https://hd-exam-system.pages.dev/exam",
-    "pages_teacher": "https://hd-exam-system.pages.dev/teacher",
+    "pages_exam": "https://hd-exam-system.pages.dev/exam.html",
+    "pages_teacher": "https://hd-exam-system.pages.dev/teacher.html",
     "api_base": "https://hd-exam-api.771794850.workers.dev/api",
     "api_chapters": "https://hd-exam-api.771794850.workers.dev/api/chapters",
     "api_students": "https://hd-exam-api.771794850.workers.dev/api/students",
     "api_questions": "https://hd-exam-api.771794850.workers.dev/api/questions",
     "api_generate_exam": "https://hd-exam-api.771794850.workers.dev/api/generate-exam",
     "api_submit_exam": "https://hd-exam-api.771794850.workers.dev/api/submit-exam",
-    "api_exam_records": "https://hd-exam-api.771794850.workers.dev/api/exam-records"
+    "api_exam_records": "https://hd-exam-api.771794850.workers.dev/api/exam-records",
+    "worker_home": "https://hd-exam-api.771794850.workers.dev/",
+    "worker_exam": "https://hd-exam-api.771794850.workers.dev/exam",
+    "worker_teacher": "https://hd-exam-api.771794850.workers.dev/teacher",
+    "worker_debug": "https://hd-exam-api.771794850.workers.dev/api/debug"
   },
   "test_accounts": {
     "student": {
@@ -52,11 +57,13 @@
   },
   "database_stats": {
     "students": 72,
-    "questions": 244,
-    "chapters": 17
+    "questions": 488,
+    "chapters": 17,
+    "chapters_list": ["第一章", "第七章", "第三章", "第九章", "第二章", "第五章", "第八章", "第八至十章", "第六章", "第十一章", "第十三章", "第十二章", "第十五章", "第十六/七章", "第十四章", "第十章", "第四章"]
   },
   "last_deploy": {
-    "pages": "2026-03-31T02:46:30Z",
-    "workers": "2026-03-31T03:22:00Z"
+    "pages": "2026-04-02T16:35:00Z",
+    "workers": "2026-04-02T16:34:00Z",
+    "deployer": "doubao"
   }
 }
