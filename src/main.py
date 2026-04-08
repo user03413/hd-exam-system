@@ -259,7 +259,7 @@ app.add_api_route("/teacher", get_teacher_page, methods=["GET"])
 
 # 章节出题路由
 app.add_api_route("/api/exam/chapters", get_chapters, methods=["GET"])
-app.add_api_route("/api/exam/chapter-link", get_chapter_link, methods=["GET"])
+app.add_api_route("/api/exam/chapter-link", get_chapter_link, methods=["GET", "POST"])
 
 # 缓存管理路由（教师更换题库后调用）
 app.add_api_route("/api/exam/refresh-cache", refresh_cache, methods=["GET", "POST"])
