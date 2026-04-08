@@ -236,7 +236,12 @@ router.post('/api/exam/verify', async (request) => {
   try {
     const data = await request.json();
     const studentId = data.student_id;
-    const chapter = data.chapter; // 接收章节参数
+    const chapter = data.chapter;   // 单个章节（兼容）
+    const chapters = data.chapters; // 章节数组
+    
+    // 优先使用章节数组
+    const examChapters = chapters && chapters.length > 0 ? chapters : (chapter ? [chapter] : null);
+    const chapterDisplay = examChapters ? examChapters.join('、') : null;
     
     if (!studentId) {
       return new Response(JSON.stringify({
@@ -268,15 +273,16 @@ router.post('/api/exam/verify', async (request) => {
         student: { id: result.id, name: result.name, major: result.major },
         questions: null,
         startTime: Date.now(),
-        chapter: chapter // 保存章节信息
+        chapters: examChapters, // 保存章节数组
+        chapter: chapterDisplay // 用于显示
       };
       
       return new Response(JSON.stringify({
         success: true,
-        message: `验证成功，欢迎 ${result.name} 同学！${chapter ? '（' + chapter + '专题考试）' : ''}`,
+        message: `验证成功，欢迎 ${result.name} 同学！${chapterDisplay ? '（' + chapterDisplay + '专题考试）' : ''}`,
         student: { id: result.id, name: result.name, major: result.major },
         session_id: sessionId,
-        chapter: chapter
+        chapter: chapterDisplay
       }), {
         headers: { 'Content-Type': 'application/json', ...corsHeaders }
       });
@@ -314,24 +320,28 @@ router.post('/api/exam/start', async (request) => {
       });
     }
     
-    // 获取章节参数（如果有）
-    const chapter = sessions[sessionId].chapter;
+    // 获取章节参数（支持单个和多个）
+    const chapters = sessions[sessionId].chapters;
+    const chapter = chapters && chapters.length === 1 ? chapters[0] : null;
     
     let singleQuestions, multipleQuestions, shortQuestions;
     
-    if (chapter) {
-      // 按章节抽题
+    if (chapters && chapters.length > 0) {
+      // 构建 IN 查询
+      const placeholders = chapters.map(() => '?').join(',');
+      
+      // 按章节抽题（从多个章节中抽取）
       singleQuestions = await request.env.DB.prepare(
-        'SELECT * FROM questions WHERE type = ? AND chapter = ? ORDER BY RANDOM() LIMIT 4'
-      ).bind('单选题', chapter).all();
+        `SELECT * FROM questions WHERE type = '单选题' AND chapter IN (${placeholders}) ORDER BY RANDOM() LIMIT 4`
+      ).bind(...chapters).all();
       
       multipleQuestions = await request.env.DB.prepare(
-        'SELECT * FROM questions WHERE type = ? AND chapter = ? ORDER BY RANDOM() LIMIT 3'
-      ).bind('多选题', chapter).all();
+        `SELECT * FROM questions WHERE type = '多选题' AND chapter IN (${placeholders}) ORDER BY RANDOM() LIMIT 3`
+      ).bind(...chapters).all();
       
       shortQuestions = await request.env.DB.prepare(
-        'SELECT * FROM questions WHERE type = ? AND chapter = ? ORDER BY RANDOM() LIMIT 3'
-      ).bind('简答题', chapter).all();
+        `SELECT * FROM questions WHERE type = '简答题' AND chapter IN (${placeholders}) ORDER BY RANDOM() LIMIT 3`
+      ).bind(...chapters).all();
     } else {
       // 从数据库随机抽题（全题库）
       singleQuestions = await request.env.DB.prepare(
@@ -944,39 +954,62 @@ router.get('/api/exam-records', async (request) => {
   }
 });
 
-// 生成章节考试链接
-router.get('/api/exam/chapter-link', async (request) => {
+// 生成章节考试链接（支持 GET 和 POST）
+router.all('/api/exam/chapter-link', async (request) => {
   try {
-    const url = new URL(request.url);
-    const chapter = url.searchParams.get('chapter');
+    let chapters = [];
+    let isAllChapters = false;
     
-    if (!chapter) {
-      return new Response(JSON.stringify({
-        success: false,
-        message: '请指定章节'
-      }), {
-        headers: { 'Content-Type': 'application/json', ...corsHeaders }
-      });
+    // 支持 GET 和 POST 两种方式
+    if (request.method === 'POST') {
+      const data = await request.json();
+      chapters = data.chapters || [];
+      isAllChapters = !chapters || chapters.length === 0;
+    } else {
+      // GET 方式兼容
+      const url = new URL(request.url);
+      const chapter = url.searchParams.get('chapter');
+      if (chapter) {
+        chapters = [chapter];
+      } else {
+        isAllChapters = true;
+      }
     }
     
     // 生成唯一链接ID
     const linkId = Math.random().toString(36).substring(2, 10);
+    const url = new URL(request.url);
     
-    // 存储章节考试信息（实际应存入KV，这里简化处理）
-    const examLink = `${url.origin}/exam?chapter=${encodeURIComponent(chapter)}&linkId=${linkId}`;
-    
-    return new Response(JSON.stringify({
+    let examLink;
+    let responseData = {
       success: true,
-      link: examLink,
-      chapter: chapter,
       linkId: linkId
-    }), {
+    };
+    
+    if (isAllChapters || chapters.length === 0) {
+      // 全题库模式
+      examLink = `${url.origin}/exam?linkId=${linkId}`;
+      responseData.link = examLink;
+      responseData.type = 'all';
+      responseData.message = '已生成全题库考试链接';
+    } else {
+      // 指定章节模式 - 将多个章节编码为 JSON 字符串并 Base64 编码
+      const chaptersJson = JSON.stringify(chapters);
+      const chaptersEncoded = btoa(unescape(encodeURIComponent(chaptersJson)));
+      examLink = `${url.origin}/exam?chapters=${chaptersEncoded}&linkId=${linkId}`;
+      responseData.link = examLink;
+      responseData.type = 'chapter';
+      responseData.chapters = chapters;
+      responseData.message = `已生成第${chapters.join('、')}考试链接`;
+    }
+    
+    return new Response(JSON.stringify(responseData), {
       headers: { 'Content-Type': 'application/json', ...corsHeaders }
     });
   } catch (error) {
     return new Response(JSON.stringify({
       success: false,
-      message: '生成链接失败'
+      message: '生成链接失败: ' + error.message
     }), {
       headers: { 'Content-Type': 'application/json', ...corsHeaders }
     });
@@ -1118,12 +1151,33 @@ function getExamHTML() {
         let sessionId = '';
         let questions = [];
         let answers = {};
-        let chapter = null; // 章节参数
+        let chapter = null; // 章节参数（单个）
+        let chapters = [];  // 章节参数（多个）
         
         // 从URL获取章节参数
         window.onload = function() {
             const urlParams = new URLSearchParams(window.location.search);
-            chapter = urlParams.get('chapter');
+            
+            // 支持两种格式：
+            // 1. chapters=Base64编码的JSON数组（新版）
+            // 2. chapter=单个章节名称（旧版兼容）
+            const chaptersEncoded = urlParams.get('chapters');
+            chapter = urlParams.get('chapter'); // 保留兼容性
+            
+            if (chaptersEncoded) {
+                // 解码多章节
+                try {
+                    const chaptersJson = decodeURIComponent(escape(atob(chaptersEncoded)));
+                    chapters = JSON.parse(chaptersJson);
+                    chapter = chapters.join('、'); // 用于显示
+                } catch (e) {
+                    console.error('解析章节参数失败:', e);
+                    chapters = [];
+                }
+            } else if (chapter) {
+                // 单章节模式
+                chapters = [chapter];
+            }
             
             // 如果有章节参数，显示提示
             if (chapter) {
@@ -1144,7 +1198,7 @@ function getExamHTML() {
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
                         student_id: studentId,
-                        chapter: chapter // 传递章节参数
+                        chapters: chapters.length > 0 ? chapters : null // 传递章节参数
                     })
                 });
                 const data = await res.json();
@@ -1419,13 +1473,14 @@ function getTeacherHTML() {
             <div class="card mb-4">
                 <div class="card-body">
                     <h5><i class="bi bi-book-half me-2"></i>章节出题</h5>
-                    <p class="text-muted small mb-3">选择章节生成专属考试链接，学生通过该链接只能考所选章节的题目</p>
+                    <p class="text-muted small mb-3">按住 <kbd>Ctrl</kbd> 或 <kbd>⌘</kbd> 点击可选择多个章节，学生通过链接只能考所选章节的题目</p>
                     
                     <div class="mb-3">
-                        <label class="form-label">选择章节</label>
-                        <select class="form-select" id="chapterSelect">
+                        <label class="form-label">选择章节（可多选）</label>
+                        <select class="form-select" id="chapterSelect" multiple size="8">
                             <option value="">-- 全题库（不限制章节）--</option>
                         </select>
+                        <div class="form-text">按住 Ctrl/Cmd 键点击可选择多个章节</div>
                     </div>
                     
                     <button class="btn btn-primary" onclick="generateChapterLink()">
@@ -1536,16 +1591,46 @@ function getTeacherHTML() {
         
         // 生成章节考试链接
         async function generateChapterLink() {
-            const chapter = document.getElementById('chapterSelect').value;
+            const select = document.getElementById('chapterSelect');
+            const selectedOptions = Array.from(select.selectedOptions);
+            
+            // 收集所有选中的章节
+            const chapters = selectedOptions
+                .filter(opt => opt.value !== '')
+                .map(opt => opt.value);
+            
+            // 检查是否选择了全题库选项
+            const allChapters = selectedOptions.some(opt => opt.value === '');
             
             try {
-                const url = '/api/exam/chapter-link' + (chapter ? '?chapter=' + encodeURIComponent(chapter) : '');
-                const res = await fetch(url);
+                // 根据选择构建请求
+                let url = '/api/exam/chapter-link';
+                let body = {};
+                
+                if (allChapters || chapters.length === 0) {
+                    // 全题库模式
+                    url = '/api/exam/chapter-link';
+                } else {
+                    // 指定章节模式
+                    body = { chapters: chapters };
+                }
+                
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(body)
+                });
                 const data = await res.json();
                 
                 if (data.success) {
                     document.getElementById('examLink').value = data.link;
                     document.getElementById('linkDisplay').style.display = 'block';
+                    
+                    // 显示选中的章节信息
+                    const chapterInfo = allChapters || chapters.length === 0 
+                        ? '全题库' 
+                        : chapters.join('、');
+                    console.log('已生成考试链接，章节：' + chapterInfo);
                 } else {
                     alert('生成链接失败：' + data.message);
                 }
