@@ -711,6 +711,9 @@ EXAM_HTML = '''
                     <div id="readyChapterInfo" class="alert alert-primary" style="display:none;">
                         <i class="bi bi-book me-2"></i><strong>考试章节：</strong><span id="readyChapter"></span>
                     </div>
+                    <div id="readyDurationInfo" class="alert alert-warning" style="display:none;">
+                        <i class="bi bi-clock me-2"></i><strong>考试时长：</strong><span id="readyDuration"></span>
+                    </div>
                     <div class="alert alert-info small">
                         <strong>考试说明：</strong><br>
                         • 共10道题（单选4题 + 多选3题 + 简答3题）<br>
@@ -728,6 +731,17 @@ EXAM_HTML = '''
         <div id="examSec" class="section">
             <div class="card">
                 <div class="card-body">
+                    <!-- 考试时长倒计时 -->
+                    <div id="countdownBar" class="alert alert-warning mb-3" style="display:none;">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-clock me-2"></i>剩余时间</span>
+                            <span class="badge bg-danger fs-6" id="countdownTimer">00:00</span>
+                        </div>
+                        <div class="progress mt-2" style="height: 6px;">
+                            <div class="progress-bar bg-warning" id="countdownProgress" style="width: 100%"></div>
+                        </div>
+                    </div>
+                    
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <span id="progTxt">0 / 10</span>
                         <span class="timer" id="timer">00:00</span>
@@ -792,12 +806,16 @@ EXAM_HTML = '''
         const chaptersParam = urlParams.get('chapters'); // 多章节（新版）
         const linkIdParam = urlParams.get('linkId');
         const modeParam = urlParams.get('mode') || 'random'; // 考试模式，默认随机
+        const durationParam = parseInt(urlParams.get('duration') || '30'); // 考试时长（分钟），默认30
         
         let sessionId = null, questions = [], answers = {}, extensions = {}, timer = null, seconds = 0;
         let currentChapter = ''; // 当前考试章节（用于显示）
         let currentChapters = []; // 当前考试章节数组（用于API）
         let currentMode = modeParam; // 当前考试模式
         let currentLinkId = linkIdParam || ''; // 当前链接ID
+        let examDuration = durationParam > 0 ? durationParam : 0; // 考试时长（分钟），0表示不限制
+        let countdownTimer = null; // 倒计时定时器
+        let remainingSeconds = 0; // 剩余秒数
         
         // 解析章节参数（支持单个和多个）
         if (chaptersParam) {
@@ -842,6 +860,59 @@ EXAM_HTML = '''
             const m = String(Math.floor(seconds / 60)).padStart(2, '0');
             const s = String(seconds % 60).padStart(2, '0');
             document.getElementById('timer').textContent = m + ':' + s;
+        }
+        
+        // 倒计时功能
+        function startCountdown() {
+            if (examDuration <= 0) {
+                // 不限制时间，不显示倒计时
+                return;
+            }
+            
+            remainingSeconds = examDuration * 60; // 转换为秒
+            updateCountdownDisplay();
+            
+            countdownTimer = setInterval(function() {
+                remainingSeconds--;
+                updateCountdownDisplay();
+                
+                if (remainingSeconds <= 0) {
+                    // 时间到，自动提交
+                    clearInterval(countdownTimer);
+                    document.getElementById('countdownTimer').textContent = '时间到';
+                    document.getElementById('countdownProgress').style.width = '0%';
+                    
+                    // 显示提示并自动提交
+                    alert('考试时间已到！系统将自动提交试卷。');
+                    submitExam();
+                }
+            }, 1000);
+        }
+        
+        function updateCountdownDisplay() {
+            const m = String(Math.floor(remainingSeconds / 60)).padStart(2, '0');
+            const s = String(remainingSeconds % 60).padStart(2, '0');
+            document.getElementById('countdownTimer').textContent = m + ':' + s;
+            
+            // 更新进度条
+            const progress = (remainingSeconds / (examDuration * 60)) * 100;
+            document.getElementById('countdownProgress').style.width = progress + '%';
+            
+            // 剩余时间少于1分钟时，变色提醒
+            if (remainingSeconds <= 60) {
+                document.getElementById('countdownTimer').className = 'badge bg-danger fs-6';
+                document.getElementById('countdownProgress').className = 'progress-bar bg-danger';
+            } else if (remainingSeconds <= 300) {
+                document.getElementById('countdownTimer').className = 'badge bg-warning fs-6';
+                document.getElementById('countdownProgress').className = 'progress-bar bg-warning';
+            }
+        }
+        
+        function stopCountdown() {
+            if (countdownTimer) {
+                clearInterval(countdownTimer);
+                countdownTimer = null;
+            }
         }
         
         function updateProg() {
@@ -994,7 +1065,8 @@ EXAM_HTML = '''
                     chapters: currentChapters, // 传递章节数组
                     chapter: currentChapter, // 保留章节名称（用于显示）
                     linkId: currentLinkId,
-                    mode: currentMode
+                    mode: currentMode,
+                    duration: examDuration  // 传递考试时长
                 });
                 if (r.success) {
                     // 如果是教师账号，跳转到教师管理页面
@@ -1013,6 +1085,13 @@ EXAM_HTML = '''
                         document.getElementById('examTitle').textContent = r.chapter + ' - 热工自动化在线考试';
                         document.getElementById('readyChapter').textContent = r.chapter;
                         document.getElementById('readyChapterInfo').style.display = 'block';
+                    }
+                    
+                    // 显示考试时长（如果有设置）
+                    if (r.duration) {
+                        examDuration = r.duration;
+                        document.getElementById('readyDuration').textContent = r.duration_text || (r.duration + '分钟');
+                        document.getElementById('readyDurationInfo').style.display = 'block';
                     }
                     
                     // 如果是统一试卷模式，在准备页显示提示
@@ -1044,7 +1123,15 @@ EXAM_HTML = '''
                     questions = r.questions;
                     renderQ();
                     show('examSec');
+                    
+                    // 启动计时器（已用时间）
                     timer = setInterval(tick, 1000);
+                    
+                    // 启动倒计时（如果设置了考试时长）
+                    if (examDuration > 0) {
+                        document.getElementById('countdownBar').style.display = 'block';
+                        startCountdown();
+                    }
                 } else {
                     alert(r.message);
                 }
@@ -1063,6 +1150,7 @@ EXAM_HTML = '''
             
             try {
                 clearInterval(timer);
+                stopCountdown();  // 停止倒计时
                 const r = await api('/submit', {session_id: sessionId, answers: answers});
                 
                 if (r.success) {
@@ -1090,6 +1178,43 @@ EXAM_HTML = '''
             this.disabled = false;
             this.innerHTML = '<i class="bi bi-check-circle me-2"></i>提交答卷';
         });
+        
+        // 提交试卷的函数（供超时自动提交使用）
+        async function submitExam() {
+            const submitBtn = document.getElementById('submitBtn');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="loading me-2"></span>自动提交中...';
+                
+                try {
+                    clearInterval(timer);
+                    stopCountdown();  // 停止倒计时
+                    const r = await api('/submit', {session_id: sessionId, answers: answers});
+                    
+                    if (r.success) {
+                        document.getElementById('scoreNum').textContent = r.score;
+                        
+                        let ok = 0, part = 0, err = 0;
+                        r.results.forEach(x => { if (x.is_correct) ok++; else if (x.score > 0) part++; else err++; });
+                        document.getElementById('okCnt').textContent = ok;
+                        document.getElementById('partCnt').textContent = part;
+                        document.getElementById('errCnt').textContent = err;
+                        
+                        const comment = r.score >= 90 ? '优秀！继续保持！' : r.score >= 80 ? '良好，再接再厉！' : r.score >= 60 ? '及格，需加强学习。' : '不及格，请认真复习。';
+                        document.getElementById('scoreComment').textContent = comment;
+                        
+                        document.getElementById('timeInfo').innerHTML = '<i class="bi bi-clock"></i> 用时 ' + (r.duration || '--') + ' | ' + (r.start_time || '') + ' ~ ' + (r.end_time || '');
+                        
+                        renderResult(r.results);
+                        show('resultSec');
+                    } else {
+                        alert('自动提交失败：' + r.message);
+                    }
+                } catch(e) {
+                    alert('自动提交失败：' + e.message);
+                }
+            }
+        }
         
         document.getElementById('exportBtn').addEventListener('click', async function() {
             this.disabled = true;
@@ -1130,6 +1255,7 @@ async def exam_verify(request: Request) -> JSONResponse:
     - chapter: 章节名称（可选，用于显示）
     - linkId: 链接ID（可选，用于统一试卷模式）
     - mode: 考试模式（可选，unified/random）
+    - duration: 考试时长（分钟，0表示不限制）
     """
     try:
         data = await request.json()
@@ -1138,6 +1264,7 @@ async def exam_verify(request: Request) -> JSONResponse:
         chapter = data.get('chapter', '')    # 章节名称（用于显示）
         link_id = data.get('linkId', '')    # 链接ID
         mode = data.get('mode', 'random')   # 考试模式
+        duration = data.get('duration', 30) # 考试时长（分钟）
         
         # 如果没有chapters数组但有chapter字段，转换为数组
         if not chapters and chapter:
@@ -1160,6 +1287,7 @@ async def exam_verify(request: Request) -> JSONResponse:
             'chapter': chapter,        # 保存章节名称到session（用于显示）
             'linkId': link_id,         # 保存链接ID到session
             'mode': mode,              # 保存考试模式到session
+            'duration': duration,      # 保存考试时长到session
             'questions': None,
             'answers': {},
             'start_time': datetime.now().isoformat()
@@ -1180,6 +1308,11 @@ async def exam_verify(request: Request) -> JSONResponse:
         if mode == 'unified':
             response_data['exam_mode'] = 'unified'
             response_data['exam_mode_text'] = '统一试卷模式（所有同学题目相同）'
+        
+        # 返回考试时长给前端
+        if duration > 0:
+            response_data['duration'] = duration
+            response_data['duration_text'] = f'{duration}分钟'
         
         return JSONResponse(response_data)
         
@@ -1562,6 +1695,20 @@ TEACHER_HTML = '''
                     </div>
                     
                     <div class="mb-3">
+                        <label class="form-label">考试时长限制</label>
+                        <select class="form-select" id="examDuration">
+                            <option value="0">不限制</option>
+                            <option value="15">15 分钟</option>
+                            <option value="30" selected>30 分钟</option>
+                            <option value="45">45 分钟</option>
+                            <option value="60">60 分钟</option>
+                            <option value="90">90 分钟</option>
+                            <option value="120">120 分钟</option>
+                        </select>
+                        <div class="form-text">超时将自动提交</div>
+                    </div>
+                    
+                    <div class="mb-3">
                         <label class="form-label">考试模式</label>
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="examMode" id="modeUnified" value="unified">
@@ -1751,9 +1898,10 @@ TEACHER_HTML = '''
             const isAllChapters = allChapters || (chapters.length === totalChapterCount && totalChapterCount > 0);
             
             const mode=document.querySelector('input[name="examMode"]:checked').value;
+            const duration=document.getElementById('examDuration').value;  // 获取考试时长
             
             try{
-                let url='/api/exam/chapter-link?mode=' + mode;
+                let url='/api/exam/chapter-link?mode=' + mode + '&duration=' + duration;
                 
                 // 根据选择构建请求
                 if(isAllChapters){
@@ -1769,6 +1917,9 @@ TEACHER_HTML = '''
                         infoHtml+='<span class="badge bg-secondary">全题库</span>';
                         if(data.question_count){
                             infoHtml+=' <span class="text-muted small">共' + data.question_count + '题</span>';
+                        }
+                        if(duration > 0){
+                            infoHtml+=' <span class="badge bg-warning text-dark">限时' + duration + '分钟</span>';
                         }
                         document.getElementById('linkInfo').innerHTML=infoHtml;
                         document.getElementById('linkDisplay').style.display='block';
@@ -1792,6 +1943,9 @@ TEACHER_HTML = '''
                         infoHtml+='<span class="badge bg-secondary">' + data.chapter + '</span>';
                         if(data.question_count){
                             infoHtml+=' <span class="text-muted small">共' + data.question_count + '题</span>';
+                        }
+                        if(duration > 0){
+                            infoHtml+=' <span class="badge bg-warning text-dark">限时' + duration + '分钟</span>';
                         }
                         document.getElementById('linkInfo').innerHTML=infoHtml;
                         document.getElementById('linkDisplay').style.display='block';
@@ -2009,10 +2163,12 @@ async def get_chapter_link(request: Request) -> JSONResponse:
     参数（GET）：
     - chapter: 章节名称（可选，不传则全题库）
     - mode: 考试模式（可选，unified=统一试卷，random=随机试卷，默认random）
+    - duration: 考试时长（分钟，0表示不限制，默认30）
     
     参数（POST）：
     - chapters: 章节数组
     - mode: 考试模式
+    - duration: 考试时长（分钟）
     
     返回：
     - link: 考试链接
@@ -2028,14 +2184,17 @@ async def get_chapter_link(request: Request) -> JSONResponse:
                 data = await request.json()
                 chapters = data.get('chapters', [])
                 mode = data.get('mode', 'random')
+                duration = int(data.get('duration', 30))  # 从请求中获取考试时长
                 chapter = None  # 后续根据chapters构建
             except:
                 chapters = []
                 mode = 'random'
+                duration = 30
         else:
             # GET 方式
             chapter = request.query_params.get('chapter', '')
             mode = request.query_params.get('mode', 'random')
+            duration = int(request.query_params.get('duration', 30))  # 从URL参数中获取考试时长
             chapters = [chapter] if chapter else []
         
         # 优先使用章节数组
@@ -2065,15 +2224,16 @@ async def get_chapter_link(request: Request) -> JSONResponse:
             # 预生成试卷
             selected_questions = random_select_questions(all_questions, 10)
             
-            # 存储预生成试卷
+            # 存储预生成试卷（包含考试时长）
             exam_papers[link_id] = {
                 'questions': selected_questions,
                 'chapter': chapter_display,
                 'mode': 'unified',
+                'duration': duration,  # 保存考试时长
                 'created_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             }
             
-            print(f"[统一试卷] 预生成试卷 linkId={link_id}, 章节={chapter_display}, 题目数={len(selected_questions)}")
+            print(f"[统一试卷] 预生成试卷 linkId={link_id}, 章节={chapter_display}, 题目数={len(selected_questions)}, 时长={duration}分钟")
         
         # 使用Coze平台地址（从环境变量或配置中获取）
         base_url = os.getenv('COZE_BASE_URL', 'https://90c19216-7224-4e07-9c9b-2d1be18d1149.dev.coze.site')
@@ -2090,10 +2250,11 @@ async def get_chapter_link(request: Request) -> JSONResponse:
         
         params.append(f"linkId={link_id}")
         params.append(f"mode={mode}")
+        params.append(f"duration={duration}")  # 添加考试时长到链接参数
         
         exam_link = f"{base_url}/exam?{'&'.join(params)}"
         
-        print(f"生成考试链接: {exam_link} (模式: {mode}, 章节: {chapter_display})")
+        print(f"生成考试链接: {exam_link} (模式: {mode}, 章节: {chapter_display}, 时长: {duration}分钟)")
         
         response_data = {
             'success': True,
