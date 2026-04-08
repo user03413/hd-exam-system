@@ -1690,6 +1690,35 @@ TEACHER_HTML = '''
                         select.appendChild(option);
                     });
                     
+                    // 添加全选/取消全选功能
+                    select.addEventListener('click', function(e){
+                        const clickedOption = e.target;
+                        if(clickedOption.tagName === 'OPTION' && clickedOption.value === ''){
+                            // 点击了"全题库"选项
+                            const isCtrlKey = e.ctrlKey || e.metaKey;
+                            
+                            if(clickedOption.selected){
+                                // 选中"全题库"，自动选中所有章节
+                                Array.from(select.options).forEach(opt => {
+                                    if(opt.value !== '') opt.selected = true;
+                                });
+                            }
+                        }
+                    });
+                    
+                    // 当选择具体章节时，取消"全题库"选项
+                    select.addEventListener('change', function(e){
+                        const selectedOptions = Array.from(this.selectedOptions);
+                        const hasAllOption = selectedOptions.some(opt => opt.value === '');
+                        const hasChapterOptions = selectedOptions.some(opt => opt.value !== '');
+                        
+                        if(hasChapterOptions && hasAllOption){
+                            // 如果同时选择了章节和全题库，取消全题库
+                            const allOption = this.querySelector('option[value=""]');
+                            if(allOption) allOption.selected = false;
+                        }
+                    });
+                    
                     console.log('章节列表加载完成');
                 } else {
                     console.error('章节API返回失败:', data.message);
@@ -1713,13 +1742,21 @@ TEACHER_HTML = '''
             // 检查是否选择了全题库选项
             const allChapters=selectedOptions.some(opt=>opt.value==='');
             
+            // 获取所有章节的总数（不包括"全题库"选项）
+            const totalChapterCount = select.options.length - 1;
+            
+            // 判断是否为全题库模式：
+            // 1. 选择了"全题库"选项，或者
+            // 2. 选择了所有章节（自动视为全题库）
+            const isAllChapters = allChapters || (chapters.length === totalChapterCount && totalChapterCount > 0);
+            
             const mode=document.querySelector('input[name="examMode"]:checked').value;
             
             try{
                 let url='/api/exam/chapter-link?mode=' + mode;
                 
                 // 根据选择构建请求
-                if(allChapters || chapters.length===0){
+                if(isAllChapters){
                     // 全题库模式
                     const res=await fetch(url);
                     const data=await res.json();
