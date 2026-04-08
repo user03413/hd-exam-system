@@ -788,14 +788,33 @@ EXAM_HTML = '''
     <script>
         // 读取URL参数中的章节信息
         const urlParams = new URLSearchParams(window.location.search);
-        const chapterParam = urlParams.get('chapter');
+        const chapterParam = urlParams.get('chapter'); // 单章节（兼容旧版）
+        const chaptersParam = urlParams.get('chapters'); // 多章节（新版）
         const linkIdParam = urlParams.get('linkId');
         const modeParam = urlParams.get('mode') || 'random'; // 考试模式，默认随机
         
         let sessionId = null, questions = [], answers = {}, extensions = {}, timer = null, seconds = 0;
-        let currentChapter = chapterParam || ''; // 当前考试章节
+        let currentChapter = ''; // 当前考试章节（用于显示）
+        let currentChapters = []; // 当前考试章节数组（用于API）
         let currentMode = modeParam; // 当前考试模式
         let currentLinkId = linkIdParam || ''; // 当前链接ID
+        
+        // 解析章节参数（支持单个和多个）
+        if (chaptersParam) {
+            // 多章节模式 - Base64解码
+            try {
+                const chaptersJson = decodeURIComponent(escape(atob(chaptersParam)));
+                currentChapters = JSON.parse(chaptersJson);
+                currentChapter = currentChapters.join('、'); // 用于显示
+            } catch (e) {
+                console.error('解析章节参数失败:', e);
+                currentChapters = [];
+            }
+        } else if (chapterParam) {
+            // 单章节模式（兼容）
+            currentChapter = chapterParam;
+            currentChapters = [chapterParam];
+        }
         
         // 页面加载时立即显示章节信息（如果有）
         if (currentChapter) {
@@ -972,7 +991,8 @@ EXAM_HTML = '''
             try {
                 const r = await api('/verify', {
                     student_id: id, 
-                    chapter: currentChapter,
+                    chapters: currentChapters, // 传递章节数组
+                    chapter: currentChapter, // 保留章节名称（用于显示）
                     linkId: currentLinkId,
                     mode: currentMode
                 });
@@ -1106,16 +1126,22 @@ async def exam_verify(request: Request) -> JSONResponse:
     
     参数：
     - student_id: 学号
-    - chapter: 章节参数（可选）
+    - chapters: 章节数组（可选）
+    - chapter: 章节名称（可选，用于显示）
     - linkId: 链接ID（可选，用于统一试卷模式）
     - mode: 考试模式（可选，unified/random）
     """
     try:
         data = await request.json()
         student_id = str(data.get('student_id', '')).strip()
-        chapter = data.get('chapter', '')  # 接收章节参数
-        link_id = data.get('linkId', '')   # 接收链接ID
-        mode = data.get('mode', 'random')  # 接收考试模式
+        chapters = data.get('chapters', [])  # 章节数组
+        chapter = data.get('chapter', '')    # 章节名称（用于显示）
+        link_id = data.get('linkId', '')    # 链接ID
+        mode = data.get('mode', 'random')   # 考试模式
+        
+        # 如果没有chapters数组但有chapter字段，转换为数组
+        if not chapters and chapter:
+            chapters = [chapter]
         
         if not student_id:
             return JSONResponse({'success': False, 'message': '请输入学号'})
@@ -1130,9 +1156,10 @@ async def exam_verify(request: Request) -> JSONResponse:
         
         exam_sessions[session_id] = {
             'student': student,
-            'chapter': chapter,      # 保存章节参数到session
-            'linkId': link_id,       # 保存链接ID到session
-            'mode': mode,            # 保存考试模式到session
+            'chapters': chapters,      # 保存章节数组到session
+            'chapter': chapter,        # 保存章节名称到session（用于显示）
+            'linkId': link_id,         # 保存链接ID到session
+            'mode': mode,              # 保存考试模式到session
             'questions': None,
             'answers': {},
             'start_time': datetime.now().isoformat()
@@ -1187,6 +1214,36 @@ def filter_questions_by_chapter(all_questions: Dict, chapter: str) -> Dict:
     return filtered
 
 
+def filter_questions_by_chapters(all_questions: Dict, chapters: List[str]) -> Dict:
+    """根据多个章节筛选题目"""
+    if not chapters:
+        return all_questions
+    
+    filtered = {'单选题': [], '多选题': [], '简答题': []}
+    
+    for q_type in ['单选题', '多选题', '简答题']:
+        for q in all_questions[q_type]:
+            q_chapter = q.get('chapter', '')
+            
+            # 检查是否匹配任何一个目标章节
+            for chapter in chapters:
+                chapter_match = re.search(r'第([一二三四五六七八九十百]+)章', chapter)
+                q_chapter_match = re.search(r'第([一二三四五六七八九十百]+)章', q_chapter)
+                
+                if chapter_match and q_chapter_match:
+                    # 比较章节号
+                    if chapter_match.group(1) == q_chapter_match.group(1):
+                        filtered[q_type].append(q)
+                        break  # 找到匹配就跳出
+                elif chapter in q_chapter or q_chapter in chapter:
+                    # 简单包含匹配
+                    filtered[q_type].append(q)
+                    break  # 找到匹配就跳出
+    
+    print(f"多章节筛选: {', '.join(chapters)} -> 单选{len(filtered['单选题'])}题, 多选{len(filtered['多选题'])}题, 简答{len(filtered['简答题'])}题")
+    return filtered
+
+
 async def exam_start(request: Request) -> JSONResponse:
     """开始考试
     
@@ -1202,7 +1259,8 @@ async def exam_start(request: Request) -> JSONResponse:
             return JSONResponse({'success': False, 'message': '会话无效，请重新登录'})
         
         session = exam_sessions[session_id]
-        chapter = session.get('chapter', '')  # 从session中获取章节参数
+        chapters = session.get('chapters', [])  # 从session中获取章节数组
+        chapter = session.get('chapter', '')    # 从session中获取章节名称（用于显示）
         mode = session.get('mode', 'random')  # 从session中获取考试模式
         link_id = session.get('linkId', '')   # 从session中获取链接ID
         
@@ -1216,20 +1274,25 @@ async def exam_start(request: Request) -> JSONResponse:
             # 随机试卷模式：独立随机抽题
             all_questions = load_questions()
             
-            # 如果有章节参数，筛选题目
-            if chapter:
+            # 如果有章节参数，筛选题目（支持多章节）
+            if chapters and len(chapters) > 0:
+                all_questions = filter_questions_by_chapters(all_questions, chapters)
+            elif chapter:
+                # 兼容单个章节
                 all_questions = filter_questions_by_chapter(all_questions, chapter)
                 
-                # 检查筛选后的题目数量
-                total_questions = len(all_questions['单选题']) + len(all_questions['多选题']) + len(all_questions['简答题'])
-                if total_questions < 10:
-                    return JSONResponse({
-                        'success': False, 
-                        'message': f'该章节题目数量不足（仅{total_questions}题），无法生成试卷'
-                    })
+            # 检查筛选后的题目数量
+            total_questions = len(all_questions['单选题']) + len(all_questions['多选题']) + len(all_questions['简答题'])
+            if total_questions < 10:
+                chapter_display = chapter if chapter else (', '.join(chapters) if chapters else '全题库')
+                return JSONResponse({
+                    'success': False, 
+                    'message': f'{chapter_display}题目数量不足（仅{total_questions}题），无法生成试卷'
+                })
             
             selected_questions = random_select_questions(all_questions, 10)
-            print(f"[随机试卷] 学生 {session['student']['name']} 随机抽题 章节={chapter or '全题库'}")
+            chapter_display = chapter if chapter else (', '.join(chapters) if chapters else '全题库')
+            print(f"[随机试卷] 学生 {session['student']['name']} 随机抽题 章节={chapter_display}")
         
         start_time = datetime.now()
         exam_sessions[session_id]['questions'] = selected_questions
@@ -1488,13 +1551,14 @@ TEACHER_HTML = '''
             <div class="card mb-4">
                 <div class="card-body">
                     <h5 class="mb-3"><i class="bi bi-book-half me-2"></i>章节出题</h5>
-                    <p class="text-muted small mb-3">选择章节生成专属考试链接，学生通过该链接只能考所选章节的题目</p>
+                    <p class="text-muted small mb-3">按住 <kbd>Ctrl</kbd> 或 <kbd>⌘</kbd> 点击可选择多个章节，学生通过链接只能考所选章节的题目</p>
                     
                     <div class="mb-3">
-                        <label class="form-label">选择章节</label>
-                        <select class="form-select" id="chapterSelect">
+                        <label class="form-label">选择章节（可多选）</label>
+                        <select class="form-select" id="chapterSelect" multiple size="8">
                             <option value="">-- 全题库（不限制章节）--</option>
                         </select>
+                        <div class="form-text">按住 Ctrl/Cmd 键点击可选择多个章节</div>
                     </div>
                     
                     <div class="mb-3">
@@ -1638,33 +1702,65 @@ TEACHER_HTML = '''
         
         // 生成章节考试链接
         async function generateChapterLink(){
-            const chapter=document.getElementById('chapterSelect').value;
+            const select=document.getElementById('chapterSelect');
+            const selectedOptions=Array.from(select.selectedOptions);
+            
+            // 收集所有选中的章节
+            const chapters=selectedOptions
+                .filter(opt=>opt.value!=='')
+                .map(opt=>opt.value);
+            
+            // 检查是否选择了全题库选项
+            const allChapters=selectedOptions.some(opt=>opt.value==='');
+            
             const mode=document.querySelector('input[name="examMode"]:checked').value;
             
             try{
                 let url='/api/exam/chapter-link?mode=' + mode;
-                if(chapter){
-                    url += '&chapter=' + encodeURIComponent(chapter);
-                }
                 
-                const res=await fetch(url);
-                const data=await res.json();
-                
-                if(data.success){
-                    document.getElementById('examLink').value=data.link;
+                // 根据选择构建请求
+                if(allChapters || chapters.length===0){
+                    // 全题库模式
+                    const res=await fetch(url);
+                    const data=await res.json();
                     
-                    // 显示链接信息
-                    let infoHtml = '<strong>考试链接已生成</strong><br>';
-                    infoHtml += '<span class="badge bg-' + (data.mode === 'unified' ? 'success' : 'primary') + '">' + (data.mode === 'unified' ? '统一试卷' : '随机试卷') + '</span> ';
-                    infoHtml += '<span class="badge bg-secondary">' + data.chapter + '</span>';
-                    if(data.question_count){
-                        infoHtml += ' <span class="text-muted small">共' + data.question_count + '题</span>';
+                    if(data.success){
+                        document.getElementById('examLink').value=data.link;
+                        
+                        let infoHtml='<strong>考试链接已生成</strong><br>';
+                        infoHtml+='<span class="badge bg-' + (data.mode==='unified'?'success':'primary') + '">' + (data.mode==='unified'?'统一试卷':'随机试卷') + '</span> ';
+                        infoHtml+='<span class="badge bg-secondary">全题库</span>';
+                        if(data.question_count){
+                            infoHtml+=' <span class="text-muted small">共' + data.question_count + '题</span>';
+                        }
+                        document.getElementById('linkInfo').innerHTML=infoHtml;
+                        document.getElementById('linkDisplay').style.display='block';
+                    }else{
+                        alert('生成链接失败：' + data.message);
                     }
-                    document.getElementById('linkInfo').innerHTML=infoHtml;
-                    
-                    document.getElementById('linkDisplay').style.display='block';
                 }else{
-                    alert('生成链接失败：' + data.message);
+                    // 指定章节模式 - 使用POST请求
+                    const res=await fetch(url,{
+                        method:'POST',
+                        headers:{'Content-Type':'application/json'},
+                        body:JSON.stringify({chapters:chapters})
+                    });
+                    const data=await res.json();
+                    
+                    if(data.success){
+                        document.getElementById('examLink').value=data.link;
+                        
+                        let infoHtml='<strong>考试链接已生成</strong><br>';
+                        infoHtml+='<span class="badge bg-' + (data.mode==='unified'?'success':'primary') + '">' + (data.mode==='unified'?'统一试卷':'随机试卷') + '</span> ';
+                        infoHtml+='<span class="badge bg-secondary">' + data.chapter + '</span>';
+                        if(data.question_count){
+                            infoHtml+=' <span class="text-muted small">共' + data.question_count + '题</span>';
+                        }
+                        document.getElementById('linkInfo').innerHTML=infoHtml;
+                        document.getElementById('linkDisplay').style.display='block';
+                    }else{
+                        alert('生成链接失败：' + data.message);
+                    }
                 }
             }catch(e){
                 alert('生成链接失败：' + e.message);
@@ -1871,11 +1967,15 @@ async def refresh_cache(request: Request) -> JSONResponse:
 
 
 async def get_chapter_link(request: Request) -> JSONResponse:
-    """生成章节考试链接
+    """生成章节考试链接（支持单个和多个章节）
     
-    参数：
+    参数（GET）：
     - chapter: 章节名称（可选，不传则全题库）
     - mode: 考试模式（可选，unified=统一试卷，random=随机试卷，默认random）
+    
+    参数（POST）：
+    - chapters: 章节数组
+    - mode: 考试模式
     
     返回：
     - link: 考试链接
@@ -1885,9 +1985,25 @@ async def get_chapter_link(request: Request) -> JSONResponse:
     - question_count: 题目数量（统一试卷模式）
     """
     try:
-        # 获取参数
-        chapter = request.query_params.get('chapter', '')
-        mode = request.query_params.get('mode', 'random')  # 默认随机试卷
+        # 支持 GET 和 POST 两种方式
+        if request.method == 'POST':
+            try:
+                data = await request.json()
+                chapters = data.get('chapters', [])
+                mode = data.get('mode', 'random')
+                chapter = None  # 后续根据chapters构建
+            except:
+                chapters = []
+                mode = 'random'
+        else:
+            # GET 方式
+            chapter = request.query_params.get('chapter', '')
+            mode = request.query_params.get('mode', 'random')
+            chapters = [chapter] if chapter else []
+        
+        # 优先使用章节数组
+        exam_chapters = chapters if chapters else []
+        chapter_display = '全题库' if not exam_chapters else '、'.join(exam_chapters)
         
         # 生成链接ID
         link_id = str(__import__('random').randrange(10000000, 99999999))
@@ -1897,8 +2013,9 @@ async def get_chapter_link(request: Request) -> JSONResponse:
             all_questions = load_questions()
             
             # 如果有章节参数，筛选题目
-            if chapter:
-                all_questions = filter_questions_by_chapter(all_questions, chapter)
+            if exam_chapters:
+                # 支持多章节筛选
+                all_questions = filter_questions_by_chapters(all_questions, exam_chapters)
             
             # 检查题目数量
             total_questions = len(all_questions['单选题']) + len(all_questions['多选题']) + len(all_questions['简答题'])
@@ -1914,31 +2031,37 @@ async def get_chapter_link(request: Request) -> JSONResponse:
             # 存储预生成试卷
             exam_papers[link_id] = {
                 'questions': selected_questions,
-                'chapter': chapter if chapter else '全题库',
+                'chapter': chapter_display,
                 'mode': 'unified',
                 'created_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             }
             
-            print(f"[统一试卷] 预生成试卷 linkId={link_id}, 章节={chapter or '全题库'}, 题目数={len(selected_questions)}")
+            print(f"[统一试卷] 预生成试卷 linkId={link_id}, 章节={chapter_display}, 题目数={len(selected_questions)}")
         
         # 使用Coze平台地址（从环境变量或配置中获取）
         base_url = os.getenv('COZE_BASE_URL', 'https://90c19216-7224-4e07-9c9b-2d1be18d1149.dev.coze.site')
         
         # 构建链接
         params = []
-        if chapter:
-            params.append(f"chapter={__import__('urllib').parse.quote(chapter)}")
+        
+        # 处理多章节参数 - 使用特殊格式
+        if exam_chapters:
+            import json
+            chapters_json = json.dumps(exam_chapters, ensure_ascii=False)
+            chapters_encoded = __import__('base64').b64encode(chapters_json.encode('utf-8')).decode('utf-8')
+            params.append(f"chapters={__import__('urllib').parse.quote(chapters_encoded)}")
+        
         params.append(f"linkId={link_id}")
         params.append(f"mode={mode}")
         
         exam_link = f"{base_url}/exam?{'&'.join(params)}"
         
-        print(f"生成考试链接: {exam_link} (模式: {mode})")
+        print(f"生成考试链接: {exam_link} (模式: {mode}, 章节: {chapter_display})")
         
         response_data = {
             'success': True,
             'link': exam_link,
-            'chapter': chapter if chapter else '全题库',
+            'chapter': chapter_display,
             'mode': mode,
             'linkId': link_id
         }
